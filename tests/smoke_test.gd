@@ -9,11 +9,24 @@ func _initialize() -> void:
 	await process_frame
 	var player := main.get_node_or_null("Player") as CharacterBody3D
 	assert(player != null)
+	var initial_portal_center: Vector3 = main.get("portal_center")
+	var expected_spawn := Vector2(initial_portal_center.x, initial_portal_center.z + 3.0)
+	assert(
+		Vector2(player.position.x, player.position.z).distance_to(expected_spawn) < 0.25,
+		"Unexpected portal spawn: player=%s portal=%s" % [player.position, initial_portal_center]
+	)
 	var visual := player.get_node("Visual") as Node3D
 	for character_name in ["Ranger", "Cleric", "Warrior", "Monk"]:
 		assert(ResourceLoader.exists("res://assets/quaternius/characters/%s.gltf" % character_name))
 	var player_model := visual.get_node_or_null("CharacterModel") as Node3D
 	assert(player_model != null)
+	assert(player_model.get_node_or_null("RiggedModel") is Node3D)
+	assert(player_model.get_node_or_null("AnimationPlayer") is AnimationPlayer)
+	assert(player_model.position.is_equal_approx(Vector3.ZERO))
+	assert(player_model.scale.is_equal_approx(Vector3.ONE))
+	var player_skeleton := player_model.find_child("Skeleton3D", true, false) as Skeleton3D
+	assert(player_skeleton != null and player_skeleton.get_bone_count() == 23)
+	var player_visual_height := _visual_height(player_model)
 	var player_animation := player_model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	assert(player_animation != null)
 	for animation_name in ["Idle", "Walk", "Run"]:
@@ -89,6 +102,10 @@ func _initialize() -> void:
 	assert(main.get_node("VillagePath") is CSGPolygon3D)
 	assert(main.get_node("VillageSquare") is CSGPolygon3D)
 	assert(main.get_node("PortalPath") is CSGPolygon3D)
+	assert(main.get_node("PondPath") is CSGPolygon3D)
+	var mist_pass_path := main.get_node("MistPassPath") as CSGPolygon3D
+	assert(mist_pass_path.material is StandardMaterial3D)
+	assert((mist_pass_path.material as StandardMaterial3D).albedo_texture is ImageTexture)
 	for track_name in ["NorthCartTrackLeft", "NorthCartTrackRight", "SouthCartTrackLeft", "SouthCartTrackRight"]:
 		var cart_track := main.get_node_or_null(track_name) as CSGPolygon3D
 		assert(cart_track != null)
@@ -133,15 +150,52 @@ func _initialize() -> void:
 		assert(wear_material.albedo_texture is GradientTexture2D)
 		var wear_texture := wear_material.albedo_texture as GradientTexture2D
 		assert(is_equal_approx(wear_texture.gradient.colors[0].a, 0.34))
-	assert(main.get_node("NorthCliff") is CSGBox3D)
-	assert(main.get_node("SouthCliff") is CSGBox3D)
-	assert(main.get_node("WestCliff") is CSGBox3D)
-	assert(main.get_node("EastCliff") is CSGBox3D)
-	assert(main.get_node("BoundaryScenery").get_child_count() == 30)
+	assert(main.get_node_or_null("NorthCliff") == null)
+	assert(ResourceLoader.exists("res://scenes/world/valley_boundary.tscn"))
+	var valley_boundary := main.get_node_or_null("ValleyBoundary") as Node3D
+	assert(valley_boundary != null)
+	assert(main.get_node_or_null("NorthCliffWest") == null)
+	var north_cliff_west := valley_boundary.get_node("NorthCliffWest") as CSGBox3D
+	var north_cliff_east := valley_boundary.get_node("NorthCliffEast") as CSGBox3D
+	assert(north_cliff_west.use_collision and north_cliff_east.use_collision)
+	assert(not north_cliff_west.visible and not north_cliff_east.visible)
+	assert(north_cliff_west.position.x < -4.0 and north_cliff_east.position.x > 4.0)
+	var mist_pass := main.get_node_or_null("MistPass") as Node3D
+	assert(mist_pass != null and mist_pass.get_child_count() >= 15)
+	var pass_boundary := mist_pass.get_node_or_null("MistPassBoundary") as CSGBox3D
+	assert(pass_boundary != null and pass_boundary.use_collision and not pass_boundary.visible)
+	assert(mist_pass.get_node_or_null("MistPillarLeft") is CSGCylinder3D)
+	assert(mist_pass.get_node_or_null("MistPillarRight") is CSGCylinder3D)
+	for step_index in 3:
+		var mist_step := mist_pass.get_node_or_null("MistStep%d" % step_index) as CSGBox3D
+		assert(mist_step != null)
+		assert((mist_step.material as StandardMaterial3D).albedo_texture is ImageTexture)
+	var mist_curtain := mist_pass.get_node_or_null("MistCurtain") as MeshInstance3D
+	assert(mist_curtain != null)
+	var mist_curtain_material := mist_curtain.material_override as ShaderMaterial
+	assert(mist_curtain_material != null)
+	assert((mist_curtain_material.shader as Shader).resource_path == "res://shaders/mist_curtain.gdshader")
+	for rune_name in ["MistRuneLeft", "MistRuneRight"]:
+		var rune := mist_pass.get_node_or_null(rune_name) as MeshInstance3D
+		assert(rune != null)
+		assert((rune.material_override as StandardMaterial3D).emission_enabled)
+	var south_cliff := valley_boundary.get_node("SouthCliff") as CSGBox3D
+	var west_cliff := valley_boundary.get_node("WestCliff") as CSGBox3D
+	var east_cliff := valley_boundary.get_node("EastCliff") as CSGBox3D
+	for cliff in [south_cliff, west_cliff, east_cliff]:
+		assert(cliff.use_collision and not cliff.visible)
+	var cliff_visuals := valley_boundary.get_node_or_null("CliffVisuals") as Node3D
+	assert(cliff_visuals != null and cliff_visuals.get_child_count() >= 36)
+	for cliff_index in cliff_visuals.get_child_count():
+		var cliff_rock := cliff_visuals.get_child(cliff_index) as Node3D
+		assert(cliff_rock.name == "CliffRock%02d" % cliff_index)
+		if cliff_rock.position.z < -25.0 and absf(cliff_rock.position.x) < 10.0:
+			assert(cliff_rock.scale.x <= 2.1)
+	assert(main.get_node("BoundaryScenery").get_child_count() == 29)
 	var fog_banks: Array = main.get("fog_banks")
-	assert(fog_banks.size() == 6)
-	assert(main.get("fog_bank_origins").size() == 6)
-	for fog_index in range(6):
+	assert(fog_banks.size() == 7)
+	assert(main.get("fog_bank_origins").size() == 7)
+	for fog_index in range(7):
 		var fog_bank := main.get_node_or_null("FogBank%d" % fog_index) as MeshInstance3D
 		assert(fog_bank != null)
 		assert(fog_bank.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
@@ -252,6 +306,16 @@ func _initialize() -> void:
 		assert(not identity_label.visible)
 		var npc_model := npc.get_node_or_null("Visual/CharacterModel") as Node3D
 		assert(npc_model != null)
+		assert(npc_model.get_node_or_null("RiggedModel") is Node3D)
+		assert(npc_model.find_child("OtherworldMark", true, false) == null)
+		assert(npc_model.position.is_equal_approx(Vector3.ZERO))
+		assert(npc_model.scale.is_equal_approx(Vector3.ONE))
+		var npc_skeleton := npc_model.find_child("Skeleton3D", true, false) as Skeleton3D
+		assert(npc_skeleton != null and npc_skeleton.get_bone_count() == 23)
+		var npc_visual_height := _visual_height(npc_model)
+		assert(npc_visual_height >= player_visual_height * 0.8)
+		assert(npc_visual_height <= player_visual_height * 1.3)
+		assert(identity_label.position.y >= npc_visual_height + 0.2)
 		var npc_animation := npc_model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 		assert(npc_animation != null)
 		assert(npc_animation.has_animation("Idle"))
@@ -425,3 +489,17 @@ func _initialize() -> void:
 	assert(main.get_child_count() > 20)
 	print("SMOKE TEST PASSED")
 	quit(0)
+
+
+func _visual_height(root_node: Node3D) -> float:
+	var bounds := AABB()
+	var has_bounds := false
+	for mesh_node in root_node.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := mesh_node as MeshInstance3D
+		if mesh_instance.name == "OtherworldMark":
+			continue
+		var mesh_bounds: AABB = mesh_instance.global_transform * mesh_instance.get_aabb()
+		bounds = bounds.merge(mesh_bounds) if has_bounds else mesh_bounds
+		has_bounds = true
+	assert(has_bounds)
+	return bounds.size.y

@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource path="res://assets/kaykit/adventurers/Rogue_Hooded.glb" type="PackedScene" id="1_model"]
+[ext_resource path="res://scripts/drifter_visual.gd" type="Script" id="2_script"]
+
+[node name="DrifterVisual" type="Node3D"]
+script = ExtResource("2_script")
+tint_color = Color(0.72, 0.78, 0.70, 1)
+rim_color = Color(0.30, 0.72, 0.68, 1)
+saturation = 0.68
+value_scale = 0.78
+rim_strength = 0.1
+add_otherworld_mark = true
+
+[node name="RiggedModel" parent="." instance=ExtResource("1_model")]

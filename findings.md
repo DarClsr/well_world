@@ -263,3 +263,45 @@
 - Existing `_add_ground_patch()` already produces radial transparent planes but fixes them at y=0.025 below the village square; one optional elevation argument can safely reuse it at y=0.12.
 - Selected anchors: hearth `(4.8,-3.8)`, herb/work area `(-4.3,-10.3)`, wagon `(-5.3,-2.0)`, and east house approach `(6.3,-7.2)`.
 - Current playable PID 55440 remains responsive before Phase 32 edits.
+
+# 2026-08-31 Phase 34
+
+- 新下载 Quaternius MegaKit 的同名自然与村庄资产，其 `.bin` 网格与 PNG 贴图和项目现有版本哈希一致；替换同名模型不会带来画质增量。
+- Universal Base Characters Standard 免费包实测只含 Superhero 男女完整身体，并不含官方网站完整套件描述中的 Teen/Regular；不能作为免费玩家方案。
+- Quaternius Standard Ranger/Peasant 服装为 65 骨骼且不带动画，比例偏修长，更适合 NPC 或静态对照。
+- KayKit Hooded Rogue 与免费动画库均为 23 骨骼，骨骼路径一致为 `Rig_Medium/Skeleton3D`；可直接合并动画，无需首轮重定向。
+- KayKit 角色使用单张渐变图集和单一材质，无法靠局部 `albedo_color` 精细换装；全局低饱和 Toon Shader 可作为原型，最终辨识色需要专属调色贴图。
+- 动画包装必须让 AnimationPlayer 的 `root_node` 指向 `../RiggedModel`；在节点入树前调用 `get_path_to()` 会得到空路径并产生缓存警告。
+- 漂泊者在 1280×720 开场、前进和横移录制中落地稳定，帽兜剪影和方向可读；与旧 NPC 的比例差异留待后续 NPC 风格统一阶段处理。
+
+# 2026-08-31 Phase 35
+
+- KayKit Mage、Knight、Rogue 与 Hooded Rogue 使用相同 `Rig_Medium` 23 骨骼，可复用同一个 General/Movement 动画适配器。
+- 固定 `Label3D.position.y = 2.25` 不适用于大帽檐角色；角色视觉高度加 `0.28m` 的动态偏移在当前镜头下避免遮挡，同时保留世界空间尺寸。
+- 同家族角色的统一基础缩放通过视觉高度比例断言：NPC 必须处于玩家可见高度的 0.8～1.3 倍。
+- Mage 帽子、Knight 盔甲和 Rogue 披风形成三种清楚职业剪影，比依赖文字标签更符合新的美术规范。
+
+# 2026-08-31 Phase 36
+
+- 玩家旧出生点 `(0, 1, 14)` 位于主路中央，与“从异界石环苏醒”的叙事不一致；传送门中心约为 `(10, 0, 11)`，适合把出生点改到其南侧约 3 米。
+- `NorthCliff` 当前是一整块宽 60 米的碰撞 CSG，虽然道路多边形延伸到 `z=-28`，实际北侧不可形成山口。
+- 拆成左右两块悬崖并保留中央 8 米缺口，可在不改变谷地整体边界的情况下建立清楚出口。
+- 雾池位于 `(-10, 0, 12)`，传送门支路与主路交汇在 `z≈11`；从交汇点增加短支路即可形成“主线前进 / 可选调查雾池”的序章选择。
+- 玩家位于传送门南侧 3 米时会被附近碰撞轻推约 0.15 米，测试应约束 XZ 距目标小于 0.25 米，而不是要求等待一帧后变换完全相等。
+- 北侧旧边界景观在 `(0, 0, -24.7)` 放置了一块约 1.9 倍大岩石；即使拆分悬崖，它仍会在实际镜头中封死中央缺口，必须移除。
+- 三层无碰撞薄石阶足以提供上升节奏，不会让 CharacterBody3D 在出口前发生物理抖动。
+- Compatibility 渲染器下的低透明径向渐变雾幕与背景接近，远景辨识不足；专用 `spatial` Shader 以动态双波形和约 0.6 中心密度提供更稳定的雾墙读性。
+- 山口路径直接使用纯色材质会像灰盒；复制现有压实土材质并改为灰褐色，可保留同一世界的表面语言。
+
+# 2026-08-31 Phase 37
+
+- 四向 CSG 碰撞盒可以全部 `visible=false`；现有边界碰撞与视觉山脊不必由同一节点承担。
+- 单层 39 个 Rock_Medium 实例加上原有 BoundaryScenery 足以遮蔽当前小地图边缘，无需引入 Terrain3D。
+- 北侧山口附近的岩石需要独立尺度上限；全局统一大缩放会再次形成“岩石堵门”。
+- CameraRig 的旋转由 Player `camera_yaw` 每物理帧覆盖，测试捕获若要检查固定多视角必须先暂停玩家物理。
+- `ValleyBoundary` 场景只暴露一次性 `build(stone_material)`，将碰撞和可见山体封装在同一责任内；主场景不再知道每块岩石的位置。
+- 新 `class_name` 在未运行编辑器扫描的无头进程中不可依赖；通过 Node3D 场景接口调用可避免本地缓存耦合。
+
+# 2026-08-31 Phase 38
+
+- 山口已有 `MistPassBoundary`、`MistCurtain`、两枚符石和局部灯光，具备低成本交互反馈所需的全部视觉节点，不需要新增素材。

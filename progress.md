@@ -391,3 +391,59 @@
 - Final full smoke regression passed after the Phase 33 road and ground changes.
 - Phase 32 and Phase 33 are complete; stopped feature development at the user's request and moved to first-commit preparation.
 - First-commit audit passed: 243 files / about 109 MB, no oversized file, no secret-pattern hit, and asset/audio licensing records are present.
+
+# 2026-08-31 Phase 34
+
+- 根据新的《Death's Door》式美术方向完成第一轮免费素材评估，建立独立 `ArtEvaluation` 场景。
+- 哈希复核确认新下载的 Quaternius 自然与村庄模型，其二进制网格和贴图与项目现有对应资产一致；仅 glTF 元数据不同，因此不做无收益替换。
+- KayKit Hooded Rogue 在统一身高和同镜头对比中拥有最清楚的帽兜、披风和紧凑比例，选为漂泊者玩家原型。
+- 新增独立 `DrifterVisual` 场景，合并 KayKit General 与 Movement 动画库，并映射为现有 `Player.gd` 使用的 Idle、Walk、Run、Interact 和 PickUp。
+- 新增共享 `drifter_palette.gdshader`，以 Toon 漫反射、低饱和森林绿、较高粗糙度和克制青色边缘光压低原始玩具感。
+- 在 KayKit chest 骨骼下增加青色异界印记，使其随 Idle/Run 动画移动。
+- 将 `main.gd` 玩家外观替换为 `DrifterVisual`，碰撞、移动、脚步、镜头和开场节点契约保持不变。
+- 最终 `DRIFTER VISUAL TEST PASSED` 与 `SMOKE TEST PASSED`；仅保留原冒烟脚本已有的 ObjectDB/资源退出警告。
+- 实机移动录制共 155 帧：前进与横移时 Run、朝向、落地和镜头提前量均正常。
+- 保留开场、前进和横移最终帧；移除重复录制帧与无用 AVI。
+- 自审后将约 183 MB 的临时评估目录迁移到 Git 忽略的 `.downloads/art-evaluation/curated-evaluation/`，正式项目只保留约 2.3 MB KayKit 玩家最小依赖。
+- 完成阶段 34。
+
+# 2026-08-31 Phase 35
+
+- 玩家替换后实机画面暴露出新玩家与旧 NPC 头身比例不一致，选择同一 KayKit Adventurers 家族继续统一角色。
+- Mage、Knight、非兜帽 Rogue 分别对应药草师米拉、守门人托伦和织工尼娅；三者与玩家共享 23 骨骼和同一动画库。
+- 抽取 `kaykit_character_visual.gd`，统一完成 Idle/Walk/Run/Interact/PickUp 动画别名、Toon 材质和角色调色；漂泊者子场景只额外启用异界印记。
+- 完整冒烟测试新增统一骨骼数、基础缩放和视觉高度比例约束，防止角色忽大忽小或重新混入修长体型。
+- 首轮村庄近景发现米拉大帽檐与身份标签重叠；新增按模型可见包围盒计算标签高度，回归测试后重录通过。
+- 村民巡游暂停漂移保持 `0.0`，尼娅注视误差约 `0.0108 rad`；巡游、采集、注视和对白逻辑未回归。
+- 完成阶段 35。
+
+# 2026-08-31 Phase 36
+
+- 用户明确要求序章场景本身持续变化，而非只替换人物。
+- 当前世界坐标显示主路已贯穿南北、传送门和雾池位于南段两侧、村庄位于中北段；最高价值改造是重新建立出生、支路和北侧出口三段叙事动线。
+- 玩家出生点从主路中央移到异界石环中心南侧约 3 米；首帧碰撞只产生约 0.15 米横向解交叠，保持在 0.25 米契约内。
+- 新增 `PondPath`，从传送门与主路交汇处向西连接雾池东岸，形成可选调查支路。
+- 将单块 `NorthCliff` 拆成 `NorthCliffWest/East`，保留约 8 米中央缺口；新增 `MistPassPath` 与不可见 `MistPassBoundary`。
+- 首轮山口画面发现旧边界中央岩石仍堵住缺口；移除该岩石，并加入三层低矮石阶。
+- 第二轮画面确认通道打开，但雾墙不可读；新增 `mist_curtain.gdshader`、两枚青色符石和加强后的局部冷光。
+- 复用道路 64×64 无缝纹理处理灰褐山口路面和台阶，消除纯色灰盒感。
+- 最终路线录制确认石环出生、雾池岔路和浓雾山口三个画面节点均在 12 米玩法镜头下可读。
+- 完整冒烟测试覆盖出生点、两条新路径、左右悬崖、15 个山口节点、碰撞边界、石阶、雾幕 Shader、符石和第七片漂雾，输出 `SMOKE TEST PASSED`。
+- 完成阶段 36。
+
+# 2026-08-31 Phase 37
+
+- 以测试锁定五块 CSG 悬崖必须隐藏但保留碰撞，并要求新的 `CliffVisuals` 至少提供 36 个可见岩石实例。
+- 首版生成 39 个错位岩石山脊，成功消除直线灰墙，但山口内侧两块岩石过大，压迫玩家和符石焦点。
+- 为岩石实例增加稳定 `CliffRock00..38` 命名，并限制北侧中央 20 米范围的最大缩放不超过 2.1。
+- 山口近景复核通过；最大 20 米镜头四向旋转确认没有重新出现直线 CSG 墙体。
+- 首轮四向录制因 Player 物理每帧重置 CameraRig yaw 而得到四张同向画面；捕获脚本暂停玩家物理后重录成功，生产逻辑无需修改。
+- 新增独立 `scenes/world/valley_boundary.tscn` 与 `valley_boundary.gd`，迁移五个碰撞盒和 39 个可见岩石。
+- 无编辑器全局类缓存时，`ValleyBoundary` 类型不可见导致解析失败；取消 `class_name` 依赖，主场景通过 Node3D 公开 `build()` 接口调用。
+- 组件化前后同一山口机位画面一致，完整冒烟测试输出 `SMOKE TEST PASSED`。
+- 完成阶段 37。
+
+# 2026-08-31 Phase 38
+
+- 浓雾山口已经形成视觉和碰撞边界，但玩家靠近时没有任何剧情或交互反馈；它目前仍只是布景，不是序章目标。
+- 用户要求暂停开发并提交推送；Phase 38 尚未进入功能实现，状态改回 `pending`，不在本次提交中声称完成。

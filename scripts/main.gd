@@ -5,10 +5,12 @@ const MistValleyAmbience = preload("res://assets/audio/mist_valley_ambience.ogg"
 const PortalHum = preload("res://assets/audio/portal_hum.ogg")
 const PortalReact = preload("res://assets/audio/portal_react.ogg")
 const HearthFire = preload("res://assets/audio/hearth_fire.ogg")
-const RangerCharacter = preload("res://assets/quaternius/characters/Ranger.gltf")
-const ClericCharacter = preload("res://assets/quaternius/characters/Cleric.gltf")
-const WarriorCharacter = preload("res://assets/quaternius/characters/Warrior.gltf")
-const MonkCharacter = preload("res://assets/quaternius/characters/Monk.gltf")
+const MistCurtainShader = preload("res://shaders/mist_curtain.gdshader")
+const DrifterCharacter = preload("res://scenes/player/drifter_visual.tscn")
+const MiraCharacter = preload("res://scenes/npc/mira_visual.tscn")
+const TorenCharacter = preload("res://scenes/npc/toren_visual.tscn")
+const NiaCharacter = preload("res://scenes/npc/nia_visual.tscn")
+const ValleyBoundaryScene = preload("res://scenes/world/valley_boundary.tscn")
 const HERB_PLOT_POSITION := Vector3(-4.0, 0.0, -10.8)
 
 var ground_material := _material(Color("6f8f65"), 0.95)
@@ -312,10 +314,10 @@ func _build_world() -> void:
 	_add_ground_patch("GrassShadeSouth", Vector3(-13, 0, 17), 7.5, Vector2(1.35, 0.75), Color("66835f"))
 	_add_ground_patch("GrassLightSouth", Vector3(14, 0, 19), 7.0, Vector2(1.25, 0.8), Color("78956d"))
 	_add_ground_patch("GrassShadeNorth", Vector3(0, 0, -23), 9.0, Vector2(1.45, 0.65), Color("66835f"))
-	_add_box("NorthCliff", Vector3(60.0, 8.0, 5.0), Vector3(0.0, 3.0, -27.0), stone_material, true)
-	_add_box("SouthCliff", Vector3(60.0, 7.0, 5.0), Vector3(0.0, 2.5, 32.0), stone_material, true)
-	_add_box("WestCliff", Vector3(5.0, 7.0, 59.0), Vector3(-27.0, 2.5, 2.5), stone_material, true)
-	_add_box("EastCliff", Vector3(5.0, 7.0, 59.0), Vector3(27.0, 2.5, 2.5), stone_material, true)
+	var valley_boundary := ValleyBoundaryScene.instantiate() as Node3D
+	assert(valley_boundary != null)
+	add_child(valley_boundary)
+	valley_boundary.call("build", stone_material)
 	_add_boundary_scenery()
 	_add_fog_banks()
 	_add_path("VillagePath", PackedVector2Array([
@@ -334,6 +336,19 @@ func _build_world() -> void:
 		Vector2(2, 9.2), Vector2(6, 9.5), Vector2(10, 8.8), Vector2(13, 9.8),
 		Vector2(13, 12.5), Vector2(10, 13.1), Vector2(6, 12.4), Vector2(2, 12.8),
 	]), 0.06)
+	_add_path("PondPath", PackedVector2Array([
+		Vector2(-1.8, 10.4), Vector2(-1.8, 13.2), Vector2(-4.5, 14.0),
+		Vector2(-7.0, 13.8), Vector2(-7.4, 11.6), Vector2(-4.8, 11.8),
+	]), 0.065)
+	var mist_pass_material := path_material.duplicate() as StandardMaterial3D
+	mist_pass_material.albedo_color = Color("777768")
+	mist_pass_material.roughness = 0.98
+	mist_pass_material.uv1_scale = Vector3.ONE * 3.5
+	_add_path("MistPassPath", PackedVector2Array([
+		Vector2(-3.2, -31.5), Vector2(3.2, -31.5), Vector2(3.0, -21.0),
+		Vector2(2.6, -18.0), Vector2(-2.6, -18.0), Vector2(-3.0, -21.0),
+	]), 0.085, mist_pass_material)
+	_add_mist_pass()
 	var track_material := _material(Color("78644a"), 1.0)
 	_add_cart_tracks("NorthCartTrack", PackedVector2Array([
 		Vector2(0.0, -27.5), Vector2(0.1, -23.0), Vector2(0.2, -19.0), Vector2(0.0, -14.5),
@@ -416,7 +431,7 @@ func _build_world() -> void:
 func _build_player() -> void:
 	var player := CharacterBody3D.new()
 	player.name = "Player"
-	player.position = Vector3(0.0, 1.0, 14.0)
+	player.position = portal_center + Vector3(0.0, 1.0, 3.0)
 	player.set_script(PlayerScript)
 
 	var collider := CollisionShape3D.new()
@@ -430,7 +445,7 @@ func _build_player() -> void:
 	var visual := Node3D.new()
 	visual.name = "Visual"
 	player.add_child(visual)
-	_attach_character_model(visual, RangerCharacter, 0.64, -0.95)
+	_attach_character_model(visual, DrifterCharacter, 1.0, 0.0)
 
 	var rig := Node3D.new()
 	rig.name = "CameraRig"
@@ -451,9 +466,9 @@ func _build_player() -> void:
 
 
 func _build_villagers() -> void:
-	_add_villager("HerbalistMira", Vector3(-4.8, 0.0, -9.3), 2.55, ClericCharacter, Vector3.RIGHT)
-	_add_villager("GatekeeperToren", Vector3(5.0, 0.0, -7.0), -2.35, WarriorCharacter, Vector3.BACK)
-	_add_villager("WeaverNia", Vector3(-5.5, 0.0, 6.5), 1.15, MonkCharacter, Vector3.BACK)
+	_add_villager("HerbalistMira", Vector3(-4.8, 0.0, -9.3), 2.55, MiraCharacter, Vector3.RIGHT)
+	_add_villager("GatekeeperToren", Vector3(5.0, 0.0, -7.0), -2.35, TorenCharacter, Vector3.BACK)
+	_add_villager("WeaverNia", Vector3(-5.5, 0.0, 6.5), 1.15, NiaCharacter, Vector3.BACK)
 
 
 func _add_villager(npc_name: String, npc_position: Vector3, facing: float, character_scene: PackedScene, patrol_axis: Vector3) -> void:
@@ -482,7 +497,7 @@ func _add_villager(npc_name: String, npc_position: Vector3, facing: float, chara
 	npc.add_child(visual)
 	villager_visuals.append(visual)
 	villager_rotations.append(facing)
-	var animation_player := _attach_character_model(visual, character_scene, 0.62, 0.0)
+	var animation_player := _attach_character_model(visual, character_scene, 1.0, 0.0)
 	animation_player.get_animation("Walk").loop_mode = Animation.LOOP_LINEAR
 	if npc_name == "HerbalistMira":
 		animation_player.get_animation("PickUp").loop_mode = Animation.LOOP_NONE
@@ -494,7 +509,8 @@ func _add_villager(npc_name: String, npc_position: Vector3, facing: float, chara
 		"HerbalistMira": label.text = "米拉 · 药草师"
 		"GatekeeperToren": label.text = "托伦 · 守门人"
 		_: label.text = "尼娅 · 织工"
-	label.position.y = 2.25
+	var npc_model := visual.get_node("CharacterModel") as Node3D
+	label.position.y = _visual_height(npc_model) + 0.28
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.fixed_size = false
 	label.pixel_size = 0.012
@@ -518,6 +534,20 @@ func _attach_character_model(visual: Node3D, character_scene: PackedScene, scale
 		animation_player.get_animation("Idle").loop_mode = Animation.LOOP_LINEAR
 		animation_player.play("Idle")
 	return animation_player
+
+
+func _visual_height(root_node: Node3D) -> float:
+	var bounds := AABB()
+	var has_bounds := false
+	for mesh_node in root_node.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := mesh_node as MeshInstance3D
+		if mesh_instance.name == "OtherworldMark":
+			continue
+		var mesh_bounds: AABB = mesh_instance.global_transform * mesh_instance.get_aabb()
+		bounds = bounds.merge(mesh_bounds) if has_bounds else mesh_bounds
+		has_bounds = true
+	assert(has_bounds, "Character visual has no mesh bounds")
+	return bounds.size.y
 
 
 func _build_arrival(player: CharacterBody3D, camera: Camera3D) -> void:
@@ -994,6 +1024,109 @@ func _add_village_props() -> void:
 	fence_collision.visible = false
 
 
+func _add_mist_pass() -> void:
+	var pass_root := Node3D.new()
+	pass_root.name = "MistPass"
+	add_child(pass_root)
+
+	var boundary := _add_box(
+		"MistPassBoundary",
+		Vector3(8.0, 4.0, 0.8),
+		Vector3(0.0, 2.0, -31.2),
+		stone_material,
+		true,
+		pass_root
+	)
+	boundary.visible = false
+
+	for pillar_data in [
+		["MistPillarLeft", Vector3(-3.65, 1.55, -26.5), -0.12],
+		["MistPillarRight", Vector3(3.65, 1.55, -26.5), 0.1],
+	]:
+		var pillar := CSGCylinder3D.new()
+		pillar.name = pillar_data[0]
+		pillar.radius = 0.72
+		pillar.height = 3.1
+		pillar.sides = 8
+		pillar.position = pillar_data[1]
+		pillar.rotation.z = pillar_data[2]
+		pillar.material = stone_material
+		pillar.use_collision = true
+		pass_root.add_child(pillar)
+
+	var step_material := path_material.duplicate() as StandardMaterial3D
+	step_material.albedo_color = Color("686b60")
+	step_material.roughness = 0.98
+	step_material.uv1_scale = Vector3.ONE * 3.5
+	for step_index in 3:
+		_add_box(
+			"MistStep%d" % step_index,
+			Vector3(5.6 - float(step_index) * 0.35, 0.12, 1.75),
+			Vector3(0.0, 0.06 + float(step_index) * 0.055, -23.0 - float(step_index) * 1.8),
+			step_material,
+			false,
+			pass_root
+		)
+
+	var mist_material := ShaderMaterial.new()
+	mist_material.shader = MistCurtainShader
+	var mist_mesh := QuadMesh.new()
+	mist_mesh.size = Vector2(8.0, 5.0)
+	var mist_curtain := MeshInstance3D.new()
+	mist_curtain.name = "MistCurtain"
+	mist_curtain.mesh = mist_mesh
+	mist_curtain.material_override = mist_material
+	mist_curtain.position = Vector3(0.0, 2.4, -29.4)
+	mist_curtain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	pass_root.add_child(mist_curtain)
+
+	var rune_material := _material(Color("79c9bd"), 0.25)
+	rune_material.emission_enabled = true
+	rune_material.emission = Color("78d6c8")
+	rune_material.emission_energy_multiplier = 1.5
+	var rune_mesh := SphereMesh.new()
+	rune_mesh.radius = 0.11
+	rune_mesh.height = 0.22
+	rune_mesh.radial_segments = 10
+	rune_mesh.rings = 5
+	for rune_data in [
+		["MistRuneLeft", Vector3(-2.8, 1.1, -27.0)],
+		["MistRuneRight", Vector3(2.8, 1.1, -27.0)],
+	]:
+		var rune := MeshInstance3D.new()
+		rune.name = rune_data[0]
+		rune.mesh = rune_mesh
+		rune.material_override = rune_material
+		rune.position = rune_data[1]
+		pass_root.add_child(rune)
+
+	for rock_data in [
+		["Rock_Medium_1", Vector3(-4.7, 0.0, -25.7), 0.3, 1.45],
+		["Rock_Medium_2", Vector3(4.8, 0.0, -25.8), 2.1, 1.5],
+		["Rock_Medium_2", Vector3(-3.9, 0.0, -28.5), 1.2, 1.15],
+		["Rock_Medium_1", Vector3(4.0, 0.0, -28.6), 2.7, 1.1],
+	]:
+		_add_model(
+			"res://assets/quaternius/nature/%s.gltf" % rock_data[0],
+			rock_data[1],
+			rock_data[2],
+			rock_data[3],
+			pass_root
+		)
+
+	for light_data in [
+		["MistPassLightLeft", Vector3(-2.8, 1.15, -27.0)],
+		["MistPassLightRight", Vector3(2.8, 1.15, -27.0)],
+	]:
+		var light := OmniLight3D.new()
+		light.name = light_data[0]
+		light.position = light_data[1]
+		light.light_color = Color("8fb9b2")
+		light.light_energy = 0.42
+		light.omni_range = 4.0
+		pass_root.add_child(light)
+
+
 func _add_boundary_scenery() -> void:
 	var boundary := Node3D.new()
 	boundary.name = "BoundaryScenery"
@@ -1006,7 +1139,7 @@ func _add_boundary_scenery() -> void:
 		[Vector3(24.7, 0, -2), 1.6, 1.8], [Vector3(24.3, 0, 8), 2.3, 2.1],
 		[Vector3(24.6, 0, 18), 0.9, 1.9], [Vector3(24.1, 0, 28), 1.8, 2.3],
 		[Vector3(-20, 0, -24.5), 0.3, 2.0], [Vector3(-10, 0, -24.2), 1.2, 2.2],
-		[Vector3(0, 0, -24.7), 2.1, 1.9], [Vector3(10, 0, -24.3), 2.8, 2.3],
+		[Vector3(10, 0, -24.3), 2.8, 2.3],
 		[Vector3(20, 0, -24.5), 0.7, 2.0], [Vector3(-20, 0, 29.5), 2.5, 2.2],
 		[Vector3(-10, 0, 29.2), 1.5, 1.9], [Vector3(0, 0, 29.7), 0.4, 2.3],
 		[Vector3(10, 0, 29.3), 2.0, 2.0], [Vector3(20, 0, 29.5), 1.0, 2.2],
@@ -1053,6 +1186,7 @@ func _add_fog_banks() -> void:
 		Vector3(19.0, 1.4, 18.0),
 		Vector3(-7.0, 1.6, -23.0),
 		Vector3(8.0, 1.1, 27.0),
+		Vector3(0.0, 1.55, -28.0),
 	]
 	for index in positions.size():
 		var fog := MeshInstance3D.new()
@@ -1061,6 +1195,8 @@ func _add_fog_banks() -> void:
 		fog.material_override = fog_material
 		fog.position = positions[index]
 		fog.scale = Vector3(1.0 + float(index % 3) * 0.16, 0.85 + float(index % 2) * 0.18, 1.0)
+		if index == 6:
+			fog.scale = Vector3(1.8, 1.4, 1.0)
 		fog.transparency = 0.34
 		fog.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(fog)
