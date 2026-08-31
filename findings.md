@@ -1,0 +1,265 @@
+# 调研记录
+
+- Phase 32 恢复核对确认：计划仍为 `in_progress`，四个村庄软边磨损节点及对应冒烟断言均已落盘；工作区仍为整库未跟踪状态，没有可归因于外部改动的冲突。
+- 现有 MovieWriter 脚本都直接实例化主场景、移动玩家并调整既有镜头，不需要新增录制基类；Phase 32 可用同一模式从广场中心附近拉远镜头检查四处磨损、NPC 与道路关系。
+- Phase 32 视觉验证继续使用项目既有的 1280x720 Compatibility 渲染与本机 FFmpeg；无需变更项目设置或安装工具。
+- Godot 4.7.1 的最小化 GUI MovieWriter 虽生成含 97 帧的 AVI，但两张稳定段抽帧均为全黑；视觉证据确认最小化冻结了渲染表面，后续录制必须使用隐藏非激活状态而不是最小化状态。
+- 隐藏非激活录制得到正常画面，两张动态稳定帧无闪烁、矩形边或地标遮挡；但四处磨损在村庄全景中几乎不可辨，低对比度已弱到无法形成有效生活痕迹，需要只调整现有材质可见度。
+- 四块磨损位于广场顶面约 0.01 米之上，动态帧未见闪烁；不可读性的直接原因是共享地面贴片中心透明度固定为 0.24。给现有 helper 增加可选透明度并仅对生活磨损使用 0.34，可保持其他草地色块不变。
+- 透明度提高到 0.34 后，18 米村庄全景仍保持克制且无脏块抢视线；该高度高于默认探索尺度，不能据此继续加深，需在约 10 米的中央广场镜头验证实际游玩可读性。
+- 用户指出浅绿草地和路面都有白膜感。当前基础色本身已是中深色（草地 `#6f8f65`、道路 `#9a8466`），但场景同时使用灰青全局雾、0.42 环境光与 0.72 暖日光；应先隔离雾和填充光贡献，而不是直接把材质盲目调黑。
+- 用户进一步澄清：核心不是曝光白膜，而是纯色地表没有“草地”和“道路”的材质语义。应保留当前光照，优先增加可重复的细小色差与道路压实层次。
+- `game-assets` 对地表材质的最小合同是连续、俯视、边到边、双向无缝的 64x64 纹理；当前导入目录只有人物、建筑和植被模型贴图，没有可直接平铺的草地/泥路材质。
+- 本机未配置 Meowa 认证，临时目录也没有环境包原始压缩档；仅尝试无需认证的公开 64x64 材质库查询，失败时采用 Godot 原生噪声纹理，不向用户索要密钥。
+- 无认证的公开目录查询可用；与当前风格最接近的参考是 `minimal_grass`（`texture-76cf01df5834ea98`）和 `terrain_dirt_trampled_path`（`texture-cc8ac61481c26a5b`）。只下载到临时目录做颗粒度参考，正式地表采用本地程序化材质。
+- 两张 64x64 参考都属于明显像素风，不适合直接混入当前低多边形 3D 画面；可借用的材质语义是草地的稀疏短草簇，以及泥路的压实斑点、碎石和细裂纹。
+- 自动测试未锁死基础材质颜色或纹理类型。最小正式方案是在现有共享 `StandardMaterial3D` 上挂两张确定性生成的 64x64 灰度调制纹理，并保留现有草绿/泥棕底色、地图几何与碰撞。
+- 同镜头 A/B 证明程序化纹理能立即建立草地和压实泥地语义，但首版 UV 平铺过密、深色短划线数量过多，广场出现规则撒点感；下一版应放大纹理世界尺度、细节减半并降低对比。
+- 第二版放大平铺尺度并降低颗粒密度后，地表已自然且重复图案基本消失；广场可读为压实泥地，但主路仍缺少结构线索。最小补强是在广场外的南北主路增加两条浅车辙，与现有马车呼应。
+- 道路专项的两张动态帧确认：草地与泥路具有不同微结构，主路出现自然纵向压实感和两条浅车辙，支路仍保持泥地语义；车辙无凸起障碍、无闪烁，人物与传送门层级不受影响。
+- 用户要求停止继续开发并推送当前版本。当前本地仓库尚无提交，分支为 `master`；目标 `git@github.com:DarClsr/well_world.git` SSH 可访问且远程为空，适合首次提交。
+- 待提交范围为 243 个文件、约 109 MB，最大单文件约 5.7 MB；Quaternius 资源与全部音频均有许可/来源记录，敏感字样扫描无命中。60 张阶段截图约 23 MB，作为视觉验证证据保留；`temp/`、`.godot/` 与录制音轨已忽略。
+
+- 工作区初始为空。
+- 已安装 Godot 4.7.1，命令入口位于 WinGet 安装目录。
+- Stylized Nature MegaKit：CC0，免费标准版含部分模型，glTF/FBX/OBJ。
+- Medieval Village MegaKit：CC0，免费标准版含部分模块化建筑，glTF/FBX/OBJ。
+- 第一张地图规模较小，不需要先引入 Terrain3D；原生静态网格更容易验证玩法。
+- 自然包下载文件为 104,088,529 字节，包含独立 glTF、bin 与共享 PNG 贴图。
+- 村庄包下载文件为 161,003,471 字节，包含大量逐部件 glTF；首轮应选择性导入，避免无用资源拖慢 Godot。
+- 自然包可直接使用 CommonTree、Pine、TwistedTree、Bush、Grass、Mushroom、Rock 等模型。
+- 村庄包提供 Wall、Roof、Door、Window、Floor、Stairs 等细粒度模块，没有一键完成的整栋房屋；原型可保留简单碰撞体房屋，并将真实部件用于可见外观。
+- 首轮自然模型选择 CommonTree、Pine、TwistedTree、Bush、Fern、Grass、Mushroom 与 Rock，已经覆盖森林可读性。
+- 所选 glTF 均通过相对路径引用同目录 `.bin` 和共享 PNG；可以安全地只复制选中模型及其依赖。
+- 村庄首轮只需墙体、门、窗、屋顶和木箱七类模型；碰撞继续由现有简单房屋体积承担。
+- 第一张 1280x720 实机帧确认所有 glTF 与贴图正常显示，房屋尺寸和树木比例可用。
+- 第一帧光照偏白、出生点能看到地图南侧边界、遗迹仍像灰盒；需要在最终验证前调整。
+- 最终帧已修正光照、地图边界和传送门过曝；角色、村庄、森林与探索目标均清晰可读。
+- 选择性导入后的资源目录约 70.7 MB，没有把两个完整压缩包加入项目资源目录。
+- 当前 DEBUG 游戏窗口正常响应，基础移动场景可以继续迭代。
+- 初始场景仍缺少开场淡入和地点识别；传送门为静态模型，画面缺少环境动态。
+- 60 帧实机序列确认：首帧近黑，约 1.5 秒时场景和地点标题清晰显现，标题未遮挡角色或传送门。
+- 传送门呼吸动画保持幅度克制，没有改变碰撞或场景布局。
+- 当前 PID 4008 的 DEBUG 窗口正常响应，可以在本轮完成后直接替换试玩实例。
+- 传送门遗迹视觉仍由四根可见方柱和一根横梁组成，是开场画面中最明显的灰盒痕迹。
+- 现有自然包已包含两种中型岩石，可直接组成石阵，不需要新增资源或依赖。
+- 阶段 6 实机帧确认：九块岩石形成完整拱门，旧方柱和横梁不再可见。
+- 圆形石台、发光地面环和横向支路在俯视镜头下连接清楚，传送门成为明确的探索地标。
+- 六组道路碎石能打破硬直边缘，同时没有阻挡主路通行。
+- 阶段 6 新试玩 PID 35148 正常响应。
+- VillagePath、VillageSquare、PortalPath 仍是三个矩形 CSGBox，是当前道路原型感的直接来源。
+- CSGPolygon3D 可用单个不规则轮廓替代每段矩形路面，不需要新增贴图或地形插件。
+- 阶段 7 实机帧确认三个道路多边形朝向和高度正确，没有翻面或埋入地面。
+- 主路边缘已有宽窄变化，入口岩石与低矮植被形成视觉门槛，同时中央通行空间保持完整。
+- 主路、广场和支路的连接关系未改变，传送门仍是出生画面中的主要探索目标。
+- 阶段 7 新试玩 PID 15408 正常响应。
+- Medieval Village 标准包没有木桶或长椅，但提供 Prop_Wagon、木栅栏扩展件和多种墙面藤蔓。
+- 当前项目只导入一类木箱；马车、栅栏和藤蔓能以很少的新模型补足村庄生活痕迹。
+- 马车尺寸约 1.95×1.53×4.02m，栅栏每段约 2m，藤蔓约 1.54×2.60m，比例可直接用于当前房屋。
+- 四个新增模型共复制 12 个文件；木材贴图完全复用，新增贴图只有 T_VineLeaf_png.png。
+- Godot 导入日志显示 captures 目录中的验证 PNG 也被扫描，应使用 `.gdignore` 排除该目录。
+- 阶段 8 首轮实机帧确认马车、栅栏和藤蔓模型正常，但 CSG 圆形草地色块边界过硬，不可保留。
+- Compatibility 渲染器可用透明 StandardMaterial3D 配合 GradientTexture2D，在 PlaneMesh 上实现软边色块。
+- 阶段 8 第二轮实机帧确认软边渐变消除了圆形轮廓，地面只保留轻微明暗过渡。
+- 马车、木箱、栅栏和藤蔓均正常显示，新增碰撞体没有侵占主路。
+- 房屋生活道具主要位于开场画面上缘，保持了“村庄在前方”的视觉暗示，没有抢过传送门地标。
+- 阶段 8 新试玩 PID 41328 正常响应。
+- 当前仅有 NorthCliff、WestCliff、EastCliff 三条规则长方体边界，南侧没有碰撞边界。
+- 现有 Rock_Medium_1/2 可沿边界放大复用，由底层长方体负责连续碰撞，岩石负责打散视觉轮廓。
+- 传送门已有共享自发光材质和 `_process` 动画，可用少量 SphereMesh 微光扩展，不需要粒子系统。
+- 阶段 9 两个动态实机帧确认微光位置发生变化，亮点尺寸克制且没有遮挡传送门轮廓。
+- 新增南侧边界和边界布景没有进入或遮挡开场镜头。
+- 四条底层 CSGBox 提供连续碰撞，BoundaryScenery 的 22 块岩石和 8 棵树只负责视觉轮廓，职责保持分离。
+- 阶段 9 新试玩 PID 37912 正常响应。
+- 玩家、Camera3D 和开场 Tween 都在 `_build_player` 中创建，可以直接加入一次性镜头拉开和落点光环。
+- 所有自然模型经 `_add_nature` 进入场景；让 `_add_model` 返回实例后，可只登记草、蕨类和灌木做风摆。
+- 阶段 10 首轮动态帧确认镜头拉远和落点环时序有效，但中段光环偏白、偏厚，视觉上接近角色选中框并抢过传送门地标。
+- 落点环应保持一次性环境反馈：降低透明度与自发光，并缩窄圆环厚度，不延长持续时间。
+- 阶段 10 第二轮动态序列确认：第 30 帧光环已变为克制的细环，第 74 帧完全消失；镜头拉开后的角色、道路和传送门构图稳定。
+- 风摆使用现有实例的小幅 x/z 旋转，不改资源文件、碰撞体或场景路径；冒烟测试确认登记数量和旋转变化。
+- 当前玩家和传送门都由 `main.gd` 直接构建，传送门接近互动可复用现有 `_process`、材质和灯光，不需要新增 Area3D、状态机或脚本。
+- 初始场景已有清晰地标但没有探索回报；一次性的“靠近提示 + 调查文字”是最小的 RPG 互动闭环，同时不扩展到任务或对话系统。
+- 阶段 11 动态帧确认：`F 调查` 位于屏幕下缘且不遮挡角色，调查文字保持单行居中，没有形成厚重对话框。
+- 玩家进入石台范围后，现有传送门自发光与灯光同步增强；离开时由同一距离值自然回落，无额外状态动画。
+- 交互预览中的旧出生点落点环由测试脚本瞬移玩家造成，正式运行中玩家不会瞬移，因此不是游戏画面缺陷。
+- 阶段 11 正式开场第 30、74 帧与阶段 10 构图一致；玩家不在交互范围时提示完全隐藏。
+- Medieval Village MegaKit 免费标准版没有井、路牌、灯笼、长椅或市场摊位；可用的新增生活化部件只有烟囱，继续搜索独立道具没有收益。
+- 当前村屋有马车、木箱、栅栏和藤蔓，但缺少“正在被使用”的动态迹象；烟囱、炊烟和克制窗光能用很小范围补上这一层。
+- 完整村庄包已有解压缓存；`Prop_Chimney.gltf` 只引用当前项目已有的 Brick/RockTrim 贴图，新增文件仅为自身 glTF 与 bin。
+- `Prop_Chimney` 顶点 y 范围约 2.84–3.18m，资源已按屋顶高度建模，可直接作为房屋子节点放置，不需要额外抬高整个模型。
+- 阶段 12 首轮正式开场没有布局回归，但左上房屋窗边光呈现为偏亮黄白色块，当前 0.32 能量过强。
+- 出生镜头中炊烟几乎不可见，尚不能证明烟囱和烟雾的近景观感；需要移动镜头到村庄中心做实际复核。
+- 阶段 12 村庄近景确认首版烟囱与烟源均被高坡屋顶完全遮挡；必须依据屋顶包围盒整体抬高，当前位置不能保留。
+- 当前屋顶模型经 0.82 缩放并放置后屋脊最高约 y=7.06；烟囱需相对房屋抬高约 3.1m，烟源需从 y≈6.45 开始。
+- 第二轮村庄近景仍无法辨认烟囱和炊烟；继续凭截图调位置证据不足，需要检查 glTF 节点变换与运行时全局边界。
+- 运行时诊断确认烟囱网格实际从模型根 y=0 延伸到 3.18；首屋烟囱顶端约 y=6.28，低于约 y=7.06 的屋脊，并位于相机背侧坡面。
+- 烟囱应移向朝相机的外侧坡面（局部 x=-2.45、z=0.8），让屋面自然遮住下段而保留顶部；烟源随其移动，不需要悬空抬高模型。
+- 第三轮村庄近景已能辨认左右屋顶烟囱，但烟囱顶端位于固定俯视镜头上沿，炊烟随之出画；仅靠屋顶烟雾无法形成稳定可见的生活动态。
+- 广场边缘的小型公共炉火可以复用现有岩石、原生网格、暖光和同一烟雾数组，在常规探索视角提供稳定的生活焦点。
+- 公共炉火首轮近景的位置、通行空间和火焰尺度通过，但 SphereMesh 烟雾呈现为三颗边缘清晰的灰球，必须改为软边面片。
+- GradientTexture2D + Billboard QuadMesh 的烟雾近景通过：边缘渐隐、灰度克制，连续帧能看出上升位移，不再呈现硬球轮廓。
+- 公共炉火位于广场右侧生活区，与马车、木箱和栅栏形成一组，同时保留中央道路完整通行宽度。
+- 阶段 12 正式出生开场确认：炉火仅在画面上缘形成小型暖色信号，烟囱可辨认，窗光不再过曝，传送门仍是主地标。
+- 当前出生点左侧、道路与树林之间存在约 7×4.5m 的连续空草地，与右侧传送门形成天然构图平衡，且不侵占村屋、主路或边界。
+- 浅水洼应采用低饱和蓝绿色，与高亮青色传送门区分；动态只需少量共享水纹，避免形成第二个强地标。
+- 阶段 13 首轮动态开场确认水洼位置、岸景和软边融合有效，但水面偏亮青且最大水纹偏强，与传送门色相过近。
+- 阶段 13 第二轮动态开场确认：灰绿色水面、水纹强度和岸景融合通过；传送门保持更高亮度与更强轮廓，主次关系明确。
+- 当前角色视觉仅由黄色 CapsuleMesh 和红色 TorusMesh 组成，是完善场景中最明显的原型占位符。
+- `Player` 的碰撞、CameraRig 与 `Visual` 相互独立；可只替换 `Visual` 子节点并在 `player.gd` 内做步态，不改变移动、碰撞或镜头契约。
+- 阶段 14 静态开场确认宽檐旅帽、蓝绿斗篷和红围巾在俯视镜头中形成清楚三层轮廓，尺寸仍落在原碰撞体内。
+- 阶段 14 自动行走序列确认角色沿主路正确朝向，帽檐、斗篷、围巾和背包在移动镜头下保持可辨认，CameraRig 没有随 Visual 起伏。
+- 双靴和身体起伏幅度保持克制；自动断言覆盖实际节点变化，画面中没有夸张抖动或穿出碰撞轮廓。
+- 当前项目没有任何 AudioStream、音频节点或 wav/ogg/mp3 资源，视觉动态全部处于无声状态。
+- 阶段 15 音频合同为两条 Godot 可导入循环：全局雾谷自然环境声，以及靠近传送门时更明显的空间低鸣；不加入音乐或配音。
+- Meowa CLI 可用但本机未配置认证，按 game-assets 约束不能通过命令行传递凭据或替代服务；应转用许可可核验的 CC0 成品资源。
+- OpenGameArt 的 `Park ambiences` 来源页明确标注 CC0；选取林边鸟鸣原录音的 32 秒片段，交叉淡化为 30 秒循环并编码后约 415 KB。
+- OpenGameArt 的 `Loopable Dungeon Ambience` 来源页明确标注 CC0 且原文件即为循环；限制为 45-900 Hz 并降低 7 dB 后更适合作为空间低鸣。
+- 两个来源、原文件、许可链接和项目内处理方式均写入 `assets/audio/LICENSES.md`。
+- 雾谷环境声使用全局 AudioStreamPlayer；传送门使用位于石环中心上方的 AudioStreamPlayer3D，并复用现有距离值从 -24 dB 平滑提升到 -11 dB。
+- Godot 4.7.1 已成功导入两段 48 kHz Ogg Vorbis；冒烟测试验证循环、播放、空间位置及近远响度变化。
+- 村庄现有三处屋外空位可容纳 NPC：两名前排屋侧与水洼旁均不侵占主路、房屋碰撞或传送门支路。
+- 三名村民共享稳定的低多边形人体比例，通过服装色、帽型和挎包/手杖/篮筐区分身份；不需要新增角色资源包。
+- 正式出生帧只露出最近的织工，村庄中心近景可看见另外两名村民，形成由外向内发现居民的探索节奏。
+- NPC 只动画 Visual 子节点，StaticBody3D 碰撞保持不动；轻微呼吸和转身不会引入移动 AI 或物理抖动。
+- 现有传送门提示和单行信息区可直接承载 NPC 交谈；只需增加最近目标判定与文案选择，不需要对话管理器。
+- 交互范围采用 3 米并只选择最近村民，避免多个 NPC 靠近时提示抖动；村民目标优先于传送门地标。
+- 阶段 17 实机帧确认尼娅对白完整落在底部安全区，单行文本未遮挡人物或道路；玩家与村民并肩时轮廓仍清楚。
+- 自动录帧中的出生光环来自测试脚本在场景就绪后瞬移玩家，正式运行靠步行接近 NPC 时不会出现该光环。
+- 阶段 18 开场画面复核确认：水洼两岸与南北林缘仍有可用空草地，四组低矮发光植物可增加异世界生态层次且不侵占主路。
+- 雾灯菇应明显低于传送门的发光能量和体量，只作为近地细节；共享网格、材质和每组一盏弱点光即可。
+- 阶段 18 正式开场帧确认：靠路菌菇清晰但体量很小，未抢过传送门；其余菌群藏于岸边和林缘，需移动探索后发现。
+- 当前 0.42 基础发光和 0.12 点光能量在日景中仍可辨认，无需为可见性提高到地标级亮度。
+- 阶段 19 复核正式开场图确认：全局高度雾只统一了远景色调，左右林缘和地面仍缺少可见的雾层运动。
+- 六片低透明 Billboard 软雾分布在边界即可形成近远层次；中心道路、NPC 和传送门平台不应放置雾片。
+- 阶段 19 两帧动态对比确认：左侧水洼与林缘雾层位置发生可见变化，径向渐变没有暴露矩形边缘。
+- 当前透明度让雾层可见但不压低道路、NPC 或传送门对比度；继续加浓会损害首屏可读性，因此保留克制数值。
+- 当前开场 Tween 只改变 Camera3D 的 FOV，CameraRig 旋转只改变父节点 yaw；滚轮缩放可独立调整摄像机局部位置而不冲突。
+- 沿 `(0, height, height * 14/15)` 缩放能保持现有俯角，10-20 的高度范围覆盖近看人物与远看村庄且不改变旋转逻辑。
+- 阶段 20 首轮近远景均无穿模、黑边或地标丢失，但近景帧发生在开场 FOV Tween 尚未结束时，不能作为纯滚轮缩放的最终对比证据。
+- 延后到开场 FOV 稳定后的受控对比确认：高度 10 的近景保留人物与周边地标关系，高度 20 的远景未露出地图外部且人物仍可辨认。
+- 近远两端保持相同俯角，滚轮缩放不改变 CameraRig yaw；当前范围无需进一步扩大。
+- 阶段 21 在内部浏览器重新核实 OpenGameArt `Portal sound`：作者 IgnasD，下载为 `PortalSFX.zip`，来源页明确标注 CC0。
+- 本地解压候选 `porta.ogg` 为短促单声道传送音，适合作为调查时的一次性空间反馈，不需要生成新音效。
+- 阶段 21 首轮 MovieWriter 音轨中触发段未高于环境底噪；根因是默认监听点位于高空 Camera3D，距传送门超过一次性音效的最大衰减距离。
+- 俯视游戏的空间音频应以 Player 根节点的 AudioListener3D 为监听点，才能让低鸣和交互音按角色的实际探索距离变化。
+- 修正监听点后，实际录音触发前峰值约 -44.4 dB，调查段约 -24.1 dB，反馈提升约 20 dB 且无削波风险。
+- 阶段 21 峰值画面中白青闪光仅限石环内部与地面符文，石拱、玩家、道路和底部对白保持清晰；约 0.7 秒回落避免持续过曝。
+- 阶段 22 在 OpenGameArt 高级搜索中限定 `Sound Effect`、`CC0` 与 `footsteps grass` 后，仅返回 `Fantozzi's Footsteps (Grass/Sand & Stone)`，适合作为首选候选继续核验。
+- 候选来源页标注作者 `Fantozzi`、许可证 `CC0`，下载文件为 `Fantozzi-footsteps.7z`；页面说明归档含 12 个独立脚步，提供 44.1 kHz 16-bit FLAC 与 Ogg，并注明 `Sand` 听感也接近草地。
+- 阶段 22 隔离实录确认：玩家脚步源与 Player 根节点监听器同位时，3D 近场增益会触及默认 `max_db`，仅设 `volume_db` 无法约束最终峰值；需同时设置负值 `max_db` 作为绝对上限。
+- 最终隔离录音中，脚步行走峰值约 `-34.6 dB`、静止底噪约 `-64.3 dB`；完整混音中静止峰值约 `-46.5 dB`、行走峰值约 `-34.3 dB`，提升约 12 dB 且无削波。
+- 最终脚步峰值比阶段 21 传送门调查反馈约低 10 dB，保持了“行走可辨、地标反馈更突出”的层级。
+- 阶段 23 首轮近景中 NPC 数值朝向准确、对白布局安全，但圆形头部缺少正面轮廓，导致转身视觉辨识偏弱；增加一个低面数小鼻部即可解决，不需要面部贴图或表情系统。
+- Quaternius 官方 `Universal Base Characters`（2025-08）明确为 CC0，含 6 个男女基础体型、20 种发型、约 13k 三角面、人形骨骼、glTF/FBX/Blend，并提供 Godot 4.3 工程实现；与当前 Quaternius 场景风格和许可最匹配。
+- Quaternius 官方 `Universal Animation Library 2`（2026-01）为 CC0，含 130+ 人形动画、GLB/FBX/Blend，并明确测试支持 Godot；它与基础人物共用可重定向人形骨骼，但对当前初始场景而言完整库可能过大。
+- Quaternius 官方 `RPG Character Pack`（2020-11）为 CC0，含 6 个已经完成骨骼、动画和贴图的奇幻人物，提供 glTF/FBX/OBJ/Blend；它与现有环境同源，且无需先做动画重定向，是当前替换几何人物的最小完整方案。
+- 内部浏览器点击官方 RPG 人物包下载弹窗后未生成本地文件，弹窗仍保持打开；后续只解析该官方页面公开下载控件，不使用第三方镜像。
+- 官方下载控件公开指向 Quaternius 的 Google Drive 共享目录；目录包含 `glTF`、FBX、Blend、OBJ、Textures 与独立 `License.txt`，可只取当前 Godot 需要的 glTF 路径。
+- 官方 `glTF` 子目录包含 `Cleric`、`Monk`、`Ranger`、`Rogue`、`Warrior`、`Wizard` 六个独立文件，约 2.4–3.1 MB；Drive 明确显示知道链接的任何人无需登录即可下载。
+- 已通过内部浏览器下载事件取得官方 `Ranger.gltf`、`Cleric.gltf` 与 `Warrior.gltf`，浏览器实际保存到用户 Downloads；下一步需解析 glTF 的 buffer、image 与 animation 引用，确认是否自包含。
+- 四个 RPG 人物均已在 Godot 中以约 0.62–0.64 缩放接入；正式开场与交谈近景确认玩家和 NPC 脚底落地、比例合理，没有倒向或被镜头裁切。
+- Ranger 的深色披风与弓箭在俯视镜头中轮廓清楚；Cleric、Warrior、Monk 自带服装与装备，比原生几何 NPC 更容易区分身份。
+- 村民近景录制中转身误差约 `0.00000019`，真实骨骼模型没有改变现有 Visual 根节点的注视与复位逻辑。
+- 三栋村屋都由独立 `Roof_RoundTiles_6x8.gltf` 根节点构成，墙体、碰撞、烟囱与烟雾是同级节点；因此可以只调屋顶网格的 `transparency`，不会削弱房屋边界或生活化细节。
+- 房屋碰撞体约 6×6 米，俯视镜头会让屋顶遮住靠近背侧墙面的角色；按玩家到房屋中心约 6 米范围淡化屋顶，是当前小地图的直接解决方案。
+- 首轮实机近景证明 `GeometryInstance3D.transparency = 0.72` 仍保留过强的瓦片视觉密度，玩家完全不可见；需要约 `0.92` 才能让屋顶退为位置提示，同时保留房屋轮廓。
+- glTF 屋顶使用两个未开启透明模式的 `StandardMaterial3D`，节点级透明度在 Compatibility 渲染器下没有改变画面；复制表面材质并开启 Alpha 后淡出才实际生效。
+- 屋顶淡出后，下方可见的 `HouseCollision` CSG 外壳仍会挡住玩家；完整的角色可见性需要淡化房屋可见外壳，同时保持 `use_collision = true`。
+- 最终实机近景确认房屋外壳 Alpha 降至约 `0.08` 后，Ranger 与旁边 NPC 均清晰可见，屋顶和墙体仍以轻量轮廓提示建筑占地；该强度适合当前固定俯视镜头。
+- 当前村民只有进入 3 米交谈范围后，底部提示才显示姓名；场景内没有 `Label3D`，因此从中距离无法辨认三名真实人物的身份。
+- NPC 根节点位置稳定、模型高度约 1.8 米，可直接把固定尺寸的镜头朝向 Label3D 放在局部 y≈2.25，无需改人物模型或增加独立 UI 管理层。
+- 首轮实机证明 `Label3D.fixed_size = true` 在当前 10 米近景相机下会放大成数百像素，不适合俯视探索；改用世界空间文字和约 `0.012` 的 pixel_size 才能保持人物优先。
+- 最终村民近景中“尼娅 · 织工”约一行紧凑文字，位于人物头顶且不遮挡脸、玩家或底部对白；世界空间尺寸随镜头缩放自然变化，视觉层级通过。
+- 米拉、托伦、尼娅当前位置分别位于三栋房屋外侧的开放走廊，沿单轴约 1.2 米往返不会进入房屋碰撞、主路中央或水洼。
+- 现有 RPG 人物均包含循环 Walk 与 Idle；把 NPC 根节点改为 CharacterBody3D 并用 `move_and_slide` 移动，可让显示、碰撞、身份标识和交互位置保持一致。
+- 阶段 27 动态近景中米拉 2.4 秒实际移动约 `0.715` 米，Walk 步态、朝向和身份标识同步跟随；托伦也保持在东屋外侧走廊，未侵入炉火或主路中央。
+- 三条 1.2 米单轴巡游无需导航系统即可在当前静态小地图稳定工作；交谈时立即停步并切回 Idle，离开后恢复 Walk 与巡游方向。
+- 当前巡游在 `abs(offset) >= 1.2` 时立即翻转方向，视觉上没有驻足；增加一个与村民数组同序的剩余暂停时间即可改善节奏，不需要行为树或状态机。
+- 端点检测应使用 `offset * direction >= range`，这样方向在进入暂停时翻转后，暂停结束不会在同一位置再次触发端点。
+- 无窗口测试中连续手动调用 `_physics_process` 时，CharacterBody3D 的 `move_and_slide` 使用引擎内部物理步长，不等同于传入脚本的 `_delta`；行走和端点状态应分别用单步与直接定位验证。
+- 阶段 28 实机录制确认米拉在端点进入 Idle 后 0.8 秒位置漂移为 `0.0`；Walk/Idle 过渡、人物朝向和身份标识均保持正常。
+- 三名村民使用 1.2、1.5、1.8 秒错开停留，能打破同步往返，同时不需要新增节点或行为状态类。
+# 2026-08-31 Phase 29 resume
+
+- Session catch-up reported no unsynced context.
+- The whole Godot prototype remains untracked; preserve it in place and do not commit or clean files.
+- `CameraRig` is already a child of `Player`; moving the rig in player-local XZ space can add lead without changing camera pitch or zoom.
+- `AudioListener3D` is a separate child of the player root, so camera lead must not move it.
+- Camera lead should use `CharacterBody3D.get_real_velocity()` after `move_and_slide()`, so collisions and sliding affect the lead direction instead of raw input continuing to pull the view into a wall.
+- `CameraRig.position` starts at zero and can be interpolated directly in player-local XZ space because only the visual child rotates with movement; the player root stays unrotated.
+- The full headless smoke test passes with the new lead contract.
+- Existing capture scripts cover villagers and roof fade but not player movement, so Phase 29 needs one focused movement recording rather than modifying unrelated captures.
+- Phase 29 MovieWriter measurements: forward lead `(0, 0, -1.597671)`, right lead `(1.597671, 0, -0.000025)`, and 0.9-second stop residual `0.017234 m`.
+- The recording completed at 1280x720/30 fps with exit code 0; only the same pre-existing Godot ObjectDB/resource exit warnings remain.
+- Visual frame 55 shows the moving player held below center with more road and village visible ahead; framing remains readable and UI-safe.
+- Visual frame 85 shows the stopped player returned to the center composition without a visible jump or scenery boundary entering frame.
+- Visual frame 115 shows rightward movement placing the player left of center and opening useful view space to the right; the nearby portal remains coherently framed.
+- Visual frame 150 confirms the second recenter completes without UI overlap, character clipping, or incoherent scenery shifts.
+- Final full smoke test passes after the MovieWriter capture; remaining ObjectDB/resource exit warnings are unchanged and pre-existing.
+- Simplification review found the Phase 29 implementation is already the minimum local change: two constants, one focused method, and one call after `move_and_slide()`.
+# 2026-08-31 Phase 30 audit
+
+- Session catch-up found no unsynced context; the project remains wholly untracked and must be preserved in place.
+- The current playable process PID 42036 is responsive. No TODO/FIXME/placeholder markers were found in the active player or world logic.
+- Phase 30 should be selected from current visual and exploration evidence rather than adding a speculative subsystem.
+- The latest village-square frame still has a broad, flat central ground plane. NPCs, hearth, bench, and crates are present, but their movement lacks a strong lived-in activity anchor.
+- Phase 30 should improve visible village life while preserving the open road and avoiding a new gameplay subsystem.
+- All four current character assets include a `PickUp` animation; the Cleric used by herbalist Mira can support a gathering activity without another character pack.
+- The imported village prop subset is limited, but current grass, fern, flower-bush, and mushroom assets are sufficient for a small herb plot at one Mira patrol endpoint.
+- Proposed Phase 30: place a restrained herb plot beside Mira's route and play her existing `PickUp` clip during the matching endpoint pause.
+- Mira patrols along X from origin `(-4.8, 0, -9.3)` to endpoints `(-6.0, -9.3)` and `(-3.6, -9.3)`; the positive endpoint is the natural candidate for a gathering stop.
+- The current patrol update is one direct branch, so a Mira-only endpoint activity can remain local without introducing a behavior framework.
+- Mira's positive endpoint sits between the west house and the main road. A narrow X-aligned herb bed around `(-3.6, 0, -10.7)` leaves the north-south road open and gives her a clear negative-Z facing target.
+- The gathering pause should derive from the imported `PickUp` animation length rather than guess a duration, preventing the activity from being truncated.
+- The imported Cleric scene is already available as a Godot `.scn`, so animation metadata can be queried at runtime without another asset conversion step.
+- Existing `_add_box` and `_add_model` helpers can build a non-colliding soil bed, low wooden edging, and reused plants; no new scene, material system, or asset is needed.
+- The complete smoke suite passes on the first Phase 30 run, including plot structure, endpoint selection, animation duration, facing, opposite-end idle, and conversation interruption.
+- Phase 30 MovieWriter measured a 1.25-second `PickUp`, gather drift of `0.00488 m`, facing error of `0.01695 rad`, and correct transition back to `Walk`.
+- The minimized 1280x720 recording completed with exit code 0; only the same pre-existing Godot exit warnings remain.
+- Visual keyframes 43 and 57 show a readable upright-to-bending gathering motion; Mira and her staff do not intersect the bed.
+- The herb plot stays outside the main road, remains secondary to the character/hearth, and reads as a small house-side work area rather than a new landmark.
+- Visual keyframe 82 confirms a natural return from `PickUp` to patrol movement with no pose snap, bed intersection, or label overlap regression.
+- Simplification review: this should remain one authored herbalist activity, not become a generic NPC job/state framework until another concrete activity requires it.
+- Final full smoke regression passed. The latest playable PID 51692 is responsive and confirmed minimized.
+# 2026-08-31 Phase 31
+
+- Asset contract: one loopable Ogg Vorbis hearth crackle, spatialized at the village fire, audible nearby but subordinate to portal feedback and footsteps.
+- No purpose-built CC0 audio connector or resource is available, so the previously selected in-app browser is the appropriate surface for focused source-page and license verification.
+- Existing audio sources use a consistent CC0 entry format in `assets/audio/LICENSES.md`; the hearth sound should follow it.
+- `VillageHearth` is at `(4.8, 0, -3.8)`, and `_build_audio()` already creates direct `AudioStreamPlayer3D` nodes for spatial sources.
+- Focused search found one strong candidate: OpenGameArt `Fireplace Sound loop` by PagDev, published 2021-03-13.
+- The authoritative source page labels it `CC0`, describes it as a wood-burning fireplace loop, and exposes `fire.wav` (10.3 MB) at `https://opengameart.org/sites/default/files/fire.wav`.
+- Attribution is explicitly optional; retain author/source/license in the project license ledger anyway.
+- The candidate WAV HEAD request returned HTTP 200 but `Content-Type: application/octet-stream`; it cannot be downloaded under the required `audio/*` media contract.
+- Alternative focused search located Wikimedia Commons file `Bones breaking wood fire ice crackling.ogg` through its exact category link; its per-file page and media response still need license/type verification.
+- A full DOM snapshot of the Wikimedia file page timed out and reset the browser session; switch to the site's lightweight structured metadata path rather than retry the same page read.
+- The reconnected in-app browser is client-blocked from Wikimedia `/w/api.php`; use the official read-only MediaWiki API outside the browser for this exact file's metadata.
+- MediaWiki metadata confirms `Bones breaking wood fire ice crackling.ogg` is public domain by stephan, but both metadata and the original media HEAD response report `application/ogg`; reject it without downloading.
+- SoundBible's known public-domain fire page is DNS-unreachable in the in-app browser. Further source hopping has diminishing value; use official generation if locally authenticated, otherwise create and validate a local procedural loop.
+- Meowa authentication is not configured, so no remote or billable generation will be attempted. Local FFmpeg 8.1.1 is available.
+- Final procedural contract: 8.5-second mono 48 kHz Ogg Vorbis; filtered brown/pink noise for combustion, sparse deterministic crackle impulses, and a 0.5-second tail-to-head crossfade for looping.
+- First candidate meets the media contract: Vorbis, mono, 48 kHz, 8.5 seconds, 83,068 bytes.
+- Two-cycle decode reports `-28.8 LUFS` integrated loudness and `-14.9 dBFS` true peak, leaving ample gain headroom for spatial mixing.
+- Decoded loop seam jump is `0.004528`, below the overall 99.9th-percentile sample derivative `0.007951`; no anomalous seam click is indicated.
+- Two complete cycles contain no silence longer than 0.1 seconds at -50 dB, and the decoded peak/RMS are `0.174242` / `0.041755`.
+- Spectrogram review confirms a continuous low-frequency combustion bed plus distributed high-frequency transient crackles, without bright broadband overload or visible silent bands.
+- The first smoke attempt failed before scene load because the new Ogg had not yet been imported by the Godot editor; run the asset import pass before testing script preloads.
+- The headless editor import created `assets/audio/hearth_fire.ogg.import`; the validation directory needs `.gdignore` because the first scan also noticed candidate/spectrum artifacts.
+- After import, the complete smoke suite passes with the new loop, player state, position, attenuation, and playback assertions.
+- Mix validation should compare a stationary player 16.8 m from the hearth with the same player 3 m south of it, avoiding footstep contamination.
+- Both minimized MovieWriter captures completed at 1280x720/30 fps with exit code 0; measured listener distances were 16.83 m and 3.16 m.
+- Full mix changes from `-61.8 dB` mean / `-47.0 dB` peak far away to `-52.2 dB` mean / `-40.2 dB` peak near the hearth.
+- Isolated hearth changes from approximately `-91 dB` far away to `-52.7 dB` mean / `-40.5 dB` peak nearby, proving spatial attenuation.
+- Nearby hearth remains below the previously validated footsteps (~`-34 dB` peak) and portal investigation (~`-24 dB` peak), preserving the feedback hierarchy.
+- Post-interruption process audit found no surviving game window: the previous replacement closed PID 51692, but the newly launched process exited before verification.
+- Console retry PID 42748 survives and its console is minimized, but visible-window enumeration finds no `异世界漫游记 (DEBUG)` render window; this is not yet a verified playable.
+- The console parent PID 42748 spawned GUI child PID 39048. The child game window is responsive but `minimized=False`; parent-window state is not valid evidence for the playable.
+- GUI child PID 39048 exited before the follow-up minimize call. The parent-console launch shape is not reliable enough for the persistent playable; use the GUI executable directly with immediate exact-window handling.
+- Direct GUI launch with exact-title window polling succeeded as PID 55440; both immediate and independent delayed checks report responsive and `Minimized=True`.
+- Simplification review: the final implementation is one generated Ogg, one direct `AudioStreamPlayer3D`, and existing smoke/capture paths; no audio manager or mixer abstraction is warranted.
+# 2026-08-31 Phase 32
+
+- The latest village view still shows a broad uniform tan square despite added props and NPC activity; soft wear at four activity anchors is the highest-value next visual pass.
+- Existing `_add_ground_patch()` already produces radial transparent planes but fixes them at y=0.025 below the village square; one optional elevation argument can safely reuse it at y=0.12.
+- Selected anchors: hearth `(4.8,-3.8)`, herb/work area `(-4.3,-10.3)`, wagon `(-5.3,-2.0)`, and east house approach `(6.3,-7.2)`.
+- Current playable PID 55440 remains responsive before Phase 32 edits.

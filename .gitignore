@@ -1,0 +1,6 @@
+.godot/
+.downloads/
+temp/
+captures/*.wav
+captures/prototype*.png
+!captures/prototype-final00000002.png

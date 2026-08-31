@@ -1,0 +1,393 @@
+# 开发进度
+
+## 2026-08-31
+
+- 确认工作区为空，无旧项目恢复内容。
+- 确认本机已安装 Godot 4.7.1。
+- 确认采用 CC0 自然与村庄资源组合。
+- 开始阶段 1：建立最小可运行项目。
+- 创建 `project.godot`、主场景、地图脚本与玩家控制脚本。
+- Godot 4.7.1 编辑器导入检查通过。
+- Godot 无窗口运行 3 帧通过，无脚本错误。
+- 完成阶段 1，开始下载并整理自然与村庄资源。
+- 下载 Stylized Nature MegaKit 标准版（104 MB）。
+- 下载 Medieval Village MegaKit 标准版（161 MB）。
+- 验证两个 ZIP 可读取，并确认 glTF 资源结构完整。
+- 列出可用自然模型和村庄建筑模块，确定选择性导入范围。
+- 解析所选 glTF 的 buffer 与贴图依赖，准备精确复制。
+- 精确复制 63 个模型/依赖文件并由 Godot 成功导入。
+- 接入真实自然与村庄模型，运行检查通过。
+- 输出并检查第一张实际游戏画面，记录构图与光照问题。
+- 调整光照、地图边界、出生点和异界传送门，第二张画面构图通过。
+- 首次冒烟测试发现动态摄像机名称不稳定，已修正节点命名。
+- Godot 冒烟测试通过：`SMOKE TEST PASSED`。
+- 最终 1280x720 实机画面复核通过。
+- 删除两个被真实模型替代的未使用材质变量。
+- 四个原型阶段全部完成。
+- 开始阶段 5：完善初始场景的淡入、地点标题与传送门动态。
+- 使用原生 Tween 加入黑场淡入和地点标题，无新增 UI 框架。
+- 加入传送门缩放、自发光和灯光呼吸动画。
+- 阶段 5 代码冒烟测试通过，开始实机画面验证。
+- 录制并检查 60 帧开场序列，淡入、标题和传送门动态表现正常。
+- 扩展冒烟测试以覆盖 Opening、portal_ring 和 portal_light，测试通过。
+- 保存阶段基准图 `captures/initial-scene-opening.png`。
+- 完成阶段 5。
+- 清理旧试玩与遗留无窗口测试进程，启动新的 DEBUG 试玩窗口（PID 4008）。
+- 开始阶段 6：重做传送门遗迹、支路和道路边缘。
+- 用九块真实岩石替换可见灰盒拱门，并保留两个不可见碰撞体。
+- 增加圆形石台、发光地面环、主路支路和六组道路边缘碎石。
+- 阶段 6 首轮冒烟测试通过，开始实机画面验证。
+- 录制并检查阶段 6 开场帧，石阵、平台、支路和道路碎石构图通过。
+- 冒烟测试新增 PortalPath、PortalPlatform、PortalRuin 和旧灰盒缺失断言，测试通过。
+- 保存阶段基准图 `captures/initial-scene-phase6.png`。
+- 完成阶段 6。
+- 关闭旧试玩 PID 4008，启动阶段 6 新试玩窗口（PID 35148）。
+- 开始阶段 7：重塑道路轮廓并增加村庄入口层次。
+- 用三个 CSGPolygon3D 替换主路、广场和传送门支路的矩形路面。
+- 在村庄入口两侧增加岩石、花灌木、蕨类与蘑菇六组低矮细节。
+- 阶段 7 首轮冒烟测试通过，开始实机画面验证。
+- 录制并检查阶段 7 开场帧，道路轮廓、入口层次和通行构图通过。
+- 冒烟测试新增三个 CSGPolygon3D 类型断言，测试通过。
+- 保存阶段基准图 `captures/initial-scene-phase7.png`。
+- 完成阶段 7。
+- 关闭阶段 6 试玩 PID 35148，启动阶段 7 新试玩窗口（PID 15408）。
+- 开始阶段 8：增加村庄生活道具和草地色块。
+- 精确导入马车、两种木栅栏和墙面藤蔓，Godot 资源导入通过。
+- 增加五块低对比度草地色块、广场马车与木箱、三段小院栅栏和房屋藤蔓。
+- 为马车和栅栏增加不可见碰撞体；阶段 8 首轮冒烟测试通过。
+- 首轮实机画面否决 CSG 圆形草地色块，开始改为径向透明渐变。
+- 改用 GradientTexture2D + PlaneMesh 后再次录制，软边地面层次和生活道具构图通过。
+- 冒烟测试新增 VillageProps、草地 MeshInstance3D 和道具资源存在性断言，测试通过。
+- 保存阶段基准图 `captures/initial-scene-phase8.png`。
+- 完成阶段 8。
+- 关闭阶段 7 试玩 PID 15408，启动阶段 8 新试玩窗口（PID 41328）。
+- 开始阶段 9：补齐场景边界并增加传送门漂浮微光。
+- 补齐 SouthCliff，并延长北、西、东边界以封闭四角。
+- 在 BoundaryScenery 中沿四向边界布置 22 块放大岩石与 8 棵树。
+- 为传送门增加 8 个共享网格的漂浮微光，随现有 `_process` 动画更新。
+- 阶段 9 基础冒烟测试通过，开始动态画面验证。
+- 录制并对比阶段 9 两个时间点，微光位移和开场构图通过。
+- 冒烟测试新增四向边界、30 个边界布景子节点、8 个微光及位移断言，测试通过。
+- 保存阶段基准图 `captures/initial-scene-phase9.png`。
+- 完成阶段 9。
+- 关闭阶段 8 试玩 PID 41328，启动阶段 9 新试玩窗口（PID 37912）。
+- 开始阶段 10：完善镜头落点、扩散光环和低矮植被风摆。
+- 相机 FOV 从 36.5 缓动到 42，玩家落点增加 1.5 秒扩散光环。
+- `_add_model` 改为返回实例，仅登记草、蕨类和灌木进行轻微风摆。
+- 修正落点环为世界地面 y=0.04；阶段 10 基础冒烟测试通过。
+- 检查阶段 10 首轮动态序列，中段落点环亮度和厚度过强，未作为最终画面接受。
+- 将落点环透明度降至 0.45、自发光强度降至 0.8，并将环宽由 0.14 缩至 0.10。
+- 冒烟测试增加落点环、初始镜头 FOV、风摆节点数量与植被旋转变化断言。
+- 阶段 10 扩展冒烟测试通过：`SMOKE TEST PASSED`。
+- 无窗口 Movie Maker 因 Godot 4.7.1 Dummy 渲染器空纹理崩溃；已记录并切换为实际渲染窗口录帧。
+- 使用实际 Compatibility 渲染器录制 80 帧阶段 10 开场序列成功。
+- 检查第 10、30、74 帧：淡入、细化后的落点环、镜头拉开和最终构图均通过。
+- 完成阶段 10。
+- 保存阶段基准图 `captures/initial-scene-phase10.png`，规划检查通过 `10/10`。
+- 关闭旧阶段 9 试玩 PID 37912，启动阶段 10 试玩 PID 37980；窗口标题正确且响应正常。
+- 开始阶段 11：为传送门增加接近反馈和一次调查互动。
+- 在现有 `main.gd` 内加入传送门距离反馈、`F` 调查提示和短暂世界信息，没有引入通用交互框架或新脚本。
+- 增加 `interact` 输入动作，使用物理键 F，避免与现有 Q/E 镜头旋转冲突。
+- 阶段 11 基础冒烟测试通过，开始扩展交互状态验证。
+- 扩展测试首次因动态 VBox 默认节点名不稳定而失败；已改为显式 `PromptStack` 节点名。
+- 阶段 11 扩展冒烟测试通过：接近范围、提示可见、灯光增强和调查文本状态均有覆盖。
+- 录制并检查交互动态帧，提示、调查文字和传送门接近反馈的画面层级通过。
+- 删除仅用于自动摆位和触发调查的临时录帧脚本。
+- 重新录制正式开场并检查第 30、74 帧，确认新增交互 UI 在远距离完全隐藏且首屏构图无回归。
+- 完成阶段 11。
+- 保存交互基准图 `captures/initial-scene-phase11.png`，规划检查通过 `11/11`。
+- 关闭阶段 10 试玩 PID 37980，启动阶段 11 试玩 PID 19360；窗口标题正确且响应正常。
+- 开始阶段 12：为村屋增加烟囱、炊烟和暖色窗光。
+- 检查完整标准版 glTF 列表，确认没有井、路牌、灯笼、长椅或市场摊位，阶段范围收敛到现有烟囱资源。
+- Windows `tar -xOf` 因归档根目录含方括号未能直接读取烟囱 glTF，转为检查已有解压缓存或使用 ZIP API。
+- 找到完整村庄包解压缓存，确认烟囱一型只需复制 glTF/bin 且复用现有砖石贴图。
+- 检查烟囱模型包围范围，确认其坐标已适配约 3m 屋顶高度。
+- 选择性复制 `Prop_Chimney.gltf/bin`，Godot 资产导入成功。
+- 三栋村屋加入真实烟囱、暖色窗边 OmniLight 和共九团共享网格炊烟。
+- 炊烟复用现有 `_process` 做上升、漂移、放大和淡出，没有新增脚本或粒子依赖。
+- 阶段 12 基础冒烟测试通过，开始扩展结构与动态断言。
+- 阶段 12 扩展冒烟测试通过：三栋村屋、三个窗光、九团烟雾及烟雾动态均有覆盖。
+- 首轮正式开场录帧未作为最终结果接受：窗边光偏亮，出生视角无法确认炊烟近景质量。
+- 录制村庄中心近景，确认首版烟囱和炊烟被高坡屋顶完全遮挡，开始按屋顶实际高度修正位置。
+- 根据屋顶包围盒将烟囱整体抬高 3.1m、烟源抬至 y=6.45，并提高炊烟基础可见度。
+- 将窗光能量从 0.32 降至 0.14、范围从 3.6 降至 2.6，避免日景出现黄白色块。
+- 第二轮村庄近景仍未显示出可辨认烟囱或炊烟，暂停数值微调并转向运行时节点/边界诊断。
+- 运行时诊断确认模型已加载，但烟囱顶端低于屋脊且位于相机背侧坡面；删除临时诊断脚本。
+- 将烟囱和烟源移到朝相机的外侧坡面，并提高低层烟团不透明度和灰度对比。
+- 第三轮村庄近景确认烟囱已正确露出屋面，但屋顶烟雾位于固定俯视镜头画面之外。
+- 阶段 12 增补广场边缘公共炉火，复用同一烟雾与暖光表现，确保正常探索视角可见。
+- 完成公共炉火结构：七块岩石、两根木柴、三团火焰、暖光与三团复用烟雾。
+- 首次炉火测试因旧烟雾总数断言仍为 9 而失败，已更新为 12 并增加炉火动态覆盖。
+- 公共炉火首轮动态帧确认位置与火焰通过，但球形烟雾边缘过硬，开始改用径向渐变 Billboard 面片。
+- 将十二团共享烟雾改为径向透明 GradientTexture2D + Billboard QuadMesh。
+- 第五轮村庄近景确认软边烟雾、炉火尺度和道路通行构图通过；删除临时村庄摆位脚本。
+- 录制阶段 12 正式出生开场并检查第 40、75、95 帧，炉火、烟囱、窗光与传送门层级通过。
+- 完成阶段 12。
+- 保存阶段基准图 `captures/initial-scene-phase12.png`，规划检查通过 `12/12`。
+- 关闭阶段 11 试玩 PID 19360，启动阶段 12 试玩 PID 6460；窗口标题正确且响应正常。
+- 开始阶段 13：在出生道路左侧增加异界浅水洼、岸石、芦草和动态水纹。
+- 对比阶段 12 村庄近景与正式出生帧，确认水洼落点为空草地且不会侵占主路或现有地标。
+- 增加 `MistPond`：软边椭圆水面、八块岸石、五株风摆草木、两个共享水纹和不可见椭圆碰撞。
+- 将原位于水洼内的蘑菇移到西侧岸外，避免现有布景穿入水面。
+- 阶段 13 基础冒烟测试通过，开始扩展结构与动态断言。
+- 阶段 13 扩展冒烟测试通过：水面、碰撞、17 个岸边节点、15 株风摆草木和两个动态水纹均有覆盖。
+- 首轮动态开场确认构图有效，但水面和最大水纹偏亮；降低水面饱和度、发光强度和水纹扩散上限。
+- 第二轮动态开场检查第 40、70、95 帧，水面色彩、岸景融合、水纹强度和传送门主次关系通过。
+- 完成阶段 13。
+- 保存阶段基准图 `captures/initial-scene-phase13.png`，规划检查通过 `13/13`。
+- 关闭阶段 12 试玩 PID 6460，启动阶段 13 试玩 PID 12236；窗口标题正确且响应正常。
+- 开始阶段 14：用原生低多边形网格重塑漂泊者外观，并增加轻微步态反馈。
+- 复核玩家结构，确认碰撞体与 CameraRig 不依赖 Visual 子节点，可独立替换角色外观。
+- 用九个稳定命名的原生低多边形部件替换黄色胶囊：斗篷、头部、围巾与尾带、背包、双靴和两层旅帽。
+- 在 `player.gd` 增加轻微身体起伏、交替靴步和围巾尾摆动，CameraRig 保持独立不参与起伏。
+- 阶段 14 基础冒烟测试通过，开始扩展角色结构与步态断言。
+- 扩展测试首次因通用 Node 的 rotation 无法静态推断而编译失败；改为显式 Node3D 类型。
+- 阶段 14 扩展冒烟测试通过：九个视觉部件和身体/双靴/围巾步态变化均有覆盖。
+- 正式开场静态帧确认新漂泊者轮廓、颜色层级和尺寸通过。
+- 录制自动前进行走序列，检查第 15、30、45、70 帧，角色转向、移动构图和相机稳定性通过。
+- 删除仅用于自动按住前进键的临时录帧脚本。
+- 完成阶段 14。
+- 保存阶段基准图 `captures/initial-scene-phase14.png`，规划检查通过 `14/14`。
+- 关闭阶段 13 试玩 PID 12236，启动阶段 14 试玩 PID 14296；窗口标题正确且响应正常。
+- 开始阶段 15：加入雾谷环境循环声与传送门空间低鸣。
+- 检查项目确认当前没有音频资源或 AudioStream 节点。
+- Meowa 认证未配置，未启动生成或请求密钥；阶段改用可核验许可的 CC0 现成音频。
+- 在内部浏览器核实 `Park ambiences` 与 `Loopable Dungeon Ambience` 两个来源页均明确标注 CC0。
+- 下载并处理最终音频：30 秒雾谷环境循环约 415 KB，94 秒传送门低鸣约 822 KB。
+- 新增全局 `MistValleyAmbience` 与空间 `PortalHum`，后者随玩家接近从 -24 dB 提升到 -11 dB。
+- 新增 `assets/audio/LICENSES.md`，记录来源页、CC0 链接、原文件和处理方式。
+- 阶段 15 扩展冒烟测试通过：资源导入、循环、播放状态、空间位置和距离响度均有覆盖。
+- 临时源目录删除被安全策略拒绝；已加入 `.gdignore`，避免 Godot 后续扫描原始素材。
+- 完成阶段 15。
+- 开始阶段 16：在现有村屋与水洼附近加入三名村民 NPC。
+- 新增药草师 Mira、守门人 Toren 和织工 Nia；三人具备稳定碰撞、不同衣色、帽型和专属随身物。
+- 待机动画只驱动 Visual 的轻微上下起伏与转身，NPC 的 StaticBody3D 碰撞保持不动。
+- 首轮测试因动态碰撞节点缺少稳定名称失败；补充 `CollisionShape3D` 名称后完整冒烟测试通过。
+- 正式开场帧确认最近村民不抢玩家和传送门层级；村庄中心近景确认另外两名村民及道路、房门、炉火通行关系通过。
+- 保存阶段基准图 `captures/initial-scene-phase16.png`。
+- 完成阶段 16。
+- 最终规划检查通过 `16/16`，完整冒烟测试再次输出 `SMOKE TEST PASSED`。
+- 关闭阶段 14 试玩和首轮失败测试遗留进程；首次绝对路径启动因空格参数拆分退出，改用相对路径后成功。
+- 启动阶段 16 最新试玩 PID 43492；窗口标题正确且响应正常。
+- 开始阶段 17：让三名现有村民支持就近交谈，并复用现有 `F` 交互入口。
+- 增加 3 米最近村民判定；村民交谈优先于传送门调查，离开范围后提示自动隐藏。
+- 为米拉、托伦和尼娅分别加入一条身份化短对白，并用一次轻微点头提供说话反馈。
+- 阶段 17 首轮完整冒烟测试通过：村民列表、最近目标、姓名提示、对白显示和原传送门交互均有覆盖。
+- 录制并检查尼娅交谈实机帧；对白宽度、底部安全区、人物可读性和道路遮挡均通过。
+- 将冒烟测试扩展为逐一验证米拉、托伦、尼娅的姓名提示与身份对白。
+- 保存阶段基准图 `captures/initial-scene-phase17.png`。
+- 完成阶段 17。
+- 最终规划检查通过 `17/17`，逐一覆盖三名村民的完整冒烟测试输出 `SMOKE TEST PASSED`。
+- 关闭阶段 16 试玩 PID 43492，启动阶段 17 最新试玩 PID 45332；窗口标题正确且响应正常。
+- 开始阶段 18：在水洼岸边与林缘增加四组缓慢发光的异界雾灯菇。
+- 复核阶段 16 正式开场图，确认四处落点不会侵占主路、水洼碰撞或传送门地标。
+- 新增四组共享网格雾灯菇：共 12 个菌帽与 4 盏微弱点光，不增加碰撞或外部资源。
+- 在现有 `_process` 中加入低频发光和点光呼吸变化，能量保持低于传送门。
+- 阶段 18 结构与动态冒烟测试一次通过。
+- 录制并检查阶段 18 正式开场：近路菌菇可见但克制，其余菌群保留探索发现感，传送门仍是主地标。
+- 保存阶段基准图 `captures/initial-scene-phase18.png`。
+- 完成阶段 18。
+- 最终规划检查通过 `18/18`，完整冒烟测试输出 `SMOKE TEST PASSED`。
+- 关闭阶段 17 试玩 PID 45332，启动阶段 18 最新试玩 PID 47216；窗口标题正确且响应正常。
+- 开始阶段 19：在地图边界与林缘增加六片低空漂移软雾。
+- 复核阶段 18 正式开场，确认雾片只需补左右林缘层次，不应覆盖中央探索动线。
+- 新增六片共享 QuadMesh 与径向渐变材质的低空软雾，全部关闭阴影并放置在边界区域。
+- 在现有 `_process` 中加入约 1 米缓慢横移、轻微起伏和透明度变化。
+- 阶段 19 完整冒烟测试一次通过：数量、原点、禁用阴影及动态变化均有覆盖。
+- 录制 100 帧正式开场并对比中后段画面；漂移可见、软边完整，中心探索目标无雾遮挡。
+- 保存阶段基准图 `captures/initial-scene-phase19.png`。
+- 完成阶段 19。
+- 最终规划检查通过 `19/19`，完整冒烟测试输出 `SMOKE TEST PASSED`。
+- 关闭阶段 18 试玩 PID 47216，启动阶段 19 最新试玩 PID 34116；窗口标题正确且响应正常。
+- 开始阶段 20：为现有俯视相机加入鼠标滚轮平滑缩放。
+- 确认开场 FOV Tween、CameraRig 旋转与局部位置缩放互不冲突，采用高度 10-20 的安全范围。
+- 在 `player.gd` 增加滚轮目标距离与平滑局部位置插值，不新增输入映射或相机节点。
+- 阶段 20 冒烟测试一次通过：滚轮方向、位置比例以及最近/最远边界均有覆盖。
+- 首轮近远景录帧确认安全边界可用，但切换时机与开场 FOV 缓动重叠；延后切换后重新录制受控对比。
+- 开场 FOV 稳定后重新录制 160 帧受控序列，确认近景人物比例和远景地图边界均通过。
+- 保存 `captures/initial-scene-phase20-near.png` 与 `captures/initial-scene-phase20-far.png`。
+- 完成阶段 20。
+- 最终规划检查通过 `20/20`，完整冒烟测试输出 `SMOKE TEST PASSED`。
+- 关闭阶段 19 试玩 PID 34116，启动阶段 20 最新试玩 PID 46148；窗口标题正确且响应正常。
+- 开始阶段 21：为传送门调查增加一次性空间声和短暂光效响应。
+- 在内部浏览器重新核实 `Portal sound` 来源页、作者、下载文件与 CC0 标记；本地原始 Ogg 仍完整可用。
+- 复制最终 `portal_react.ogg` 并验证为 44.1 kHz 单声道 Vorbis、0.574 秒、峰值 -14.5 dB，无长静音。
+- 更新音频许可清单，记录作者、来源页、原归档路径、CC0 链接和仅重命名处理。
+- 新增空间 `PortalReact` 播放器；调查时播放一次短音，并让石环、灯光与八颗微光在约 0.7 秒内共同回落。
+- Godot 4.7.1 成功导入新 Ogg；扩展冒烟测试通过初始状态、非循环、空间位置、播放触发和动态回落。
+- 首轮实际录音发现调查段未高于底噪；定位为高空相机监听导致 3D 衰减过度。
+- 在 Player 根节点增加当前 AudioListener3D，使空间音频按角色位置而非高空摄像机位置衰减。
+- 修正后重新录制调查：触发段峰值较底噪提升约 20 dB，音轨为 48 kHz 双声道 PCM 且无削波。
+- 对比调查前与峰值帧，白青闪光范围、石拱轮廓、玩家层级和底部对白均通过。
+- 保存阶段基准图 `captures/initial-scene-phase21.png`。
+- 完成阶段 21。
+- 最终规划检查通过 `21/21`，完整冒烟测试输出 `SMOKE TEST PASSED`。
+- 关闭阶段 20 试玩 PID 46148，启动阶段 21 最新试玩 PID 29252；窗口标题正确且响应正常。
+- 开始阶段 22：为旅行者加入与现有步态同步的轻量脚步声。
+- 采用一个玩家子节点 `AudioStreamPlayer3D` 交替播放两条短音；不增加地形分类、奔跑状态或通用音频管理器。
+- 已从核验过的 OpenGameArt HTTPS 下载 `Fantozzi-footsteps.7z`；本机缺少 7z CLI，改用系统 `tar` 解包。
+- 选用 `Fantozzi-SandL2.ogg` 与 `Fantozzi-SandR2.ogg`，分别约 0.320 秒和 0.340 秒；原始 Ogg 仅重命名，不重复转码。
+- 在 `player.gd` 内加入单个 `Footsteps` 空间播放器，并按现有步态半周期交替触发；静止和离地时不推进脚步。
+- 为临时素材目录增加 `.gdignore`，避免 Godot 后续扫描候选与原始归档。
+- 新增可重复的 `tests/footstep_capture.gd`：录制静止 1.5 秒、行走 3 秒、停止 0.8 秒，用于对比实际混音。
+- 首轮实录脚步触及默认 3D 近场音量上限，且停止段采样窗口包含最后一步尾音；改做隔离录音定位并延后停止段窗口。
+- 隔离录音确认玩家同位监听产生 3D 近场增益，脚步触及默认上限；将 `volume_db` 与 `max_db` 同时设为 `-26 dB` 后重录。
+- 修正后隔离录音行走峰值约 `-34.6 dB`，完整混音静止峰值约 `-46.5 dB`、行走峰值约 `-34.3 dB`，无削波并低于传送门调查反馈。
+- 完成阶段 22。
+- 最终规划检查通过 `22/22`，完整冒烟测试输出 `SMOKE TEST PASSED`。
+- 关闭阶段 21 试玩 PID 29252，启动阶段 22 最新试玩 PID 42672；窗口标题正确且响应正常。
+- 开始阶段 23：让最近村民在交互范围内平滑面向玩家，离开后恢复原朝向。
+- 直接复用 `nearby_villager` 与现有 Visual 旋转，不增加 NPC 感知组件、状态机或移动 AI。
+- 在 `main.gd` 的现有村民待机循环中加入目标朝向插值；靠近时看向玩家，离开时回到各自基础朝向。
+- 冒烟测试覆盖织工靠近转身、目标角误差收敛、离开后复位，完整测试一次通过。
+- 新增 `tests/villager_facing_capture.gd`，用于录制双方相向交谈的实机近景。
+- 首轮近景确认角度误差近乎为零，但 NPC 圆形头部正面不够清楚；为三名村民增加共享结构的低面数鼻部轮廓。
+- 用户要求寻找真实人物资产；内部浏览器已核验 Quaternius `Universal Base Characters`、`Universal Animation Library 2` 与 `RPG Character Pack`。
+- 选择自带骨骼、动画、贴图与 glTF 的 CC0 `RPG Character Pack` 作为首轮替换方案，避免当前阶段引入动画重定向链。
+- 完成阶段 23；自动角度测试和双方相向交谈近景均通过。
+- 开始阶段 24：接入 Quaternius CC0 RPG Character Pack 的完整骨骼人物。
+- 已通过官方 Drive 下载并复制 `Ranger`、`Cleric`、`Warrior`、`Monk` 四个自包含 glTF；Godot 4.7.1 全部导入成功。
+- 新增只读 `tests/character_asset_inspect.gd`，用于核对实际动画播放器、动画名与整体模型边界。
+- 首轮检查确认四个模型各有一个 `AnimationPlayer` 和 `Idle/Walk/Run`，但初始化阶段 AABB 的全局变换无效；检查延后到入树首帧后重跑。
+- 将 Ranger 接入玩家 Visual，并以模型自带 Run/Idle 替代原生几何摆腿；脚步触发、移动、镜头和碰撞逻辑保持不变。
+- 将 Cleric、Warrior、Monk 分别接入米拉、托伦、尼娅；三人播放循环 Idle，原有碰撞、对话、点头与注视复位逻辑保持不变。
+- 更新冒烟测试，覆盖四个人物资源、玩家动画切换、NPC Idle 动画以及既有交互回归；完整测试输出 `SMOKE TEST PASSED`。
+- 录制 `temp/character-phase24.avi`；实机开场与交谈近景确认模型落地、比例、朝向和 UI 安全区通过，村民转身误差约 `0.00000019`。
+- 保存 `captures/initial-scene-phase24-opening.png` 与 `captures/initial-scene-phase24.png`。
+- 完成阶段 24。
+- 最终规划检查通过 `24/24`，完整冒烟测试与人物资源检查再次通过。
+- 关闭旧试玩 PID 42672，启动阶段 24 最新试玩 PID 49164；窗口标题正确且响应正常。
+- 开始阶段 25：为俯视探索增加房屋屋顶遮挡反馈。
+- 确认屋顶模型与墙体、碰撞、烟囱、烟雾相互独立，可只淡化屋顶网格而不改变房屋玩法边界。
+- 首轮节点透明度调节在 Compatibility 渲染器中未生效；检查出 glTF 表面材质未启用 Alpha，改为按房屋复制材质后插值颜色 Alpha。
+- 屋顶生效后发现可见 `HouseCollision` 外壳仍遮挡角色，因此将淡出范围修正为房屋可见外壳，同时保持碰撞启用。
+- 最终近景确认 Ranger 和 NPC 在屋后均清晰可见，房屋仍保留轻量轮廓；录制 `temp/roof-fade-phase25d.avi` 并保存 `captures/initial-scene-phase25.png`。
+- 完整冒烟测试覆盖当前房屋淡出、其他房屋保持不透明、离开恢复以及碰撞继续启用，输出 `SMOKE TEST PASSED`。
+- 完成阶段 25。
+- 最终规划检查通过 `25/25`；关闭旧试玩 PID 49164，以最小化窗口启动最新试玩 PID 50512，窗口响应正常且不再抢占前台。
+- 开始阶段 26：为三名村民增加靠近时出现的姓名与职业标识。
+- 确认现有 3 米交谈判定保持不变，身份标识只负责 7 米内的中距离识别。
+- 为米拉、托伦、尼娅增加镜头朝向 Label3D；7 米内平滑淡入，离开后隐藏，文字分别包含姓名与药草师、守门人、织工身份。
+- 首轮固定尺寸文字在近景异常放大，改用世界空间 `pixel_size = 0.012` 后重新录制通过。
+- 保存阶段画面 `captures/initial-scene-phase26.png`；标识未遮挡人物、道路或底部对白。
+- 完整冒烟测试覆盖三个标识、5 米识别、3 米交谈隔离和远离隐藏，输出 `SMOKE TEST PASSED`。
+- 完成阶段 26。
+- 最终规划检查通过 `26/26`；关闭旧试玩 PID 50512，以最小化窗口启动最新试玩 PID 44060，窗口响应正常。
+- 开始阶段 27：让三名村民在各自房屋外的开放区域进行短距离往返巡游。
+- 确认三个角色模型均有 Walk/Idle，路径可限制在约 1.2 米单轴范围内，无需引入 NavigationAgent 或通用 AI 系统。
+- 将三名 NPC 根节点改为 CharacterBody3D，显示模型、碰撞、身份标识和交互位置保持同一根节点移动。
+- 为三人配置各自 1.2 米单轴巡游；移动播放循环 Walk，玩家进入交谈范围后速度归零并播放 Idle，离开后恢复巡游。
+- 首轮测试因旧契约仍要求首帧 Idle 失败；更新为巡游首帧 Walk，并保留交谈切回 Idle 的独立断言后完整通过。
+- 新增 `tests/villager_patrol_capture.gd`，录制 `temp/villager-patrol-phase27.avi`；米拉 2.4 秒移动约 `0.715` 米，路径、步态、标签和场景通行关系通过。
+- 保存 `captures/initial-scene-phase27-start.png` 与 `captures/initial-scene-phase27.png`。
+- 完成阶段 27。
+- 简化检查发现旧 `villager_facing_capture.gd` 仍使用 StaticBody3D 类型；同步改为 CharacterBody3D 后无窗口回归通过，转身误差约 `0.0000038`。
+- 最终规划检查通过 `27/27`；关闭旧试玩 PID 44060，以最小化窗口启动最新试玩 PID 47060，窗口响应正常。
+- 开始阶段 28：为村民巡游端点增加错开的短暂停留，减少立即掉头的机械感。
+- 增加与村民数组同序的暂停时间；三名村民在端点分别停留 1.2、1.5、1.8 秒，停留播放 Idle，结束恢复 Walk。
+- 修正动画切换守卫为 `assigned_animation`，避免 0.2 秒混合期间因旧 `current_animation` 跳过新目标。
+- 自动测试按真实 CharacterBody 物理语义拆分为单步行走和直接端点验证，并覆盖停留无漂移、倒计时、方向翻转和恢复 Walk。
+- 录制 `temp/villager-pause-phase28.avi`，停留 0.8 秒位置漂移为 `0.0`；保存 `captures/initial-scene-phase28-walk.png` 与 `captures/initial-scene-phase28.png`。
+- 完成阶段 28。
+- 最终规划检查通过 `28/28`；关闭旧试玩 PID 47060，以最小化窗口启动最新试玩 PID 50268，窗口响应正常。
+# 2026-08-31 Phase 29
+
+- Started a restrained camera-lead pass: 1.6 m in actual movement direction, smooth recenter while stopped.
+- Preserving camera yaw, wheel zoom, and the player-root audio listener contract.
+- Added direct camera-rig interpolation in `scripts/player.gd`, driven by post-collision real velocity.
+- Extended `tests/smoke_test.gd` to cover smooth lead, the 1.6 m cap, recentering, and camera/listener isolation.
+- Full headless smoke test passed: `SMOKE TEST PASSED`.
+- Added `tests/herb_gather_capture.gd` for a minimized close-view MovieWriter check of gathering, facing, drift, and walk resumption.
+- Recorded `temp/herb-gather-phase30.avi` minimized: 91 frames, 3.01 seconds, exit code 0.
+- Numeric capture validation passed and three action keyframes were extracted.
+- Gathering-start and mid-action frames passed visual review for pose readability, plot scale, and road clearance.
+- Walk-resume frame passed; Phase 30 visual behavior is complete pending final regression and playable replacement.
+- Final full smoke regression passed.
+- Replaced PID 42036 with latest playable PID 51692; the debug window is responsive and confirmed minimized.
+- Phase 30 complete: Mira now gathers from a visible herb plot during one patrol stop.
+- Added `tests/camera_lead_capture.gd` for a forward-stop-right-stop MovieWriter validation sequence.
+- Recorded `temp/camera-lead-phase29.avi` minimized: 155 frames, 5.05 seconds, exit code 0.
+- Numeric capture output confirmed a 1.598 m directional lead and 0.017 m recenter residual after 0.9 seconds.
+- Extracted four Phase 29 keyframes; forward movement and first recenter frames passed visual framing review.
+- Rightward movement and final recenter keyframes also passed; all four Phase 29 visual states are readable and stable.
+- Final complete smoke test passed after visual validation.
+- Replaced the old playable process with PID 42036; its debug window is responsive and confirmed minimized.
+- Phase 29 complete: movement-direction camera lead is implemented and verified end to end.
+# 2026-08-31 Phase 30 audit
+
+- Resumed from the verified Phase 29 build and started an initial-scene gap review.
+- Confirmed the current minimized playable remains responsive and no unexpected worktree changes appeared.
+- Reviewed the latest village-square frame and identified lived-in activity, rather than another camera feature, as the highest-value next pass.
+- Selected a bounded Phase 30 direction: give herbalist Mira a visible herb-gathering stop using existing plants and her built-in `PickUp` animation.
+- Added Phase 30 to the plan and began endpoint, animation-length, and clearance checks.
+- Confirmed a clear herb-bed location north of Mira's positive patrol endpoint and chose runtime animation length as the pause duration.
+- Confirmed the plot can reuse existing world-building helpers and remain collision-free.
+- Added a five-plant, non-colliding herb bed beside Mira's positive endpoint.
+- Added a Mira-only gathering pause that faces the plot, uses the imported `PickUp` length, and remains subordinate to conversation.
+- Extended the smoke test for herb-bed structure, gathering duration/facing, normal opposite-end pause, and conversation interruption.
+- Full headless smoke test passed: `SMOKE TEST PASSED`.
+# 2026-08-31 Phase 31
+
+- Started a hearth-audio pass to make the visible village fire an audible life anchor.
+- Defined a looped Ogg, CC0 provenance, spatial attenuation, and restrained mix as the final asset contract.
+- Verified the OpenGameArt `Fireplace Sound loop` source page, author PagDev, CC0 license, loop intent, and exact WAV download link in the in-app browser.
+- Rejected the otherwise valid OpenGameArt candidate before writing bytes because its server reports `application/octet-stream` rather than `audio/*`.
+- Located an exact Wikimedia Ogg candidate as the alternative source and moved to per-file verification.
+- Logged a heavy Wikimedia file-page timeout and changed verification strategy instead of repeating it.
+- Browser recovery succeeded, but the lightweight Wikimedia API URL was client-blocked; moved the exact metadata read to the official API client path.
+- Rejected the Wikimedia candidate after its official metadata and original-media HEAD both reported `application/ogg`; no bytes were written.
+- Discarded a stale in-app browser tab after navigation timeout and switched to a fresh tab per recovery guidance.
+- SoundBible was DNS-unreachable; ended external-source search and moved to a local-authentication check with a procedural fallback.
+- Confirmed Meowa authentication is absent and selected the local FFmpeg procedural fallback without exposing or requesting credentials.
+- Generated the first deterministic procedural hearth loop candidate and validated format, duration, size, full two-cycle decode, loudness, and true peak.
+- NumPy was unavailable for seam analysis; switched to a standard-library implementation without adding dependencies.
+- Standard-library seam and silence validation passed; generated a 1280x720 spectrogram for content review.
+- Spectrogram content review passed; approved the first deterministic candidate without another tuning round.
+- Added the validated 83 KB loop as `assets/audio/hearth_fire.ogg` and documented its local generation method.
+- Connected it to a direct `AudioStreamPlayer3D` at the village hearth with restrained attenuation, and extended smoke coverage.
+- Logged the expected first-use Godot import-order failure and switched to an editor import pass before retrying tests.
+- Completed the Godot import pass and isolated Phase 31 validation media with `.gdignore`.
+- Full headless smoke test passed after import.
+- Defined a stationary far-to-near capture path for full-mix and isolated-hearth recordings.
+- Added `tests/hearth_audio_capture.gd` with optional isolation and fixed far/near listener positions.
+- Recorded full-mix and isolated-hearth Phase 31 AVIs minimized; both completed with exit code 0.
+- Far/near segment analysis confirmed audible proximity gain, near-silent out-of-range output, and correct hierarchy below footsteps and portal feedback.
+- Final smoke regression passed; playable replacement produced no verification output, so current process state requires an explicit diagnostic before completion.
+- Recovery audit confirmed there is no current playable process; switching the one replacement attempt to the console executable with redirected logs.
+- Console retry PID 42748 stayed alive and minimized, but only its console window is visible; render-window diagnosis remains before Phase 31 completion.
+- Traced the actual game to child PID 39048 and found its debug window responsive but not minimized; preparing an exact child-window minimize and verification.
+- The child exited before minimization; abandoned the console-parent strategy after its third failure and moved to a direct-GUI launch with immediate window polling.
+- Direct GUI launch succeeded as PID 55440; exact-window and delayed checks both confirmed a responsive minimized playable.
+- Phase 31 complete: the village hearth now has a validated spatial fire loop with preserved mix hierarchy.
+# 2026-08-31 Phase 32
+
+- Started a restrained village-ground wear pass to break up the remaining uniform square.
+- Limited scope to four soft activity patches using the existing ground-patch helper with a safe overlay elevation.
+- Added four named soft wear patches above the village square and extended `_add_ground_patch()` with one optional elevation argument.
+- Extended the smoke suite to verify patch nodes, y=0.12 overlay height, plane meshes, alpha materials, and gradient textures.
+- Resumed Phase 32 from disk and confirmed the planning state, code, and untracked worktree match the recorded handoff.
+- Full headless smoke test passed on the first run: `SMOKE TEST PASSED`.
+- First minimized GUI MovieWriter produced a 97-frame AVI, but two extracted stable frames were fully black; logged the visual failure and changed the next attempt to a hidden, non-minimized window.
+- Hidden, non-activating MovieWriter produced 97 rendered frames; pixel checks and two visual frames confirmed stable geometry but showed the wear was too faint at village scale.
+- Raised only the four wear-patch center opacities from 0.24 to 0.34 through one optional helper argument; other ground patches, sizes, and elevations remain unchanged.
+- Kept the 18 m village-wide frames as hierarchy evidence and changed the focused capture to the 10 m gameplay zoom for final readability review.
+
+# 2026-08-31 Phase 33
+
+- Started a ground-tone pass after the user identified a white-film look across both pale grass and road surfaces.
+- Traced the shared contributors to global gray-green fog plus combined ambient and directional fill, rather than either base material color alone.
+- User clarified that the real issue is material identity, not exposure; abandoned the light/fog pass and redirected Phase 33 to seamless grass and compacted-dirt surface detail.
+- Removed the failed light-diagnostic script after recording its node-name error; it is not part of the final validation path.
+- Added deterministic 64x64 seamless modulation textures to the shared grass and dirt materials: sparse short grass marks for the valley floor, compressed variation and small scuffs for paths.
+- Kept the existing palette, roughness, road geometry, collisions, and lighting unchanged.
+- Added a controlled same-camera MovieWriter check that switches from the old flat materials to the new textured materials during one recording.
+- First A/B frames confirmed the material identity improvement but exposed over-dense repeating dash marks.
+- Halved the detail density, reduced contrast, varied dirt-mark orientation, and doubled the texture world scale for a quieter natural surface.
+- Second visual pass removed the obvious repeating pattern and kept the ground texture readable at gameplay zoom.
+- Added two shallow cart tracks on each main-road approach, stopping them at the village square so the courtyard stays open and uncluttered.
+- Added a focused road-surface capture at gameplay zoom to review grass/dirt separation, track spacing, and path readability.
+- Road capture recorded 97 rendered frames; measured cart-track spacing was about 1.9 m.
+- Two road frames passed visual review: material separation, compressed direction, track height, road readability, and landmark hierarchy are stable.
+- Final full smoke regression passed after the Phase 33 road and ground changes.
+- Phase 32 and Phase 33 are complete; stopped feature development at the user's request and moved to first-commit preparation.
+- First-commit audit passed: 243 files / about 109 MB, no oversized file, no secret-pattern hit, and asset/audio licensing records are present.
