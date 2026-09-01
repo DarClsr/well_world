@@ -8,6 +8,11 @@ func _initialize() -> void:
 func _record() -> void:
 	var scene := load("res://scenes/main.tscn") as PackedScene
 	var main := scene.instantiate()
+	main.set("time_hour", 9.5)
+	main.set("time_running", false)
+	main.set("weather_seed", 20260902)
+	main.set("weather_running", false)
+	main.set("weather_override", "clear")
 	root.add_child(main)
 	if "--isolated" in OS.get_cmdline_user_args():
 		(main.get_node("MistValleyAmbience") as AudioStreamPlayer).volume_db = -80.0

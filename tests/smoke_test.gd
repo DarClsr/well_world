@@ -5,10 +5,237 @@ func _initialize() -> void:
 	var scene := load("res://scenes/main.tscn") as PackedScene
 	assert(scene != null)
 	var main := scene.instantiate()
+	main.set("time_hour", 9.5)
+	main.set("time_running", false)
+	main.set("weather_seed", 20260902)
+	main.set("weather_override", "clear")
+	main.set("weather_running", false)
 	root.add_child(main)
 	await process_frame
 	var player := main.get_node_or_null("Player") as CharacterBody3D
 	assert(player != null)
+	assert(is_equal_approx(main.get("time_hour"), 9.5))
+	assert(not main.get("time_running"))
+	var environment_settings := main.get("environment_settings") as Environment
+	var sun := main.get_node_or_null("Sun") as DirectionalLight3D
+	assert(environment_settings != null)
+	assert(main.get_node_or_null("WorldEnvironment") is WorldEnvironment)
+	assert(sun != null and sun.shadow_enabled)
+	assert(sun.directional_shadow_mode == DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS)
+	assert(is_equal_approx(sun.directional_shadow_max_distance, 55.0))
+	assert(is_equal_approx(sun.shadow_blur, 1.4))
+	var day_keys: Array = main.get("day_keys")
+	assert(day_keys.size() == 11)
+	for day_key in day_keys:
+		assert((day_key[6] as float) >= 0.35)
+		assert((day_key[10] as float) >= 0.2 and (day_key[10] as float) <= 0.6)
+	var midnight_sample := main.call("_sample_day", 0.0) as Dictionary
+	var noon_sample := main.call("_sample_day", 12.0) as Dictionary
+	assert((midnight_sample["amb_energy"] as float) >= 0.35)
+	assert((noon_sample["sun_energy"] as float) > (midnight_sample["sun_energy"] as float))
+	var before_midnight := main.call("_sample_day", 23.99) as Dictionary
+	var after_midnight := main.call("_sample_day", 0.01) as Dictionary
+	assert(absf((before_midnight["sun_energy"] as float) - (after_midnight["sun_energy"] as float)) < 0.01)
+	var before_angle := deg_to_rad(before_midnight["azim"] as float)
+	var after_angle := deg_to_rad(after_midnight["azim"] as float)
+	assert(Vector2(cos(before_angle), sin(before_angle)).distance_to(Vector2(cos(after_angle), sin(after_angle))) < 0.03)
+	main.set("time_running", true)
+	main.call("_process", 1.0)
+	assert(is_equal_approx(main.get("time_hour"), 9.5 + 24.0 / 1800.0))
+	main.set("time_running", false)
+	main.set("time_hour", 0.0)
+	main.call("_process", 0.0)
+	var night_hearth_energy := (main.get("hearth_light") as OmniLight3D).light_energy
+	var night_window_energy := (main.get("window_glows")[0] as OmniLight3D).light_energy
+	var night_portal_energy := (main.get("portal_light") as OmniLight3D).light_energy
+	var night_mistcap_energy := (main.get("mistcap_lights")[0] as OmniLight3D).light_energy
+	var night_player_fill_energy := (main.get("player_fill_light") as SpotLight3D).light_energy
+	assert(environment_settings.ambient_light_energy >= 0.35)
+	assert(sun.light_color.b > sun.light_color.r)
+	main.set("time_hour", 12.0)
+	main.set("portal_time", 0.0)
+	main.call("_process", 0.0)
+	assert(night_hearth_energy > (main.get("hearth_light") as OmniLight3D).light_energy)
+	assert(night_window_energy > (main.get("window_glows")[0] as OmniLight3D).light_energy)
+	assert(night_portal_energy > (main.get("portal_light") as OmniLight3D).light_energy)
+	assert(night_mistcap_energy > (main.get("mistcap_lights")[0] as OmniLight3D).light_energy)
+	assert((main.get("portal_surface_material") as ShaderMaterial).get_shader_parameter("time_glow") < 1.0)
+	var player_fill := main.get("player_fill_light") as SpotLight3D
+	assert(player_fill != null and not player_fill.shadow_enabled)
+	assert(player_fill.light_cull_mask == 2)
+	assert(is_equal_approx(player_fill.spot_range, 35.0))
+	assert(night_player_fill_energy > player_fill.light_energy)
+	main.set("time_hour", 9.5)
+	main.call("_process", 0.0)
+	assert(sun.rotation_degrees.is_equal_approx(Vector3(-52.0, -28.0, 0.0)))
+	assert(is_equal_approx(sun.shadow_opacity, 0.58))
+	assert(environment_settings.background_color.is_equal_approx(Color("839da3")))
+	(main.get("portal_surface_material") as ShaderMaterial).set_shader_parameter("reaction_strength", 0.0)
+	var weather_schedule: Array = main.get("weather_schedule")
+	assert(weather_schedule.size() == 13)
+	assert(weather_schedule == main.call("_make_weather_schedule", 20260902))
+	assert(weather_schedule == main.call("_make_weather_schedule", 20260902))
+	var weather_counts := {"clear": 0, "cloudy": 0, "mist": 0, "light_rain": 0}
+	for index in weather_schedule.size():
+		var segment: Dictionary = weather_schedule[index]
+		assert(segment["state"] in weather_counts)
+		weather_counts[segment["state"]] += 1
+		var duration_range := main.call("_weather_duration_range", segment["state"] as String) as Vector2
+		assert((segment["duration"] as float) >= duration_range.x)
+		assert((segment["duration"] as float) <= duration_range.y)
+		if index > 0:
+			assert(segment["state"] != weather_schedule[index - 1]["state"])
+	assert(weather_schedule[-1]["state"] != weather_schedule[0]["state"])
+	for state in weather_counts:
+		assert(weather_counts[state] >= 3)
+	var rain_field := main.get_node_or_null("LightRain") as Node3D
+	assert(rain_field != null and rain_field.get_child_count() == 28)
+	assert(rain_field.get_meta("weather_seed") == 20260902)
+	assert(rain_field.get_meta("rain_seed") == 20261603)
+	assert(main.get("rain_params").size() == 28)
+	var rain_material := main.get("rain_material") as StandardMaterial3D
+	assert(rain_material != null and rain_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA)
+	assert(((rain_field.get_child(0) as MeshInstance3D).mesh as QuadMesh).size == Vector2(0.025, 0.55))
+	for streak in rain_field.get_children():
+		assert((streak as MeshInstance3D).material_override == rain_material)
+		assert((streak as MeshInstance3D).cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+	var clear_sun_energy := sun.light_energy
+	var clear_fog_density := environment_settings.fog_density
+	var clear_hearth_energy := (main.get("hearth_light") as OmniLight3D).light_energy
+	var clear_portal_energy := (main.get("portal_light") as OmniLight3D).light_energy
+	main.set("weather_override", "cloudy")
+	main.call("_process", 0.0)
+	var cloudy_sun_energy := sun.light_energy
+	var cloudy_fog_density := environment_settings.fog_density
+	assert(cloudy_sun_energy < clear_sun_energy)
+	assert(cloudy_fog_density > clear_fog_density)
+	assert(environment_settings.ambient_light_energy >= 0.35)
+	assert(not rain_field.visible)
+	main.set("weather_override", "mist")
+	main.call("_process", 0.0)
+	assert(environment_settings.fog_density > cloudy_fog_density)
+	assert(not rain_field.visible)
+	main.set("weather_override", "light_rain")
+	main.call("_process", 0.0)
+	assert(sun.light_energy < cloudy_sun_energy)
+	assert(environment_settings.fog_density > clear_fog_density)
+	assert(environment_settings.ambient_light_energy >= 0.35)
+	assert(rain_field.visible and rain_material.albedo_color.a > 0.25)
+	assert(is_equal_approx((main.get("hearth_light") as OmniLight3D).light_energy, clear_hearth_energy))
+	assert(is_equal_approx((main.get("portal_light") as OmniLight3D).light_energy, clear_portal_energy))
+	var rain_position := (rain_field.get_child(0) as Node3D).position
+	main.set("portal_time", 1.0)
+	main.call("_animate_weather")
+	assert(not (rain_field.get_child(0) as Node3D).position.is_equal_approx(rain_position))
+	var shelter_house := main.get_node("VillageHouse1") as Node3D
+	var shelter_streak := rain_field.get_child(0) as MeshInstance3D
+	var shelter_params: Dictionary = (main.get("rain_params") as Array)[0]
+	var original_shelter_params := shelter_params.duplicate()
+	var original_rain_player_position := player.position
+	main.set("portal_time", 0.0)
+	player.position = shelter_house.position
+	shelter_params["x"] = 0.0
+	shelter_params["z"] = 0.0
+	shelter_params["phase"] = 0.0
+	main.call("_animate_weather")
+	assert(shelter_streak.transparency > 0.99)
+	shelter_params["x"] = 6.0
+	main.call("_animate_weather")
+	assert(is_zero_approx(shelter_streak.transparency))
+	var shelter_edge_world := shelter_house.to_global(Vector3(2.9, 2.0, 0.0))
+	shelter_params["x"] = shelter_edge_world.x - player.position.x
+	shelter_params["z"] = shelter_edge_world.z - player.position.z
+	main.call("_animate_weather")
+	assert(shelter_streak.transparency > 0.0 and shelter_streak.transparency < 1.0)
+	shelter_params.assign(original_shelter_params)
+	player.position = original_rain_player_position
+	var original_schedule := weather_schedule.duplicate(true)
+	main.set("weather_schedule", [{"state": "clear", "duration": 5.0}, {"state": "light_rain", "duration": 4.0}])
+	main.set("weather_schedule_index", 0)
+	main.set("weather_segment_elapsed", 4.625)
+	main.set("weather_override", "")
+	var half_transition := main.call("_sample_weather") as Dictionary
+	assert(is_equal_approx(main.get("weather_blend"), 0.5))
+	assert(is_equal_approx(half_transition["rain"] as float, 0.5))
+	main.set("weather_running", true)
+	main.set("weather_segment_elapsed", 4.9)
+	main.call("_update_weather", 15.0)
+	assert(main.get("weather_schedule_index") == 1)
+	assert(is_equal_approx(main.get("weather_segment_elapsed"), 0.1))
+	main.set("weather_schedule", original_schedule)
+	main.set("weather_schedule_index", 0)
+	main.set("weather_segment_elapsed", 0.0)
+	main.set("weather_running", false)
+	main.set("weather_override", "clear")
+	main.set("portal_time", 0.0)
+	main.call("_process", 0.0)
+	var butterflies := main.get_node_or_null("Butterflies") as Node3D
+	var fireflies := main.get_node_or_null("Fireflies") as Node3D
+	assert(butterflies != null and butterflies.get_child_count() == 7)
+	assert(fireflies != null and fireflies.get_child_count() == 14)
+	assert(butterflies.get_meta("seed") == 3131)
+	assert(fireflies.get_meta("seed") == 6262)
+	assert(butterflies.get_meta("active_hours") == Vector2(7.0, 19.0))
+	assert(fireflies.get_meta("active_hours") == Vector2(19.5, 5.5))
+	var butterfly_material := main.get("butterfly_material") as StandardMaterial3D
+	var firefly_material := main.get("firefly_material") as StandardMaterial3D
+	assert(butterfly_material != null and firefly_material != null)
+	assert(butterfly_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA)
+	assert(firefly_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA)
+	assert(butterfly_material.albedo_texture.get_image().get_size() == Vector2i(32, 32))
+	assert(firefly_material.albedo_texture.get_image().get_size() == Vector2i(32, 32))
+	assert(((butterflies.get_child(0) as MeshInstance3D).mesh as QuadMesh).size == Vector2(0.32, 0.22))
+	assert(((fireflies.get_child(0) as MeshInstance3D).mesh as QuadMesh).size == Vector2(0.12, 0.12))
+	var ecology_portal_center: Vector3 = main.get("portal_center")
+	for fly in butterflies.get_children():
+		assert((fly as MeshInstance3D).material_override == butterfly_material)
+		var params: Dictionary = fly.get_meta("params")
+		var home: Vector2 = params["home"]
+		var radius := maxf(params["radius_x"] as float, params["radius_z"] as float)
+		assert(absf(home.x) > 4.0 and home.y > -18.0 and home.y < 0.0)
+		assert((main.call("_meadow_road_edge_distance", home) as float) > radius + 0.8)
+		assert(home.distance_to(Vector2(4.3, -5.5)) > radius + 3.25)
+		assert(home.distance_to(Vector2(-14.8, -10.0)) > radius + 2.7)
+		for house_center in [Vector2(-9.0, -10.0), Vector2(9.0, -8.0), Vector2(-10.0, 5.0)]:
+			assert(absf(home.x - house_center.x) > radius + 3.45 or absf(home.y - house_center.y) > radius + 3.45)
+	for fly in fireflies.get_children():
+		assert((fly as MeshInstance3D).material_override == firefly_material)
+		var params: Dictionary = fly.get_meta("params")
+		var home: Vector2 = params["home"]
+		var radius := maxf(params["radius_x"] as float, params["radius_z"] as float)
+		assert(absf(home.x) > 12.0)
+		assert((main.call("_meadow_road_edge_distance", home) as float) > radius + 3.0)
+		assert(home.distance_to(Vector2(4.3, -5.5)) > radius + 3.25)
+		assert(home.distance_to(Vector2(ecology_portal_center.x, ecology_portal_center.z)) > radius + 4.8)
+	assert(is_zero_approx(main.call("_butterfly_alpha", 7.0) as float))
+	assert(is_equal_approx(main.call("_butterfly_alpha", 8.0) as float, 1.0))
+	assert(is_equal_approx(main.call("_butterfly_alpha", 18.0) as float, 1.0))
+	assert(is_zero_approx(main.call("_butterfly_alpha", 19.0) as float))
+	assert(is_zero_approx(main.call("_firefly_alpha", 19.5) as float))
+	assert(is_equal_approx(main.call("_firefly_alpha", 20.5) as float, 1.0))
+	assert(is_equal_approx(main.call("_firefly_alpha", 4.5) as float, 1.0))
+	assert(is_zero_approx(main.call("_firefly_alpha", 5.5) as float))
+	assert(absf((main.call("_butterfly_alpha", 7.01) as float) - (main.call("_butterfly_alpha", 6.99) as float)) < 0.001)
+	assert(absf((main.call("_firefly_alpha", 19.51) as float) - (main.call("_firefly_alpha", 19.49) as float)) < 0.001)
+	main.set("time_hour", 12.0)
+	main.call("_process", 0.0)
+	assert(butterflies.visible and not fireflies.visible)
+	assert(butterfly_material.albedo_color.a > 0.99 and firefly_material.albedo_color.a < 0.01)
+	assert(butterfly_material.albedo_color.r > butterfly_material.albedo_color.g)
+	assert(butterfly_material.albedo_color.g > butterfly_material.albedo_color.b)
+	var butterfly_position := (butterflies.get_child(0) as Node3D).position
+	main.set("portal_time", 1.0)
+	main.call("_animate_ecosystem")
+	assert(not (butterflies.get_child(0) as Node3D).position.is_equal_approx(butterfly_position))
+	main.set("time_hour", 22.0)
+	main.call("_process", 0.0)
+	assert(not butterflies.visible and fireflies.visible)
+	assert(butterfly_material.albedo_color.a < 0.01 and firefly_material.albedo_color.a > 0.99)
+	assert(firefly_material.albedo_color.g > firefly_material.albedo_color.r)
+	main.set("portal_time", 0.0)
+	main.set("time_hour", 9.5)
+	main.call("_process", 0.0)
+	(main.get("portal_surface_material") as ShaderMaterial).set_shader_parameter("reaction_strength", 0.0)
 	var initial_portal_center: Vector3 = main.get("portal_center")
 	var expected_spawn := Vector2(initial_portal_center.x, initial_portal_center.z + 3.0)
 	assert(
@@ -23,10 +250,16 @@ func _initialize() -> void:
 	assert(player_model.get_node_or_null("RiggedModel") is Node3D)
 	assert(player_model.get_node_or_null("AnimationPlayer") is AnimationPlayer)
 	assert(player_model.position.is_equal_approx(Vector3.ZERO))
-	assert(player_model.scale.is_equal_approx(Vector3.ONE))
+	assert(player_model.scale.is_equal_approx(Vector3.ONE * 0.78))
+	var player_collider := player.get_node("CollisionShape3D") as CollisionShape3D
+	assert(player_collider.position.is_equal_approx(Vector3(0.0, 0.8, 0.0)))
+	var player_capsule := player_collider.shape as CapsuleShape3D
+	assert(is_equal_approx(player_capsule.radius, 0.38))
+	assert(is_equal_approx(player_capsule.height, 1.6))
 	var player_skeleton := player_model.find_child("Skeleton3D", true, false) as Skeleton3D
 	assert(player_skeleton != null and player_skeleton.get_bone_count() == 23)
 	var player_visual_height := _visual_height(player_model)
+	assert(player_visual_height >= 1.65 and player_visual_height <= 1.75)
 	var player_animation := player_model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	assert(player_animation != null)
 	for animation_name in ["Idle", "Walk", "Run"]:
@@ -99,44 +332,289 @@ func _initialize() -> void:
 	assert(main.get_node_or_null("ArrivalRing") is MeshInstance3D)
 	assert(main.get_node_or_null("Opening") != null)
 	assert(main.get_node_or_null("PortalPath") != null)
-	assert(main.get_node("VillagePath") is CSGPolygon3D)
-	assert(main.get_node("VillageSquare") is CSGPolygon3D)
-	assert(main.get_node("PortalPath") is CSGPolygon3D)
-	assert(main.get_node("PondPath") is CSGPolygon3D)
-	var mist_pass_path := main.get_node("MistPassPath") as CSGPolygon3D
-	assert(mist_pass_path.material is StandardMaterial3D)
-	assert((mist_pass_path.material as StandardMaterial3D).albedo_texture is ImageTexture)
+	var village_path := main.get_node("VillagePath") as MeshInstance3D
+	var portal_path := main.get_node("PortalPath") as MeshInstance3D
+	var pond_path := main.get_node("PondPath") as MeshInstance3D
+	for road in [village_path, portal_path, pond_path]:
+		assert(road.mesh is ArrayMesh and road.mesh.get_surface_count() == 1)
+		assert(road.get_node_or_null("Shoulder") is MeshInstance3D)
+		var road_arrays: Array = road.mesh.surface_get_arrays(0)
+		var road_vertices := road_arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array
+		var road_colors := road_arrays[Mesh.ARRAY_COLOR] as PackedColorArray
+		assert(road_vertices.size() % 3 == 0 and road_colors.size() == road_vertices.size())
+		for vertex_index in range(0, road_vertices.size(), 3):
+			var left_color := road_colors[vertex_index]
+			var center_color := road_colors[vertex_index + 1]
+			var right_color := road_colors[vertex_index + 2]
+			assert(left_color.r == 1.0 and left_color.g == 1.0 and left_color.b == 1.0)
+			assert(center_color.r >= 0.928 and center_color.r <= 0.932)
+			assert(center_color.g >= 0.928 and center_color.g <= 0.932)
+			assert(center_color.b >= 0.928 and center_color.b <= 0.932)
+			assert(is_equal_approx(center_color.a, left_color.a))
+			assert(right_color.r == 1.0 and right_color.g == 1.0 and right_color.b == 1.0)
+			assert(is_equal_approx(right_color.a, left_color.a))
+	var village_path_vertices: PackedVector3Array = village_path.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var village_path_min_width := INF
+	var village_path_max_width := 0.0
+	for vertex_index in range(0, village_path_vertices.size(), 3):
+		var cross_section_width := village_path_vertices[vertex_index].distance_to(village_path_vertices[vertex_index + 2])
+		village_path_min_width = minf(village_path_min_width, cross_section_width)
+		village_path_max_width = maxf(village_path_max_width, cross_section_width)
+	assert(is_equal_approx(village_path_min_width, 3.2))
+	assert(is_equal_approx(village_path_max_width, 4.2))
+	assert(main.get_node_or_null("VillageSquare") == null)
+	for lane_name in ["VillageWestLane", "VillageHearthLane", "VillageWagonLane", "VillageSouthLane"]:
+		var lane := main.get_node_or_null(lane_name) as MeshInstance3D
+		assert(lane != null and lane.mesh is ArrayMesh)
+		assert(lane.get_node_or_null("Shoulder") is MeshInstance3D)
+	assert(main.get_node_or_null("VillageCommonGround") == null)
+	var mist_pass_path := main.get_node("MistPassPath") as MeshInstance3D
+	assert(mist_pass_path.mesh is ArrayMesh and mist_pass_path.get_node_or_null("Shoulder") is MeshInstance3D)
+	var mist_pass_tone := main.get_node_or_null("MistPassTone") as MeshInstance3D
+	assert(mist_pass_tone != null and is_equal_approx(mist_pass_tone.position.y, 0.105))
 	for track_name in ["NorthCartTrackLeft", "NorthCartTrackRight", "SouthCartTrackLeft", "SouthCartTrackRight"]:
-		var cart_track := main.get_node_or_null(track_name) as CSGPolygon3D
+		var cart_track := main.get_node_or_null(track_name) as MeshInstance3D
 		assert(cart_track != null)
-		assert(not cart_track.use_collision)
-		assert(is_equal_approx(cart_track.position.y, 0.12))
-		assert(is_equal_approx(cart_track.depth, 0.01))
-		assert(cart_track.material != main.get("path_material"))
+		assert(cart_track.mesh is ArrayMesh)
+		assert(cart_track.material_override != main.get("path_material"))
+		assert(is_equal_approx((cart_track.material_override as StandardMaterial3D).albedo_color.a, 0.42))
+		assert((cart_track.material_override as StandardMaterial3D).vertex_color_use_as_albedo)
+		var track_vertices := cart_track.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
+		var track_colors := cart_track.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR] as PackedColorArray
+		assert(track_vertices.size() >= 2 and is_equal_approx(track_vertices[0].distance_to(track_vertices[1]), 0.28))
+		var track_min_alpha := 1.0
+		var track_max_alpha := 0.0
+		for track_color in track_colors:
+			track_min_alpha = minf(track_min_alpha, track_color.a)
+			track_max_alpha = maxf(track_max_alpha, track_color.a)
+		assert(track_min_alpha < 0.08 and track_max_alpha > 0.95)
 	var ground_material := main.get("ground_material") as StandardMaterial3D
 	var path_material := main.get("path_material") as StandardMaterial3D
-	for surface_material in [ground_material, path_material]:
-		assert(surface_material.albedo_texture is ImageTexture)
-		var surface_image := (surface_material.albedo_texture as ImageTexture).get_image()
-		assert(surface_image.get_width() == 64)
-		assert(surface_image.get_height() == 64)
-		assert(surface_image.has_mipmaps())
-		assert(surface_image.get_pixel(0, 0).is_equal_approx(surface_image.get_pixel(63, 63)))
-	assert(ground_material.uv1_scale.is_equal_approx(Vector3.ONE * 7.0))
-	assert(path_material.uv1_scale.is_equal_approx(Vector3.ONE * 4.0))
-	assert(main.get_node_or_null("PortalPlatform") != null)
+	assert(ground_material.albedo_texture is ImageTexture)
+	var ground_image := (ground_material.albedo_texture as ImageTexture).get_image()
+	assert(ground_image.get_width() == 128 and ground_image.get_height() == 128)
+	assert(ground_image.has_mipmaps())
+	var warm_pixel_count := 0
+	var cool_pixel_count := 0
+	var darkest_channel := 1.0
+	var brightest_channel := 0.0
+	for y in ground_image.get_height():
+		for x in ground_image.get_width():
+			var pixel := ground_image.get_pixel(x, y)
+			if pixel.r - pixel.b > 0.008:
+				warm_pixel_count += 1
+			elif pixel.b - pixel.r > 0.008:
+				cool_pixel_count += 1
+			darkest_channel = minf(darkest_channel, minf(pixel.r, minf(pixel.g, pixel.b)))
+			brightest_channel = maxf(brightest_channel, maxf(pixel.r, maxf(pixel.g, pixel.b)))
+	assert(warm_pixel_count > 490 and cool_pixel_count > 490)
+	assert(darkest_channel >= 0.819 and brightest_channel <= 0.996)
+	for edge in ground_image.get_width():
+		assert(ground_image.get_pixel(0, edge).is_equal_approx(ground_image.get_pixel(127, edge)))
+		assert(ground_image.get_pixel(edge, 0).is_equal_approx(ground_image.get_pixel(edge, 127)))
+	var repeated_ground_image := (main.call("_ground_texture") as ImageTexture).get_image()
+	assert(ground_image.get_data() == repeated_ground_image.get_data())
+	assert(path_material.albedo_texture is ImageTexture)
+	var path_image := (path_material.albedo_texture as ImageTexture).get_image()
+	assert(path_image.get_width() == 128 and path_image.get_height() == 128)
+	assert(path_image.has_mipmaps())
+	var path_warm_pixels := 0
+	var path_cool_pixels := 0
+	var path_dark_details := 0
+	for y in path_image.get_height():
+		for x in path_image.get_width():
+			var path_pixel := path_image.get_pixel(x, y)
+			if path_pixel.r - path_pixel.b > 0.006:
+				path_warm_pixels += 1
+			elif path_pixel.b - path_pixel.r > 0.006:
+				path_cool_pixels += 1
+			if path_pixel.get_luminance() < 0.80:
+				path_dark_details += 1
+	assert(
+		path_warm_pixels > 100 and path_cool_pixels > 100,
+		"Road texture warm=%d cool=%d" % [path_warm_pixels, path_cool_pixels]
+	)
+	assert(path_dark_details > 20, "Road texture dark details=%d" % path_dark_details)
+	for edge in path_image.get_width():
+		assert(path_image.get_pixel(0, edge).is_equal_approx(path_image.get_pixel(127, edge)))
+		assert(path_image.get_pixel(edge, 0).is_equal_approx(path_image.get_pixel(edge, 127)))
+	var repeated_path_image := (main.call("_road_texture") as ImageTexture).get_image()
+	assert(path_image.get_data() == repeated_path_image.get_data())
+	var road_texture_source := FileAccess.get_file_as_string("res://scripts/main.gd").get_slice("func _road_texture()", 1)
+	assert("sin(" not in road_texture_source and "cos(" not in road_texture_source)
+	assert(ground_material.uv1_scale.is_equal_approx(Vector3.ONE * 24.0))
+	assert(path_material.uv1_scale.is_equal_approx(Vector3.ONE))
+	assert(path_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA)
+	assert(path_material.vertex_color_use_as_albedo)
+	var roadside_stone_count := 0
+	for road_name in [
+		"VillagePath", "VillageWestLane", "VillageHearthLane", "VillageWagonLane",
+		"VillageSouthLane", "PortalPath", "PondPath", "MistPassPath", "HerbYardPath",
+	]:
+		var road := main.get_node(road_name) as MeshInstance3D
+		var edge_stones := road.get_node_or_null("EdgeStones") as Node3D
+		assert(edge_stones != null)
+		assert(edge_stones.get_meta("seed") == 490031 + absi(road_name.hash() % 100000))
+		roadside_stone_count += edge_stones.get_child_count()
+		for stone in edge_stones.get_children():
+			var source_asset := stone.get_meta("source_asset") as String
+			assert(source_asset.ends_with("Rock_Medium_1.gltf") or source_asset.ends_with("Rock_Medium_2.gltf"))
+			assert(stone.scale.x >= 0.054 and stone.scale.x <= 0.096)
+	assert(roadside_stone_count >= 10 and roadside_stone_count <= 35)
+	var meadow := main.get_node_or_null("MeadowGrass") as MultiMeshInstance3D
+	assert(meadow != null and meadow.multimesh != null)
+	assert(meadow.get_meta("seed") == 20260901)
+	assert(meadow.multimesh.use_custom_data)
+	assert(meadow.multimesh.mesh.get_surface_count() == 1)
+	var meadow_vertices := meadow.multimesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
+	assert(meadow_vertices.size() == 303)
+	assert(
+		meadow.multimesh.instance_count > 1600 and meadow.multimesh.instance_count < 7000,
+		"Unexpected meadow instance count: %d" % meadow.multimesh.instance_count
+	)
+	assert(meadow.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+	var meadow_material := meadow.material_override as ShaderMaterial
+	assert(meadow_material != null)
+	assert((meadow_material.shader as Shader).resource_path == "res://shaders/meadow_grass.gdshader")
+	var meadow_shader_code := (meadow_material.shader as Shader).code
+	assert("MODEL_MATRIX[3].xyz" in meadow_shader_code)
+	assert("height_ratio * height_ratio" in meadow_shader_code)
+	assert("CAMERA_POSITION_WORLD" in meadow_shader_code)
+	assert("INSTANCE_CUSTOM.r" in meadow_shader_code)
+	assert("vec3(0.72, 0.95, 0.70)" in meadow_shader_code)
+	assert("if (!FRONT_FACING)" in meadow_shader_code)
+	assert("1.0 - smoothstep(26.0, 42.0, camera_distance)" in meadow_shader_code)
+	assert("EMISSION = grass_color * 0.03" in meadow_shader_code)
+	var meadow_positions: PackedVector3Array = meadow.get_meta("positions")
+	var meadow_brightness: PackedFloat32Array = meadow.get_meta("brightness_values")
+	assert(meadow_positions.size() == meadow.multimesh.instance_count)
+	assert(meadow_brightness.size() == meadow.multimesh.instance_count)
+	var dense_meadow_instances := 0
+	for meadow_index in meadow.multimesh.instance_count:
+		var meadow_origin := meadow_positions[meadow_index]
+		var meadow_point := Vector2(meadow_origin.x, meadow_origin.z)
+		assert(not main.call("_is_meadow_excluded", meadow_point), "Excluded meadow instance %d at %s" % [meadow_index, meadow_point])
+		assert(meadow_brightness[meadow_index] >= 0.939 and meadow_brightness[meadow_index] <= 1.061)
+		if meadow_point.x > -20.0 and meadow_point.x < 18.0 and meadow_point.y > -19.0 and meadow_point.y < 9.5:
+			dense_meadow_instances += 1
+	assert(dense_meadow_instances > 1100, "Unexpected village meadow count: %d" % dense_meadow_instances)
+	for activity_point in [Vector2(-4.7, 5.25), Vector2(-5.5, 7.4), Vector2(3.0, -14.1), Vector2(4.2, -15.2)]:
+		assert(main.call("_is_meadow_excluded", activity_point))
+	var meadow_noise := FastNoiseLite.new()
+	meadow_noise.seed = 20260901
+	meadow_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	meadow_noise.frequency = 0.075
+	var sparse_roadside_samples := 0
+	var dense_roadside_samples := 0
+	for meadow_z in range(-18, 10):
+		for meadow_x in range(-18, 19):
+			var meadow_sample := Vector2(float(meadow_x) + 0.5, float(meadow_z) + 0.5)
+			var meadow_road_edge: float = main.call("_meadow_road_edge_distance", meadow_sample, "VillagePath")
+			if meadow_road_edge < 0.35 or meadow_road_edge >= 2.1:
+				continue
+			var sample_density: float = main.call("_meadow_density", meadow_sample, meadow_noise)
+			if sample_density < 1.0:
+				sparse_roadside_samples += 1
+			elif sample_density > 5.5:
+				dense_roadside_samples += 1
+	assert(
+		sparse_roadside_samples >= 8 and dense_roadside_samples >= 8,
+		"Roadside samples sparse=%d dense=%d" % [sparse_roadside_samples, dense_roadside_samples]
+	)
+	var portal_platform := main.get_node_or_null("PortalPlatform") as CSGCylinder3D
+	assert(portal_platform != null)
+	assert(portal_platform.use_collision and not portal_platform.visible)
+	assert(is_equal_approx(portal_platform.height, 0.08))
+	assert(main.get_node("PortalStoneBed") is MeshInstance3D)
+	assert(main.get_node("PortalArrivalWear") is MeshInstance3D)
+	var portal_ground_ring := main.get_node_or_null("PortalGroundRing") as Node3D
+	assert(portal_ground_ring != null and portal_ground_ring.get_child_count() == 7)
+	for rune_index in 7:
+		var ground_rune := portal_ground_ring.get_node("GroundRune%d" % rune_index) as CSGBox3D
+		assert(ground_rune != null and not ground_rune.use_collision)
+		var radial := Vector2(ground_rune.position.x, ground_rune.position.z).normalized()
+		var tangent := Vector2(ground_rune.basis.x.x, ground_rune.basis.x.z).normalized()
+		assert(absf(radial.dot(tangent)) < 0.01)
+		assert((ground_rune.material as StandardMaterial3D).emission_energy_multiplier < 0.5)
 	assert(main.get_node_or_null("PortalRuin") != null)
-	assert(main.get_node("PortalRuin").get_child_count() >= 11)
+	assert(main.get_node("PortalRuin").get_child_count() >= 17)
+	assert(main.get_node("PortalRuin/PortalFern") is Node3D)
+	assert(main.get_node("PortalRuin/PortalGrass") is Node3D)
+	var portal_surface := main.get_node_or_null("PortalSurface") as MeshInstance3D
+	assert(portal_surface != null and portal_surface.mesh is QuadMesh)
+	assert((portal_surface.mesh as QuadMesh).size.is_equal_approx(Vector2(2.8, 2.8)))
+	assert(portal_surface.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+	var portal_surface_material := portal_surface.material_override as ShaderMaterial
+	assert(portal_surface_material != null)
+	assert((portal_surface_material.shader as Shader).resource_path == "res://shaders/portal_surface.gdshader")
+	assert(is_zero_approx(portal_surface_material.get_shader_parameter("reaction_strength")))
 	assert(main.get_node_or_null("VillageProps") != null)
-	assert(main.get_node("VillageProps").get_child_count() >= 8)
+	var village_props := main.get_node("VillageProps") as Node3D
+	assert(village_props.get_child_count() >= 11)
+	assert(village_props.get_node_or_null("HerbDryingRack") is Node3D)
+	assert(village_props.get_node_or_null("HerbHarvestCrate") is Node3D)
+	var weaving_line := village_props.get_node_or_null("WeaverDryingLine") as Node3D
+	assert(weaving_line != null and weaving_line.get_child_count() == 6)
+	var village_marker := village_props.get_node_or_null("VillageBoundaryMarker") as Node3D
+	assert(village_marker != null and village_marker.position.is_equal_approx(Vector3(3.35, 0.0, 5.1)))
+	assert((-village_marker.basis.z).dot(Vector3.FORWARD) > 0.99)
+	assert(village_marker.get_node_or_null("BoundaryFooting") != null)
+	var boundary_stone := village_marker.get_node_or_null("BoundaryStone") as CSGPolygon3D
+	var village_wedge := village_marker.get_node_or_null("VillageWedge") as CSGBox3D
+	assert(boundary_stone != null and not boundary_stone.use_collision and boundary_stone.polygon.size() == 6)
+	assert(boundary_stone.polygon[3].y <= 0.75)
+	assert(village_wedge != null and not village_wedge.use_collision and village_wedge.size.z < 0.4)
+	assert(village_marker.find_children("*", "Light3D", true, false).is_empty())
+	var village_wagon := village_props.get_node_or_null("VillageWagon") as Node3D
+	assert(village_wagon != null and village_wagon.position.is_equal_approx(Vector3(-5.8, 0.0, -2.7)))
+	assert(is_equal_approx(village_wagon.rotation.y, 1.37))
+	var wagon_shaft_direction := village_wagon.basis.z.normalized()
+	var wagon_lane_exit := Vector3(2.0, 0.0, 0.4).normalized()
+	assert(wagon_shaft_direction.dot(wagon_lane_exit) > 0.99)
+	var wagon_crate_large := village_props.get_node_or_null("WagonUnloadCrateLarge") as Node3D
+	var wagon_crate_small := village_props.get_node_or_null("WagonUnloadCrateSmall") as Node3D
+	assert(wagon_crate_large.position.is_equal_approx(Vector3(-7.4, 0.0, -2.1)))
+	assert(wagon_crate_small.position.is_equal_approx(Vector3(-7.45, 0.0, -3.0)))
+	for wagon_crate in [wagon_crate_large, wagon_crate_small]:
+		assert((wagon_crate.position - village_wagon.position).dot(wagon_shaft_direction) < 0.0)
+	var wagon_collision := village_props.get_node_or_null("WagonCollision") as CSGBox3D
+	assert(wagon_collision != null and wagon_collision.use_collision and not wagon_collision.visible)
+	assert(wagon_collision.size.is_equal_approx(Vector3(1.9, 1.5, 2.6)))
+	assert(is_equal_approx(wagon_collision.rotation.y, village_wagon.rotation.y))
+	var warm_glass_materials: Array[StandardMaterial3D] = []
+	for house_index in range(1, 4):
+		var house := main.get_node("VillageHouse%d" % house_index) as Node3D
+		assert((house.get_node("Door") as Node3D).position.is_equal_approx(Vector3(-0.515, 0.0, 3.09)))
+		var window := house.get_node("Window") as Node3D
+		assert(window.position.is_equal_approx(Vector3(2.0, 0.0, 2.875)))
+		var warm_glass_found := false
+		for window_mesh in window.find_children("*", "MeshInstance3D", true, false):
+			var mesh_instance := window_mesh as MeshInstance3D
+			for surface_index in mesh_instance.mesh.get_surface_count():
+				var glass_material := mesh_instance.get_surface_override_material(surface_index) as StandardMaterial3D
+				if glass_material != null and glass_material.emission_enabled:
+					warm_glass_found = true
+					warm_glass_materials.append(glass_material)
+					assert(glass_material.albedo_color.r > glass_material.albedo_color.b)
+					assert(glass_material.albedo_color.a <= 0.7)
+					assert(glass_material.emission.r > glass_material.emission.b)
+					assert(glass_material.emission_energy_multiplier <= 0.2)
+		assert(warm_glass_found)
+		assert((house.get_node("WindowGlow") as OmniLight3D).position.is_equal_approx(Vector3(2.0, 1.85, 3.18)))
 	var herb_plot := main.get_node_or_null("HerbPlot") as Node3D
 	assert(herb_plot != null)
-	assert(herb_plot.position.is_equal_approx(Vector3(-4.0, 0.0, -10.8)))
-	assert(herb_plot.get_child_count() == 10)
-	for bed_part_name in ["Soil", "NorthEdge", "SouthEdge", "WestEdge", "EastEdge"]:
+	assert(herb_plot.position.is_equal_approx(Vector3(-14.8, 0.0, -10.0)))
+	assert(is_equal_approx(herb_plot.rotation.y, PI * 0.5))
+	assert(herb_plot.get_child_count() == 16)
+	for bed_part_name in ["Soil", "NorthEdge", "SouthEdge", "MiddleEdge", "WestEdge", "EastEdge"]:
 		var bed_part := herb_plot.get_node_or_null(bed_part_name) as CSGBox3D
 		assert(bed_part != null)
 		assert(not bed_part.use_collision)
+	assert((herb_plot.get_node("Soil") as CSGBox3D).size.is_equal_approx(Vector3(4.6, 0.08, 2.8)))
+	assert((herb_plot.get_node("Soil") as CSGBox3D).size.x * (herb_plot.get_node("Soil") as CSGBox3D).size.z >= 12.0)
+	assert(main.get_node_or_null("HerbYardGrass") is MeshInstance3D)
+	var herb_yard_path := main.get_node_or_null("HerbYardPath") as MeshInstance3D
+	assert(herb_yard_path != null and herb_yard_path.mesh is ArrayMesh)
 	assert(main.get_node("GrassShadeWest") is MeshInstance3D)
 	assert(main.get_node("GrassLightEast") is MeshInstance3D)
 	for wear_name in ["VillageWearHearth", "VillageWearHerbs", "VillageWearWagon", "VillageWearEastDoor"]:
@@ -150,6 +628,19 @@ func _initialize() -> void:
 		assert(wear_material.albedo_texture is GradientTexture2D)
 		var wear_texture := wear_material.albedo_texture as GradientTexture2D
 		assert(is_equal_approx(wear_texture.gradient.colors[0].a, 0.34))
+	for inset_name in ["VillageGrassNorthWest", "VillageGrassWest", "VillageGrassNorthEast", "VillageGrassSouthEast"]:
+		var inset := main.get_node_or_null(inset_name) as MeshInstance3D
+		assert(inset != null and is_equal_approx(inset.position.y, 0.115))
+		var inset_texture := (inset.material_override as StandardMaterial3D).albedo_texture as GradientTexture2D
+		assert(is_equal_approx(inset_texture.gradient.colors[0].a, 0.62))
+	for wear_name in ["RoadWearNorth", "RoadWearFork", "RoadWearSouth"]:
+		var wear := main.get_node_or_null(wear_name) as MeshInstance3D
+		assert(wear != null and is_equal_approx(wear.position.y, 0.11))
+	for blend_name in ["PortalPathBlend", "PondPathBlend"]:
+		assert(main.get_node_or_null(blend_name) is MeshInstance3D)
+	var pond_lookout := main.get_node_or_null("PondLookout") as MeshInstance3D
+	assert(pond_lookout != null and pond_lookout.position.is_equal_approx(Vector3(-3.9, 0.058, 12.4)))
+	assert((pond_lookout.mesh as PlaneMesh).size.is_equal_approx(Vector2(2.04, 2.85)))
 	assert(main.get_node_or_null("NorthCliff") == null)
 	assert(ResourceLoader.exists("res://scenes/world/valley_boundary.tscn"))
 	var valley_boundary := main.get_node_or_null("ValleyBoundary") as Node3D
@@ -201,6 +692,7 @@ func _initialize() -> void:
 		assert(fog_bank.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
 	var pond := main.get_node_or_null("MistPond")
 	assert(pond != null)
+	assert(pond.position.is_equal_approx(Vector3(-7.8, 0.0, 12.0)))
 	assert(pond.get_node_or_null("Water") is MeshInstance3D)
 	var pond_collision := pond.get_node_or_null("PondCollision") as CSGCylinder3D
 	assert(pond_collision != null)
@@ -237,28 +729,99 @@ func _initialize() -> void:
 	assert(is_equal_approx(hearth_audio.unit_size, 2.5))
 	assert(is_equal_approx(hearth_audio.max_distance, 14.0))
 	assert(portal_react.position.distance_to(main.get("portal_center") + Vector3.UP * 1.8) < 0.01)
+	var roof_wood_materials: Array[StandardMaterial3D] = []
+	var roof_tile_materials: Array[StandardMaterial3D] = []
 	for house_index in range(1, 4):
 		var house := main.get_node_or_null("VillageHouse%d" % house_index)
 		assert(house != null)
 		assert(house.get_node_or_null("Roof") is Node3D)
-		assert((house.get_node_or_null("HouseCollision") as CSGBox3D).use_collision)
+		var house_collision := house.get_node_or_null("HouseCollision") as CSGBox3D
+		assert(house_collision.use_collision and not house_collision.visible)
+		for wall_name in ["HouseWallLeft", "HouseWallRight", "HouseWallBack"]:
+			var house_wall := house.get_node_or_null(wall_name) as CSGBox3D
+			assert(house_wall != null and not house_wall.use_collision)
+			assert(house_wall.visible and house_wall.material.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED)
+		var interior_floor := house.get_node_or_null("HouseInteriorFloor") as CSGBox3D
+		assert(interior_floor != null and not interior_floor.use_collision)
+		assert(interior_floor.size.is_equal_approx(Vector3(5.55, 0.06, 5.55)))
+		assert(interior_floor.position.is_equal_approx(Vector3(0.0, 0.05, 0.0)))
+		assert(interior_floor.material == main.get("interior_floor_material"))
+		for base_name in ["HouseStoneBaseLeft", "HouseStoneBaseRight", "HouseStoneBaseBack"]:
+			var stone_base := house.get_node_or_null(base_name) as CSGBox3D
+			assert(stone_base != null and not stone_base.use_collision)
+		for trim_name in ["HouseTrimLeftMiddle", "HouseTrimRightMiddle", "HouseTrimBackMiddle", "HouseTrimLeftTop", "HouseTrimRightTop", "HouseTrimBackTop"]:
+			var house_trim := house.get_node_or_null(trim_name) as CSGBox3D
+			assert(house_trim != null and not house_trim.use_collision)
+		assert(house.get_node_or_null("BackWindow") is Node3D)
+		assert(house.get_node_or_null("InteriorRug") is CSGBox3D)
+		assert(house.get_node_or_null("InteriorBenchSeat") is CSGBox3D)
+		assert(house.get_node_or_null("InteriorCrate") is Node3D)
+		assert(house.get_node_or_null("Roof/Chimney") is Node3D)
 		assert(house.get_node_or_null("WindowGlow") is OmniLight3D)
 		assert(house.get_node_or_null("SmokePuff0") is MeshInstance3D)
+		var roof := house.get_node("Roof") as Node3D
+		for roof_mesh in roof.find_children("*", "MeshInstance3D", true, false):
+			var roof_mesh_instance := roof_mesh as MeshInstance3D
+			for surface_index in roof_mesh_instance.mesh.get_surface_count():
+				var roof_material := roof_mesh_instance.get_surface_override_material(surface_index) as StandardMaterial3D
+				if roof_material == null:
+					continue
+				if roof_material.resource_name == "MI_WoodTrim":
+					roof_wood_materials.append(roof_material)
+					assert(roof_material.albedo_color.is_equal_approx(Color("c6b99a")))
+				elif roof_material.resource_name == "MI_RoundTiles":
+					roof_tile_materials.append(roof_material)
+					assert(roof_material.albedo_texture.resource_path == "res://assets/quaternius/village/T_RoundTiles_BaseColor_Muted.png")
+	assert(roof_wood_materials.size() == 3 and roof_tile_materials.size() == 3)
+	var source_tile_image := (load("res://assets/quaternius/village/T_RoundTiles_BaseColor.png") as Texture2D).get_image()
+	var muted_tile_image := (roof_tile_materials[0].albedo_texture as Texture2D).get_image()
+	assert(muted_tile_image.get_size() == source_tile_image.get_size())
+	var source_saturation := 0.0
+	var muted_saturation := 0.0
+	var source_value := 0.0
+	var muted_value := 0.0
+	var tile_sample_count := 0
+	for y in range(0, source_tile_image.get_height(), 16):
+		for x in range(0, source_tile_image.get_width(), 16):
+			var source_pixel := source_tile_image.get_pixel(x, y)
+			var muted_pixel := muted_tile_image.get_pixel(x, y)
+			source_saturation += source_pixel.s
+			muted_saturation += muted_pixel.s
+			source_value += source_pixel.v
+			muted_value += muted_pixel.v
+			tile_sample_count += 1
+	var source_average_saturation := source_saturation / float(tile_sample_count)
+	var muted_average_saturation := muted_saturation / float(tile_sample_count)
+	var source_average_value := source_value / float(tile_sample_count)
+	var muted_average_value := muted_value / float(tile_sample_count)
+	assert(
+		muted_average_saturation < source_average_saturation * 0.75,
+		"Roof saturation source=%.4f muted=%.4f" % [source_average_saturation, muted_average_saturation]
+	)
+	assert(
+		muted_average_value < source_average_value * 0.98,
+		"Roof value source=%.4f muted=%.4f" % [source_average_value, muted_average_value]
+	)
 	var house_fade_materials: Array = main.get("house_fade_materials")
 	assert(not house_fade_materials.is_empty())
+	assert(house_fade_materials.size() >= 6)
 	assert(house_fade_materials.size() == main.get("house_fade_centers").size())
+	assert(house_fade_materials.size() == main.get("house_fade_alphas").size())
 	var first_house_material := house_fade_materials[0] as StandardMaterial3D
 	assert(first_house_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA)
 	assert(is_equal_approx(first_house_material.albedo_color.a, 1.0))
+	assert((main.get("house_fade_alphas") as Array).all(func(alpha): return is_equal_approx(alpha, 1.0)))
 	player.position = Vector3(-9.0, 1.0, -5.5)
 	main.call("_process", 1.0)
-	assert(first_house_material.albedo_color.a < 0.1)
+	assert(is_equal_approx(first_house_material.albedo_color.a, 0.22))
+	assert(is_equal_approx(warm_glass_materials[0].albedo_color.a, 0.66))
 	var second_house_index := (main.get("house_fade_centers") as Array).find(Vector3(9.0, 0.0, -8.0))
 	assert(second_house_index >= 0)
 	assert(is_equal_approx((house_fade_materials[second_house_index] as StandardMaterial3D).albedo_color.a, 1.0))
 	player.position = Vector3(0.0, 1.0, 30.0)
 	main.call("_process", 1.0)
 	assert(first_house_material.albedo_color.a > 0.99)
+	assert(is_equal_approx(warm_glass_materials[0].albedo_color.a, 0.66))
 	assert(main.get_node_or_null("RuinPillar") == null)
 	assert(main.get_node_or_null("RuinLintel") == null)
 	assert(main.get("portal_ring") != null)
@@ -288,33 +851,39 @@ func _initialize() -> void:
 	assert(villager_labels.size() == 3)
 	assert(main.get("villagers").size() == 3)
 	for npc_data in [
-		["HerbalistMira", "米拉", "药草师"],
-		["GatekeeperToren", "托伦", "守门人"],
-		["WeaverNia", "尼娅", "织工"],
+		["HerbalistMira", "米拉", "药草师", 0.64],
+		["GatekeeperToren", "托伦", "守门人", 0.67],
+		["WeaverNia", "尼娅", "织工", 0.78],
 	]:
 		var npc_name: String = npc_data[0]
 		var npc := main.get_node_or_null(npc_name) as CharacterBody3D
 		assert(npc != null)
-		assert(npc.get_node_or_null("CollisionShape3D") is CollisionShape3D)
+		var npc_collider := npc.get_node_or_null("CollisionShape3D") as CollisionShape3D
+		assert(npc_collider != null and is_equal_approx(npc_collider.position.y, 0.8))
+		var npc_capsule := npc_collider.shape as CapsuleShape3D
+		assert(is_equal_approx(npc_capsule.radius, 0.32))
+		assert(is_equal_approx(npc_capsule.height, 1.6))
 		var identity_label := npc.get_node_or_null("IdentityLabel") as Label3D
 		assert(identity_label != null)
 		assert(identity_label.text.contains(npc_data[1]))
 		assert(identity_label.text.contains(npc_data[2]))
 		assert(identity_label.billboard == BaseMaterial3D.BILLBOARD_ENABLED)
 		assert(not identity_label.fixed_size)
-		assert(is_equal_approx(identity_label.pixel_size, 0.012))
+		assert(is_equal_approx(identity_label.pixel_size, 0.009))
 		assert(not identity_label.visible)
 		var npc_model := npc.get_node_or_null("Visual/CharacterModel") as Node3D
 		assert(npc_model != null)
 		assert(npc_model.get_node_or_null("RiggedModel") is Node3D)
 		assert(npc_model.find_child("OtherworldMark", true, false) == null)
 		assert(npc_model.position.is_equal_approx(Vector3.ZERO))
-		assert(npc_model.scale.is_equal_approx(Vector3.ONE))
+		var expected_visual_scale: float = npc_data[3]
+		assert(npc_model.scale.is_equal_approx(Vector3.ONE * expected_visual_scale))
 		var npc_skeleton := npc_model.find_child("Skeleton3D", true, false) as Skeleton3D
 		assert(npc_skeleton != null and npc_skeleton.get_bone_count() == 23)
 		var npc_visual_height := _visual_height(npc_model)
-		assert(npc_visual_height >= player_visual_height * 0.8)
-		assert(npc_visual_height <= player_visual_height * 1.3)
+		assert(npc_visual_height >= 1.65 and npc_visual_height <= 1.75)
+		assert(npc_visual_height >= player_visual_height * 0.97)
+		assert(npc_visual_height <= player_visual_height * 1.03)
 		assert(identity_label.position.y >= npc_visual_height + 0.2)
 		var npc_animation := npc_model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 		assert(npc_animation != null)
@@ -323,14 +892,41 @@ func _initialize() -> void:
 		if npc.name == "HerbalistMira":
 			assert(npc_animation.has_animation("PickUp"))
 			assert(npc_animation.get_animation("PickUp").loop_mode == Animation.LOOP_NONE)
-		assert(npc_animation.current_animation == "Walk")
+		if npc.name == "GatekeeperToren":
+			assert(npc_animation.current_animation == "Idle")
+		else:
+			assert(npc_animation.current_animation == "Walk")
 		assert(npc_animation.get_animation("Idle").loop_mode == Animation.LOOP_LINEAR)
 		assert(npc_animation.get_animation("Walk").loop_mode == Animation.LOOP_LINEAR)
 	assert(main.get("villager_patrol_origins").size() == 3)
 	assert(main.get("villager_patrol_axes").size() == 3)
+	for patrol_axis in main.get("villager_patrol_axes"):
+		assert(is_equal_approx((patrol_axis as Vector3).length(), 1.0))
 	assert(main.get("villager_patrol_directions").size() == 3)
 	assert(main.get("villager_patrol_pauses").size() == 3)
+	var toren_origin := main.get("villager_patrol_origins")[1] as Vector3
+	assert(toren_origin.is_equal_approx(Vector3(3.0, 0.0, -15.2)))
+	var toren := main.get_node("GatekeeperToren") as CharacterBody3D
+	assert(toren.position.distance_to(toren_origin) < 0.1)
 	assert(main.get("villager_animations").size() == 3)
+	player.position = Vector3(0.0, 1.0, 30.0)
+	toren.position = toren_origin
+	main.get("villager_patrol_directions")[1] = 1.0
+	main.get("villager_patrol_pauses")[1] = 0.0
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(is_equal_approx(Vector2(toren.velocity.x, toren.velocity.z).length(), 0.45))
+	var toren_axis := main.get("villager_patrol_axes")[1] as Vector3
+	toren.position = toren_origin + toren_axis * 0.66
+	main.get("villager_patrol_directions")[1] = 1.0
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("villager_patrol_directions")[1] < 0.0)
+	assert(main.get("villager_patrol_pauses")[1] > 5.9)
+	toren.position = toren_origin - toren_axis * 0.66
+	main.get("villager_patrol_directions")[1] = -1.0
+	main.get("villager_patrol_pauses")[1] = 0.0
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("villager_patrol_directions")[1] > 0.0)
+	assert(main.get("villager_patrol_pauses")[1] > 4.1 and main.get("villager_patrol_pauses")[1] < 4.3)
 	var patrol_npc := main.get_node("HerbalistMira") as CharacterBody3D
 	patrol_npc.position = main.get("villager_patrol_origins")[0]
 	main.get("villager_patrol_directions")[0] = 1.0
@@ -384,13 +980,70 @@ func _initialize() -> void:
 	player.position = Vector3(0.0, 1.0, 30.0)
 	main.call("_process", 1.0)
 	assert(not identity_label.visible)
+	var nia_animation := main.get("villager_animations")[2] as AnimationPlayer
+	main.set("time_hour", 19.0)
+	main.set("weather_override", "clear")
+	main.set("nia_routine", "work")
+	identity_npc.position = Vector3(5.6, 0.0, -4.2)
+	main.call("_process", 0.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("nia_routine") == "hearth")
+	assert(identity_npc.visible and identity_npc.collision_layer == 1)
+	assert(identity_npc.position.distance_to(Vector3(5.6, 0.0, -4.2)) < 0.01)
+	assert(nia_animation.assigned_animation == "Idle")
+	main.call("_process", 1.0)
+	var nia_hearth_direction := Vector3(4.3, 0.0, -5.5) - identity_npc.global_position
+	var nia_visual := identity_npc.get_node("Visual") as Node3D
+	assert(absf(angle_difference(nia_visual.rotation.y, atan2(nia_hearth_direction.x, nia_hearth_direction.z))) < 0.001)
+	main.set("weather_override", "light_rain")
+	main.call("_process", 0.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("nia_routine") == "rain_shelter")
+	assert(nia_animation.assigned_animation == "Walk")
+	identity_npc.position = Vector3(8.6, 0.0, -4.2)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(nia_animation.assigned_animation == "Idle")
+	main.call("_process", 1.0)
+	var nia_shelter_direction := Vector3(9.0, 0.0, -8.0) - identity_npc.global_position
+	assert(absf(angle_difference(nia_visual.rotation.y, atan2(nia_shelter_direction.x, nia_shelter_direction.z))) < 0.001)
+	main.set("time_hour", 23.0)
+	identity_npc.position = Vector3(-6.5, 0.0, 6.4)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("nia_routine") == "home")
+	assert(not identity_npc.visible and identity_npc.collision_layer == 0 and identity_npc.collision_mask == 0)
+	player.position = identity_npc.position + Vector3(0.0, 1.0, 1.0)
+	main.call("_process", 0.0)
+	assert(main.get("nearby_villager") != identity_npc)
+	main.set("time_hour", 9.5)
+	main.set("weather_override", "clear")
+	player.position = Vector3(0.0, 1.0, 30.0)
+	main.call("_process", 0.0)
+	assert(not (main.call("_update_nia_routine", identity_npc, nia_animation) as bool))
+	assert(main.get("nia_routine") == "work")
+	assert(identity_npc.visible and identity_npc.collision_layer == 1 and identity_npc.collision_mask == 1)
+	var nia_work_origin := main.get("villager_patrol_origins")[2] as Vector3
+	var nia_work_distance := Vector2(identity_npc.position.x, identity_npc.position.z).distance_to(Vector2(nia_work_origin.x, nia_work_origin.z))
+	assert(nia_work_distance < 0.001)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(nia_animation.assigned_animation == "Walk")
 	var smoke_puffs: Array = main.get("smoke_puffs")
 	assert(smoke_puffs.size() == 12)
 	assert(main.get("smoke_origins").size() == 12)
+	assert(main.get("smoke_drift_scales").size() == 12)
+	assert(main.get("smoke_size_scales").size() == 12)
+	assert(main.get("smoke_opacity_scales").size() == 12)
+	for hearth_smoke_index in range(9, 12):
+		assert(is_equal_approx(main.get("smoke_drift_scales")[hearth_smoke_index], 1.6))
+		assert(is_equal_approx(main.get("smoke_size_scales")[hearth_smoke_index], 1.15))
+		assert(is_equal_approx(main.get("smoke_opacity_scales")[hearth_smoke_index], 1.2))
 	var hearth := main.get_node_or_null("VillageHearth")
 	assert(hearth != null)
+	assert((hearth as Node3D).position.is_equal_approx(Vector3(4.3, 0.0, -5.5)))
 	assert(hearth.get_node_or_null("FireEmber") is CSGCylinder3D)
 	assert(hearth.get_node_or_null("HearthLight") is OmniLight3D)
+	assert(hearth.get_node_or_null("HearthBenchEast/Seat") is CSGCylinder3D)
+	assert(hearth.get_node_or_null("HearthBenchSouth/Seat") is CSGCylinder3D)
+	assert(hearth.get_node_or_null("HearthWoodCrate") is Node3D)
 	assert(main.get("hearth_flames").size() == 3)
 	var first_mote: MeshInstance3D = main.get("portal_motes")[0]
 	var mote_position := first_mote.position
@@ -399,7 +1052,10 @@ func _initialize() -> void:
 	var first_puff := smoke_puffs[0] as MeshInstance3D
 	var puff_position := first_puff.position
 	var puff_transparency := first_puff.transparency
-	var first_flame := main.get("hearth_flames")[0] as MeshInstance3D
+	var first_flame := main.get("hearth_flames")[0] as CSGPolygon3D
+	var second_flame := main.get("hearth_flames")[1] as CSGPolygon3D
+	assert(first_flame.polygon.size() == 7 and not first_flame.use_collision)
+	assert(first_flame.polygon[4].y > 0.4)
 	var flame_position := first_flame.position
 	var hearth_energy := (main.get("hearth_light") as OmniLight3D).light_energy
 	var first_ripple := pond_ripples[0] as MeshInstance3D
@@ -419,6 +1075,7 @@ func _initialize() -> void:
 	assert(first_puff.position.distance_to(puff_position) > 0.01)
 	assert(not is_equal_approx(first_puff.transparency, puff_transparency))
 	assert(first_flame.position.distance_to(flame_position) > 0.01)
+	assert(not first_flame.scale.is_equal_approx(second_flame.scale))
 	assert(not is_equal_approx((main.get("hearth_light") as OmniLight3D).light_energy, hearth_energy))
 	assert(first_ripple.scale.distance_to(ripple_scale) > 0.01)
 	assert(not is_equal_approx(first_ripple.transparency, ripple_transparency))
@@ -479,6 +1136,7 @@ func _initialize() -> void:
 	assert(portal_react.playing)
 	assert(is_equal_approx(main.get("portal_reaction_time"), 1.0))
 	main.call("_process", 0.0)
+	assert(portal_surface_material.get_shader_parameter("reaction_strength") > 0.99)
 	assert((main.get("portal_ring") as Node3D).scale.x > near_ring_scale)
 	assert(portal_light.light_energy > near_light_energy)
 	main.call("_process", 0.25)

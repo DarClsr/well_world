@@ -8,6 +8,11 @@ func _initialize() -> void:
 func _record() -> void:
 	var scene := load("res://scenes/main.tscn") as PackedScene
 	var main := scene.instantiate()
+	main.set("time_hour", 9.5)
+	main.set("time_running", false)
+	main.set("weather_seed", 20260902)
+	main.set("weather_running", false)
+	main.set("weather_override", "clear")
 	root.add_child(main)
 	await create_timer(1.4).timeout
 	var player := main.get_node("Player") as CharacterBody3D

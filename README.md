@@ -16,5 +16,6 @@ Godot 4 俯视角 3D 探索 RPG 原型。
 ## 检查
 
 ```powershell
+godot --headless --editor --path . --quit
 godot --headless --path . --script res://tests/smoke_test.gd
 ```

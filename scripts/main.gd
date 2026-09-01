@@ -6,18 +6,46 @@ const PortalHum = preload("res://assets/audio/portal_hum.ogg")
 const PortalReact = preload("res://assets/audio/portal_react.ogg")
 const HearthFire = preload("res://assets/audio/hearth_fire.ogg")
 const MistCurtainShader = preload("res://shaders/mist_curtain.gdshader")
+const PortalSurfaceShader = preload("res://shaders/portal_surface.gdshader")
+const MeadowGrassShader = preload("res://shaders/meadow_grass.gdshader")
+const MeadowGrassScene = preload("res://assets/quaternius/nature/Grass_Common_Tall.gltf")
+const MutedRoofTiles = preload("res://assets/quaternius/village/T_RoundTiles_BaseColor_Muted.png")
 const DrifterCharacter = preload("res://scenes/player/drifter_visual.tscn")
 const MiraCharacter = preload("res://scenes/npc/mira_visual.tscn")
 const TorenCharacter = preload("res://scenes/npc/toren_visual.tscn")
 const NiaCharacter = preload("res://scenes/npc/nia_visual.tscn")
 const ValleyBoundaryScene = preload("res://scenes/world/valley_boundary.tscn")
-const HERB_PLOT_POSITION := Vector3(-4.0, 0.0, -10.8)
+const HERB_PLOT_POSITION := Vector3(-14.8, 0.0, -10.0)
+const DAY_DURATION_SECONDS := 1800.0
+const BUTTERFLY_SEED := 3131
+const FIREFLY_SEED := 6262
+const BUTTERFLY_COUNT := 7
+const FIREFLY_COUNT := 14
+const WEATHER_SEED := 20260902
+const WEATHER_TRANSITION_HOURS := 0.75
+const WEATHER_STATES := ["clear", "cloudy", "mist", "light_rain"]
+const NIA_HEARTH_ROUTE := [
+	Vector3(-4.0, 0.0, 5.5), Vector3(-2.0, 0.0, 2.0), Vector3(1.0, 0.0, -1.0),
+	Vector3(3.5, 0.0, -3.5), Vector3(5.6, 0.0, -4.2),
+]
+const NIA_RAIN_ROUTE := [
+	Vector3(-4.0, 0.0, 5.5), Vector3(-2.0, 0.0, 2.0), Vector3(1.0, 0.0, -1.0),
+	Vector3(3.5, 0.0, -3.5), Vector3(8.6, 0.0, -4.2),
+]
+const NIA_HOME_ROUTE := [
+	Vector3(3.5, 0.0, -3.5), Vector3(1.0, 0.0, -1.0), Vector3(-2.0, 0.0, 2.0),
+	Vector3(-4.0, 0.0, 5.5), Vector3(-6.5, 0.0, 6.4),
+]
 
 var ground_material := _material(Color("6f8f65"), 0.95)
 var path_material := _material(Color("9a8466"), 1.0)
 var stone_material := _material(Color("66706c"), 0.9)
 var plaster_material := _material(Color("c6b99a"), 0.95)
+var interior_floor_material := _material(Color("736858"), 1.0)
 var portal_material: StandardMaterial3D
+var portal_surface_material: ShaderMaterial
+var portal_ground_rune_material: StandardMaterial3D
+var portal_mote_material: StandardMaterial3D
 var portal_ring: CSGTorus3D
 var portal_light: OmniLight3D
 var portal_hum: AudioStreamPlayer3D
@@ -33,14 +61,21 @@ var portal_nearby := false
 var portal_lore_tween: Tween
 var smoke_puffs: Array[MeshInstance3D] = []
 var smoke_origins: Array[Vector3] = []
+var smoke_drift_scales: Array[float] = []
+var smoke_size_scales: Array[float] = []
+var smoke_opacity_scales: Array[float] = []
 var smoke_mesh: QuadMesh
 var smoke_material: StandardMaterial3D
 var house_count := 0
 var house_fade_materials: Array[StandardMaterial3D] = []
 var house_fade_centers: Array[Vector3] = []
-var hearth_flames: Array[MeshInstance3D] = []
+var house_fade_alphas: Array[float] = []
+var houses: Array[Node3D] = []
+var hearth_flames: Array[CSGPolygon3D] = []
 var hearth_flame_origins: Array[Vector3] = []
 var hearth_light: OmniLight3D
+var hearth_ember_material: StandardMaterial3D
+var hearth_flame_material: StandardMaterial3D
 var pond_ripples: Array[MeshInstance3D] = []
 var villager_visuals: Array[Node3D] = []
 var villager_rotations: Array[float] = []
@@ -51,35 +86,92 @@ var villager_patrol_axes: Array[Vector3] = []
 var villager_patrol_directions: Array[float] = []
 var villager_patrol_pauses: Array[float] = []
 var villager_animations: Array[AnimationPlayer] = []
+var nia_routine := "work"
+var nia_route_index := 0
 var nearby_villager: CharacterBody3D
 var mistcap_material: StandardMaterial3D
 var mistcap_caps: Array[MeshInstance3D] = []
 var mistcap_lights: Array[OmniLight3D] = []
+var window_glows: Array[OmniLight3D] = []
+var window_glass_materials: Array[StandardMaterial3D] = []
+var mist_pass_lights: Array[OmniLight3D] = []
+var mist_pass_rune_material: StandardMaterial3D
+var meadow_roads: Array = []
+var meadow_grass: MultiMeshInstance3D
+var butterflies: Node3D
+var fireflies: Node3D
+var butterfly_material: StandardMaterial3D
+var firefly_material: StandardMaterial3D
 var fog_banks: Array[MeshInstance3D] = []
 var fog_bank_origins: Array[Vector3] = []
+var environment_settings: Environment
+var sun: DirectionalLight3D
+var player_fill_light: SpotLight3D
+var time_hour := 9.5
+var time_running := true
+var weather_seed := WEATHER_SEED
+var weather_running := true
+var weather_override := ""
+var weather_schedule: Array = []
+var weather_schedule_index := 0
+var weather_segment_elapsed := 0.0
+var weather_state := "clear"
+var weather_target_state := "clear"
+var weather_blend := 0.0
+var weather_rain_amount := 0.0
+var rain_field: Node3D
+var rain_streaks: Array[MeshInstance3D] = []
+var rain_params: Array[Dictionary] = []
+var rain_material: StandardMaterial3D
+var day_keys := [
+	[0.0, 42.0, 150.0, Color("8fa8cc"), 0.16, Color("40516b"), 0.50, Color("33445d"), 0.008, Color("26354a"), 0.28],
+	[4.5, 30.0, 120.0, Color("8fa8cc"), 0.14, Color("45566f"), 0.52, Color("3b4a61"), 0.009, Color("2b3a4e"), 0.26],
+	[6.0, 18.0, 62.0, Color("dfb68f"), 0.52, Color("75848b"), 0.72, Color("9aa19d"), 0.0075, Color("75858a"), 0.26],
+	[7.5, 28.0, 25.0, Color("f1cca0"), 0.68, Color("a8b4b0"), 0.58, Color("b7bbb0"), 0.0075, Color("91a39f"), 0.38],
+	[9.5, 52.0, -28.0, Color("fff0ce"), 0.72, Color("bfcbb8"), 0.42, Color("a9bcba"), 0.006, Color("839da3"), 0.58],
+	[12.0, 60.0, -4.0, Color("fff0ce"), 0.74, Color("bfcbb8"), 0.42, Color("a9bcba"), 0.006, Color("839da3"), 0.56],
+	[16.5, 34.0, -20.0, Color("ffe2b0"), 0.72, Color("bcbfae"), 0.48, Color("b3bcb0"), 0.007, Color("8fa09b"), 0.46],
+	[18.2, 20.0, -48.0, Color("dca77f"), 0.56, Color("687786"), 0.68, Color("8e8c89"), 0.0085, Color("69747b"), 0.25],
+	[19.5, 16.0, -60.0, Color("a891a2"), 0.24, Color("566275"), 0.56, Color("626878"), 0.0095, Color("444d5f"), 0.24],
+	[21.0, 36.0, -110.0, Color("8fa8cc"), 0.15, Color("40516b"), 0.50, Color("33445d"), 0.008, Color("26354a"), 0.28],
+	[24.0, 42.0, 150.0, Color("8fa8cc"), 0.16, Color("40516b"), 0.50, Color("33445d"), 0.008, Color("26354a"), 0.28],
+]
 
 
 func _ready() -> void:
 	_build_world()
 	_build_player()
+	_build_weather()
 	_build_villagers()
 	_build_opening()
 	_build_portal_interaction()
 	_build_audio()
+	_apply_time_of_day()
 
 
 func _process(delta: float) -> void:
 	if portal_ring == null:
 		return
+	if time_running:
+		time_hour = fposmod(time_hour + delta * 24.0 / DAY_DURATION_SECONDS, 24.0)
+	_update_weather(delta)
+	_apply_time_of_day()
 	portal_time += delta
+	_animate_ecosystem()
+	_animate_weather()
 	portal_reaction_time = maxf(portal_reaction_time - delta * 1.5, 0.0)
 	var pulse: float = sin(portal_time * 2.2)
 	var reaction := portal_reaction_time
 	var proximity := _portal_proximity()
+	var night_focus := _night_focus(time_hour)
 	_update_villager_interaction()
 	portal_ring.scale = Vector3.ONE * (1.0 + pulse * 0.035 + reaction * 0.12)
-	portal_material.emission_energy_multiplier = 0.75 + pulse * 0.12 + proximity * 0.3 + reaction * 0.65
-	portal_light.light_energy = 0.65 + pulse * 0.15 + proximity * 0.45 + reaction * 0.75
+	portal_material.emission_energy_multiplier = (0.75 + pulse * 0.12 + proximity * 0.3 + reaction * 0.65) * lerpf(0.88, 1.35, night_focus)
+	portal_surface_material.set_shader_parameter("reaction_strength", clampf(reaction + proximity * 0.16, 0.0, 1.0))
+	portal_surface_material.set_shader_parameter("time_glow", lerpf(0.82, 1.38, night_focus))
+	portal_ground_rune_material.emission_energy_multiplier = 0.48 * lerpf(0.72, 1.35, night_focus)
+	portal_mote_material.emission_energy_multiplier = 1.8 * lerpf(0.72, 1.28, night_focus)
+	portal_light.light_energy = (0.65 + pulse * 0.15 + proximity * 0.45 + reaction * 0.75) * lerpf(0.82, 1.55, night_focus)
 	portal_hum.volume_db = lerpf(-24.0, -11.0, proximity)
 	var mote_count := portal_motes.size()
 	for index in mote_count:
@@ -91,40 +183,64 @@ func _process(delta: float) -> void:
 		mote.scale = Vector3.ONE * (0.8 + sin(portal_time * 1.8 + float(index)) * 0.18 + reaction * 0.5)
 	for index in wind_nodes.size():
 		var plant := wind_nodes[index]
-		plant.rotation.z = sin(portal_time * 0.85 + float(index) * 0.73) * 0.025
-		plant.rotation.x = cos(portal_time * 0.7 + float(index) * 0.51) * 0.012
+		var gust_wave := (sin(portal_time * 0.42 + float(index) * 0.09) + 1.0) * 0.5
+		var gust_strength := 1.0 + pow(gust_wave, 6.0) * 0.85
+		plant.rotation.z = sin(portal_time * 0.85 + float(index) * 0.73) * 0.027 * gust_strength
+		plant.rotation.x = cos(portal_time * 0.7 + float(index) * 0.51) * 0.013 * gust_strength
 	for index in smoke_puffs.size():
 		var phase := fmod(portal_time * 0.12 + float(index % 3) * 0.34 + float(index / 3) * 0.13, 1.0)
 		var puff := smoke_puffs[index]
-		puff.position = smoke_origins[index] + Vector3(sin(portal_time * 0.45 + index) * 0.22, phase * 2.4, cos(portal_time * 0.38 + index) * 0.12)
-		puff.scale = Vector3.ONE * (0.45 + phase * 0.75)
-		puff.transparency = 0.05 + phase * 0.85
+		var drift_scale := smoke_drift_scales[index]
+		puff.position = smoke_origins[index] + Vector3(
+			sin(portal_time * 0.52 + index) * 0.3 * drift_scale,
+			phase * 2.25,
+			cos(portal_time * 0.41 + index) * 0.16 * drift_scale
+		)
+		puff.scale = Vector3.ONE * (0.42 + phase * 0.82) * smoke_size_scales[index]
+		var smoke_fade := 0.02 + pow(phase, 1.55) * 0.92
+		puff.transparency = clampf(1.0 - (1.0 - smoke_fade) * smoke_opacity_scales[index], 0.0, 1.0)
 	for index in hearth_flames.size():
-		var flicker := sin(portal_time * 5.2 + float(index) * 1.8)
+		var primary := sin(portal_time * (4.65 + float(index) * 0.55) + float(index) * 1.8)
+		var secondary := sin(portal_time * (7.2 + float(index) * 0.37) + float(index) * 0.9)
+		var flicker := primary * 0.72 + secondary * 0.28
+		var sway := sin(portal_time * (3.8 + float(index) * 0.33) + float(index) * 2.1)
 		var flame := hearth_flames[index]
-		flame.position = hearth_flame_origins[index] + Vector3(flicker * 0.05, flicker * 0.07, cos(portal_time * 4.4 + index) * 0.04)
+		flame.position = hearth_flame_origins[index] + Vector3(sway * 0.045, flicker * 0.075, secondary * 0.035)
 		flame.scale = Vector3(0.42 - flicker * 0.04, 0.78 + flicker * 0.1, 0.42 - flicker * 0.04)
 	if hearth_light != null:
-		hearth_light.light_energy = 0.8 + sin(portal_time * 5.2) * 0.12
+		hearth_light.light_energy = (0.78 + sin(portal_time * 3.4) * 0.07 + sin(portal_time * 5.7 + 1.1) * 0.05) * lerpf(1.0, 1.8, night_focus)
+		hearth_ember_material.emission_energy_multiplier = 1.5 * lerpf(0.9, 1.35, night_focus)
+		hearth_flame_material.emission_energy_multiplier = 2.2 * lerpf(0.92, 1.32, night_focus)
+	for window_glow in window_glows:
+		window_glow.light_energy = 0.14 * lerpf(0.68, 1.9, night_focus)
+	for glass_material in window_glass_materials:
+		glass_material.emission_energy_multiplier = 0.18 * lerpf(0.64, 1.65, night_focus)
+	if player_fill_light != null:
+		player_fill_light.light_energy = lerpf(0.0, 4.0, night_focus)
 	for index in pond_ripples.size():
 		var phase := fmod(portal_time * 0.2 + float(index) * 0.5, 1.0)
 		var ripple := pond_ripples[index]
 		ripple.scale = Vector3(0.45 + phase * 1.65, 1.0, 0.32 + phase * 1.1)
 		ripple.transparency = 0.35 + phase * 0.63
 	if mistcap_material != null:
-		mistcap_material.emission_energy_multiplier = 0.42 + sin(portal_time * 1.35) * 0.1
+		mistcap_material.emission_energy_multiplier = (0.42 + sin(portal_time * 1.35) * 0.1) * lerpf(0.66, 1.55, night_focus)
 	for index in mistcap_lights.size():
-		mistcap_lights[index].light_energy = 0.12 + sin(portal_time * 1.35 + float(index) * 0.9) * 0.035
+		mistcap_lights[index].light_energy = (0.12 + sin(portal_time * 1.35 + float(index) * 0.9) * 0.035) * lerpf(0.62, 1.85, night_focus)
+	for mist_pass_light in mist_pass_lights:
+		mist_pass_light.light_energy = 0.42 * lerpf(0.68, 1.55, night_focus)
+	if mist_pass_rune_material != null:
+		mist_pass_rune_material.emission_energy_multiplier = 1.5 * lerpf(0.7, 1.4, night_focus)
 	for index in fog_banks.size():
 		var fog_phase := portal_time * 0.16 + float(index) * 1.15
 		fog_banks[index].position = fog_bank_origins[index] + Vector3(sin(fog_phase) * 1.1, cos(fog_phase * 0.7) * 0.08, cos(fog_phase * 0.8) * 0.35)
 		fog_banks[index].transparency = 0.28 + (sin(fog_phase * 0.9) + 1.0) * 0.1
 	var player := get_node_or_null("Player") as CharacterBody3D
 	for index in house_fade_materials.size():
-		var target_alpha := 1.0
+		var target_alpha := house_fade_alphas[index]
 		if player != null:
 			var house_distance := Vector2(player.position.x, player.position.z).distance_to(Vector2(house_fade_centers[index].x, house_fade_centers[index].z))
-			target_alpha = 0.08 if house_distance < 6.0 else 1.0
+			if house_distance < 6.0:
+				target_alpha = 0.22
 		var house_color := house_fade_materials[index].albedo_color
 		house_color.a = lerpf(house_color.a, target_alpha, minf(delta * 5.0, 1.0))
 		house_fade_materials[index].albedo_color = house_color
@@ -154,6 +270,12 @@ func _process(delta: float) -> void:
 			target_yaw = atan2(look_direction.x, look_direction.z)
 		elif Vector2(villagers[index].velocity.x, villagers[index].velocity.z).length_squared() > 0.001:
 			target_yaw = atan2(villagers[index].velocity.x, villagers[index].velocity.z)
+		elif index == 2 and nia_routine == "hearth":
+			var look_direction := Vector3(4.3, 0.0, -5.5) - villagers[index].global_position
+			target_yaw = atan2(look_direction.x, look_direction.z)
+		elif index == 2 and nia_routine == "rain_shelter":
+			var look_direction := Vector3(9.0, 0.0, -8.0) - villagers[index].global_position
+			target_yaw = atan2(look_direction.x, look_direction.z)
 		villager.rotation.y = lerp_angle(villager.rotation.y, target_yaw, minf(delta * 6.0, 1.0))
 
 
@@ -166,6 +288,8 @@ func _physics_process(delta: float) -> void:
 			villager.velocity.z = 0.0
 			if animation_player.assigned_animation != "Idle":
 				animation_player.play("Idle", 0.2)
+		elif index == 2 and _update_nia_routine(villager, animation_player):
+			pass
 		elif villager_patrol_pauses[index] > 0.0:
 			villager_patrol_pauses[index] = maxf(villager_patrol_pauses[index] - delta, 0.0)
 			villager.velocity.x = 0.0
@@ -175,10 +299,14 @@ func _physics_process(delta: float) -> void:
 				animation_player.play(pause_animation, 0.2)
 		else:
 			var patrol_offset := (villager.position - villager_patrol_origins[index]).dot(villager_patrol_axes[index])
-			if patrol_offset * villager_patrol_directions[index] >= 1.2:
+			var patrol_range := 0.65 if index == 1 else 1.2
+			if patrol_offset * villager_patrol_directions[index] >= patrol_range:
 				villager_patrol_directions[index] *= -1.0
 				var pause_animation := "PickUp" if index == 0 and villager_patrol_directions[index] < 0.0 else "Idle"
-				villager_patrol_pauses[index] = 1.2 + float(index) * 0.3
+				if index == 1:
+					villager_patrol_pauses[index] = 6.0 if villager_patrol_directions[index] < 0.0 else 4.2
+				else:
+					villager_patrol_pauses[index] = 1.2 + float(index) * 0.3
 				if pause_animation == "PickUp":
 					villager_patrol_pauses[index] = maxf(villager_patrol_pauses[index], animation_player.get_animation("PickUp").length + 0.1)
 				villager.velocity.x = 0.0
@@ -186,13 +314,80 @@ func _physics_process(delta: float) -> void:
 				if animation_player.assigned_animation != pause_animation:
 					animation_player.play(pause_animation, 0.2)
 			else:
-				var patrol_velocity := villager_patrol_axes[index] * villager_patrol_directions[index] * 0.65
+				var patrol_speed := 0.45 if index == 1 else 0.65
+				var patrol_velocity := villager_patrol_axes[index] * villager_patrol_directions[index] * patrol_speed
 				villager.velocity.x = patrol_velocity.x
 				villager.velocity.z = patrol_velocity.z
 				if animation_player.assigned_animation != "Walk":
 					animation_player.play("Walk", 0.2)
 		villager.velocity.y = -1.0
 		villager.move_and_slide()
+
+
+func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer) -> bool:
+	var hour := fposmod(time_hour, 24.0)
+	var next_routine := "work"
+	var route: Array = []
+	if hour >= 18.5 and hour < 22.5:
+		next_routine = "rain_shelter" if weather_rain_amount > 0.2 else "hearth"
+		route = NIA_RAIN_ROUTE if next_routine == "rain_shelter" else NIA_HEARTH_ROUTE
+	elif hour >= 22.5 or hour < 6.5:
+		next_routine = "home"
+		route = NIA_HOME_ROUTE
+	if next_routine == "work":
+		if nia_routine != "work":
+			nia.position = villager_patrol_origins[2]
+			nia.visible = true
+			nia.collision_layer = 1
+			nia.collision_mask = 1
+			villager_patrol_directions[2] = 1.0
+			villager_patrol_pauses[2] = 0.0
+		nia_routine = "work"
+		nia_route_index = 0
+		return false
+	if nia_routine != next_routine:
+		var previous_routine := nia_routine
+		nia_routine = next_routine
+		nia.visible = true
+		nia.collision_layer = 1
+		nia.collision_mask = 1
+		nia_route_index = 0
+		if previous_routine in ["hearth", "rain_shelter"] and next_routine in ["hearth", "rain_shelter"]:
+			nia_route_index = route.size() - 1
+		else:
+			var nearest_distance := INF
+			for route_index in route.size():
+				var route_distance := nia.position.distance_squared_to(route[route_index])
+				if route_distance < nearest_distance:
+					nearest_distance = route_distance
+					nia_route_index = route_index
+	var target: Vector3 = route[mini(nia_route_index, route.size() - 1)]
+	var offset := target - nia.position
+	offset.y = 0.0
+	if offset.length() <= 0.12:
+		nia.position.x = target.x
+		nia.position.z = target.z
+		if nia_route_index < route.size() - 1:
+			nia_route_index += 1
+		else:
+			nia.velocity.x = 0.0
+			nia.velocity.z = 0.0
+			if animation_player.assigned_animation != "Idle":
+				animation_player.play("Idle", 0.2)
+			if nia_routine == "home":
+				nia.visible = false
+				nia.collision_layer = 0
+				nia.collision_mask = 0
+			return true
+		target = route[nia_route_index]
+		offset = target - nia.position
+		offset.y = 0.0
+	var route_velocity := offset.normalized() * 0.72
+	nia.velocity.x = route_velocity.x
+	nia.velocity.z = route_velocity.z
+	if animation_player.assigned_animation != "Walk":
+		animation_player.play("Walk", 0.2)
+	return true
 
 
 func _portal_proximity() -> float:
@@ -222,6 +417,8 @@ func _update_villager_interaction() -> void:
 	var nearest_distance := 3.0
 	if player != null:
 		for villager in villagers:
+			if not villager.visible:
+				continue
 			var distance := Vector2(player.position.x, player.position.z).distance_to(Vector2(villager.position.x, villager.position.z))
 			if distance < nearest_distance:
 				nearest_distance = distance
@@ -278,34 +475,282 @@ func _show_interaction_text(message: String) -> void:
 	portal_lore_tween.tween_callback(portal_lore.hide)
 
 
+func _apply_time_of_day() -> void:
+	if environment_settings == null or sun == null:
+		return
+	var sample := _sample_day(time_hour)
+	var weather := _sample_weather()
+	sun.rotation_degrees = Vector3(-sample["elev"], sample["azim"], 0.0)
+	sun.light_color = (sample["sun_color"] as Color).lerp(weather["tint"] as Color, weather["sun_tint"] as float)
+	sun.light_energy = (sample["sun_energy"] as float) * (weather["sun_energy"] as float)
+	sun.shadow_opacity = (sample["shadow_opacity"] as float) * (weather["shadow"] as float)
+	environment_settings.ambient_light_color = (sample["amb_color"] as Color).lerp(weather["tint"] as Color, weather["ambient_tint"] as float)
+	environment_settings.ambient_light_energy = maxf((sample["amb_energy"] as float) * (weather["ambient_energy"] as float), 0.35)
+	environment_settings.fog_light_color = (sample["fog_color"] as Color).lerp(weather["fog_tint"] as Color, weather["fog_color_mix"] as float)
+	environment_settings.fog_density = (sample["fog_density"] as float) * (weather["fog_density"] as float)
+	environment_settings.background_color = (sample["bg_color"] as Color).lerp(weather["fog_tint"] as Color, weather["background_tint"] as float)
+	weather_rain_amount = weather["rain"] as float
+
+
+func _sample_day(hour: float) -> Dictionary:
+	var h := fposmod(hour, 24.0)
+	for index in range(day_keys.size() - 1):
+		var from_key: Array = day_keys[index]
+		var to_key: Array = day_keys[index + 1]
+		if h < from_key[0] or h > to_key[0]:
+			continue
+		var blend := (h - (from_key[0] as float)) / ((to_key[0] as float) - (from_key[0] as float))
+		blend = blend * blend * (3.0 - 2.0 * blend)
+		return {
+			"elev": lerpf(from_key[1], to_key[1], blend),
+			"azim": rad_to_deg(lerp_angle(deg_to_rad(from_key[2]), deg_to_rad(to_key[2]), blend)),
+			"sun_color": (from_key[3] as Color).lerp(to_key[3], blend),
+			"sun_energy": lerpf(from_key[4], to_key[4], blend),
+			"amb_color": (from_key[5] as Color).lerp(to_key[5], blend),
+			"amb_energy": lerpf(from_key[6], to_key[6], blend),
+			"fog_color": (from_key[7] as Color).lerp(to_key[7], blend),
+			"fog_density": lerpf(from_key[8], to_key[8], blend),
+			"bg_color": (from_key[9] as Color).lerp(to_key[9], blend),
+			"shadow_opacity": lerpf(from_key[10], to_key[10], blend),
+		}
+	return {}
+
+
+func _night_focus(hour: float) -> float:
+	var h := fposmod(hour, 24.0)
+	if h < 7.0:
+		return 1.0 - _smoothstep_range(5.0, 7.0, h)
+	if h >= 17.5:
+		return _smoothstep_range(17.5, 19.5, h)
+	return 0.0
+
+
+func _smoothstep_range(from_value: float, to_value: float, value: float) -> float:
+	var blend := clampf((value - from_value) / (to_value - from_value), 0.0, 1.0)
+	return blend * blend * (3.0 - 2.0 * blend)
+
+
+func _make_weather_schedule(seed_value: int) -> Array:
+	var random := RandomNumberGenerator.new()
+	random.seed = seed_value
+	var schedule: Array = [{"state": "clear", "duration": random.randf_range(5.0, 8.0)}]
+	var previous_state := "clear"
+	for cycle in 3:
+		var pool: Array = WEATHER_STATES.duplicate()
+		for index in range(pool.size() - 1, 0, -1):
+			var swap_index := random.randi_range(0, index)
+			var temporary = pool[index]
+			pool[index] = pool[swap_index]
+			pool[swap_index] = temporary
+		if pool[0] == previous_state:
+			var temporary = pool[0]
+			pool[0] = pool[1]
+			pool[1] = temporary
+		for state in pool:
+			var duration_range := _weather_duration_range(state)
+			schedule.append({
+				"state": state,
+				"duration": random.randf_range(duration_range.x, duration_range.y),
+			})
+			previous_state = state
+	if schedule[-1]["state"] == schedule[0]["state"]:
+		var temporary = schedule[-1]
+		schedule[-1] = schedule[-2]
+		schedule[-2] = temporary
+	return schedule
+
+
+func _weather_duration_range(state: String) -> Vector2:
+	match state:
+		"clear": return Vector2(5.0, 8.0)
+		"cloudy": return Vector2(4.0, 7.0)
+		"mist": return Vector2(3.0, 5.5)
+		_: return Vector2(3.0, 5.0)
+
+
+func _update_weather(delta: float) -> void:
+	if not weather_running or not weather_override.is_empty() or weather_schedule.is_empty():
+		return
+	weather_segment_elapsed += delta * 24.0 / DAY_DURATION_SECONDS
+	var segment: Dictionary = weather_schedule[weather_schedule_index]
+	while weather_segment_elapsed >= (segment["duration"] as float):
+		weather_segment_elapsed -= segment["duration"] as float
+		weather_schedule_index = (weather_schedule_index + 1) % weather_schedule.size()
+		segment = weather_schedule[weather_schedule_index]
+
+
+func _sample_weather() -> Dictionary:
+	if not weather_override.is_empty():
+		var locked_state := weather_override if weather_override in WEATHER_STATES else "clear"
+		weather_state = locked_state
+		weather_target_state = locked_state
+		weather_blend = 0.0
+		return _weather_profile(locked_state)
+	if weather_schedule.is_empty():
+		return _weather_profile("clear")
+	var segment: Dictionary = weather_schedule[weather_schedule_index]
+	var next_segment: Dictionary = weather_schedule[(weather_schedule_index + 1) % weather_schedule.size()]
+	var duration := segment["duration"] as float
+	weather_blend = _smoothstep_range(duration - WEATHER_TRANSITION_HOURS, duration, weather_segment_elapsed)
+	weather_state = segment["state"]
+	weather_target_state = next_segment["state"]
+	return _blend_weather_profiles(
+		_weather_profile(weather_state),
+		_weather_profile(weather_target_state),
+		weather_blend
+	)
+
+
+func _weather_profile(state: String) -> Dictionary:
+	match state:
+		"cloudy":
+			return {
+				"sun_energy": 0.78, "sun_tint": 0.20, "ambient_energy": 1.02,
+				"ambient_tint": 0.16, "shadow": 0.78, "fog_density": 1.22,
+				"fog_color_mix": 0.18, "background_tint": 0.20, "rain": 0.0,
+				"tint": Color("b5c2c1"), "fog_tint": Color("899d9f"),
+			}
+		"mist":
+			return {
+				"sun_energy": 0.84, "sun_tint": 0.24, "ambient_energy": 1.04,
+				"ambient_tint": 0.20, "shadow": 0.66, "fog_density": 2.0,
+				"fog_color_mix": 0.34, "background_tint": 0.32, "rain": 0.0,
+				"tint": Color("b9c5bd"), "fog_tint": Color("94a8a3"),
+			}
+		"light_rain":
+			return {
+				"sun_energy": 0.66, "sun_tint": 0.30, "ambient_energy": 1.0,
+				"ambient_tint": 0.24, "shadow": 0.56, "fog_density": 1.48,
+				"fog_color_mix": 0.28, "background_tint": 0.30, "rain": 1.0,
+				"tint": Color("aab9bb"), "fog_tint": Color("778f95"),
+			}
+		_:
+			return {
+				"sun_energy": 1.0, "sun_tint": 0.0, "ambient_energy": 1.0,
+				"ambient_tint": 0.0, "shadow": 1.0, "fog_density": 1.0,
+				"fog_color_mix": 0.0, "background_tint": 0.0, "rain": 0.0,
+				"tint": Color.WHITE, "fog_tint": Color.WHITE,
+			}
+
+
+func _blend_weather_profiles(from_profile: Dictionary, to_profile: Dictionary, blend: float) -> Dictionary:
+	return {
+		"sun_energy": lerpf(from_profile["sun_energy"], to_profile["sun_energy"], blend),
+		"sun_tint": lerpf(from_profile["sun_tint"], to_profile["sun_tint"], blend),
+		"ambient_energy": lerpf(from_profile["ambient_energy"], to_profile["ambient_energy"], blend),
+		"ambient_tint": lerpf(from_profile["ambient_tint"], to_profile["ambient_tint"], blend),
+		"shadow": lerpf(from_profile["shadow"], to_profile["shadow"], blend),
+		"fog_density": lerpf(from_profile["fog_density"], to_profile["fog_density"], blend),
+		"fog_color_mix": lerpf(from_profile["fog_color_mix"], to_profile["fog_color_mix"], blend),
+		"background_tint": lerpf(from_profile["background_tint"], to_profile["background_tint"], blend),
+		"rain": lerpf(from_profile["rain"], to_profile["rain"], blend),
+		"tint": (from_profile["tint"] as Color).lerp(to_profile["tint"], blend),
+		"fog_tint": (from_profile["fog_tint"] as Color).lerp(to_profile["fog_tint"], blend),
+	}
+
+
+func _animate_weather() -> void:
+	if rain_field == null or rain_material == null:
+		return
+	var player := get_node_or_null("Player") as CharacterBody3D
+	if player != null:
+		rain_field.position = Vector3(player.position.x, 0.0, player.position.z)
+	rain_field.visible = weather_rain_amount > 0.01
+	var rain_color := Color(0.55, 0.68, 0.71, weather_rain_amount * 0.30)
+	rain_material.albedo_color = rain_color
+	for index in rain_streaks.size():
+		var params := rain_params[index]
+		var fall := fposmod((params["start_y"] as float) - portal_time * (params["speed"] as float), 9.0)
+		var streak := rain_streaks[index]
+		streak.position = Vector3(
+			(params["x"] as float) + sin(portal_time * 0.35 + (params["phase"] as float)) * 0.12,
+			1.0 + fall,
+			params["z"] as float
+		)
+		var rain_world_position := rain_field.to_global(streak.position)
+		var shelter_alpha := 0.0
+		for house in houses:
+			var house_local := house.to_local(rain_world_position)
+			var distance_inside := minf(3.15 - absf(house_local.x), 3.15 - absf(house_local.z))
+			if distance_inside > 0.0:
+				shelter_alpha = maxf(shelter_alpha, _smoothstep_range(0.0, 0.55, distance_inside))
+		streak.transparency = shelter_alpha
+
+
+func _butterfly_alpha(hour: float) -> float:
+	var h := fposmod(hour, 24.0)
+	return _smoothstep_range(7.0, 8.0, h) * (1.0 - _smoothstep_range(18.0, 19.0, h))
+
+
+func _firefly_alpha(hour: float) -> float:
+	var h := fposmod(hour, 24.0)
+	return maxf(_smoothstep_range(19.5, 20.5, h), 1.0 - _smoothstep_range(4.5, 5.5, h))
+
+
+func _animate_ecosystem() -> void:
+	if butterflies == null or fireflies == null:
+		return
+	var butterfly_alpha := _butterfly_alpha(time_hour)
+	butterflies.visible = butterfly_alpha > 0.01
+	butterfly_material.albedo_color = Color(0.95, 0.91, 0.78, butterfly_alpha)
+	for fly in butterflies.get_children():
+		var params: Dictionary = fly.get_meta("params")
+		var phase := portal_time * (params["speed"] as float) + (params["phase"] as float)
+		var home: Vector2 = params["home"]
+		fly.position = Vector3(
+			home.x + sin(phase) * (params["radius_x"] as float),
+			(params["height"] as float) + sin(phase * 2.3) * 0.12,
+			home.y + cos(phase * 0.8) * (params["radius_z"] as float)
+		)
+		var flap := 0.72 + 0.28 * absf(sin(portal_time * 11.0 + (params["phase"] as float) * 2.7))
+		fly.scale = Vector3(flap, 1.0, 1.0)
+
+	var firefly_alpha := _firefly_alpha(time_hour)
+	fireflies.visible = firefly_alpha > 0.01
+	firefly_material.albedo_color = Color(0.48, 0.72, 0.60, firefly_alpha)
+	for fly in fireflies.get_children():
+		var params: Dictionary = fly.get_meta("params")
+		var phase := portal_time * (params["speed"] as float) + (params["phase"] as float)
+		var home: Vector2 = params["home"]
+		fly.position = Vector3(
+			home.x + sin(phase) * (params["radius_x"] as float),
+			(params["height"] as float) + sin(phase * 1.7) * 0.10,
+			home.y + cos(phase * 0.65) * (params["radius_z"] as float)
+		)
+		var pulse := 0.72 + 0.24 * sin(portal_time * 2.0 + (params["phase"] as float) * 4.0)
+		fly.scale = Vector3.ONE * pulse
+
+
 func _build_world() -> void:
-	ground_material.albedo_texture = _surface_texture(true)
-	ground_material.uv1_scale = Vector3.ONE * 7.0
+	ground_material.albedo_texture = _ground_texture()
+	ground_material.uv1_scale = Vector3.ONE * 24.0
 	ground_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
-	path_material.albedo_texture = _surface_texture(false)
-	path_material.uv1_scale = Vector3.ONE * 4.0
+	path_material.albedo_texture = _road_texture()
+	path_material.uv1_scale = Vector3.ONE
+	path_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	path_material.vertex_color_use_as_albedo = true
 	path_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 
-	var environment := WorldEnvironment.new()
-	var settings := Environment.new()
-	settings.background_mode = Environment.BG_COLOR
-	settings.background_color = Color("839da3")
-	settings.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	settings.ambient_light_color = Color("bfcbb8")
-	settings.ambient_light_energy = 0.42
-	settings.fog_enabled = true
-	settings.fog_light_color = Color("a9bcba")
-	settings.fog_density = 0.006
-	settings.fog_height = 2.0
-	settings.fog_height_density = 0.08
-	environment.environment = settings
-	add_child(environment)
+	var world_environment := WorldEnvironment.new()
+	world_environment.name = "WorldEnvironment"
+	environment_settings = Environment.new()
+	environment_settings.background_mode = Environment.BG_COLOR
+	environment_settings.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment_settings.fog_enabled = true
+	environment_settings.fog_height = 2.0
+	environment_settings.fog_height_density = 0.08
+	world_environment.environment = environment_settings
+	add_child(world_environment)
 
-	var sun := DirectionalLight3D.new()
+	sun = DirectionalLight3D.new()
+	sun.name = "Sun"
 	sun.rotation_degrees = Vector3(-52.0, -28.0, 0.0)
 	sun.light_color = Color("fff0ce")
 	sun.light_energy = 0.72
 	sun.shadow_enabled = true
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
+	sun.directional_shadow_max_distance = 55.0
+	sun.shadow_blur = 1.4
 	add_child(sun)
 
 	_add_box("ValleyFloor", Vector3(70.0, 1.0, 70.0), Vector3(0.0, -0.5, 0.0), ground_material, true)
@@ -320,51 +765,81 @@ func _build_world() -> void:
 	valley_boundary.call("build", stone_material)
 	_add_boundary_scenery()
 	_add_fog_banks()
-	_add_path("VillagePath", PackedVector2Array([
-		Vector2(-2.6, -28), Vector2(2.7, -28), Vector2(2.9, -21), Vector2(2.5, -14),
-		Vector2(3.2, -7), Vector2(2.7, 0), Vector2(3.1, 7), Vector2(2.5, 14),
-		Vector2(2.9, 21), Vector2(2.4, 31), Vector2(-2.5, 31), Vector2(-2.8, 23),
-		Vector2(-2.4, 15), Vector2(-3.0, 8), Vector2(-2.6, 1), Vector2(-3.1, -6),
-		Vector2(-2.5, -14), Vector2(-2.9, -21),
-	]))
-	_add_path("VillageSquare", PackedVector2Array([
-		Vector2(-9, -15), Vector2(0, -16), Vector2(9, -14), Vector2(10, -9),
-		Vector2(8.5, -2.5), Vector2(3, 0), Vector2(-3, 0.5), Vector2(-9, -2),
-		Vector2(-10, -8),
-	]), 0.07)
-	_add_path("PortalPath", PackedVector2Array([
-		Vector2(2, 9.2), Vector2(6, 9.5), Vector2(10, 8.8), Vector2(13, 9.8),
-		Vector2(13, 12.5), Vector2(10, 13.1), Vector2(6, 12.4), Vector2(2, 12.8),
-	]), 0.06)
-	_add_path("PondPath", PackedVector2Array([
-		Vector2(-1.8, 10.4), Vector2(-1.8, 13.2), Vector2(-4.5, 14.0),
-		Vector2(-7.0, 13.8), Vector2(-7.4, 11.6), Vector2(-4.8, 11.8),
-	]), 0.065)
-	var mist_pass_material := path_material.duplicate() as StandardMaterial3D
-	mist_pass_material.albedo_color = Color("777768")
-	mist_pass_material.roughness = 0.98
-	mist_pass_material.uv1_scale = Vector3.ONE * 3.5
-	_add_path("MistPassPath", PackedVector2Array([
-		Vector2(-3.2, -31.5), Vector2(3.2, -31.5), Vector2(3.0, -21.0),
-		Vector2(2.6, -18.0), Vector2(-2.6, -18.0), Vector2(-3.0, -21.0),
-	]), 0.085, mist_pass_material)
+	_add_road("VillagePath", PackedVector2Array([
+		Vector2(0.0, -28.0), Vector2(0.4, -23.0), Vector2(0.8, -17.0),
+		Vector2(0.3, -11.0), Vector2(-0.6, -5.0), Vector2(-0.2, 2.0),
+		Vector2(0.75, 9.0), Vector2(0.2, 16.0), Vector2(-0.7, 23.0),
+		Vector2(-1.2, 31.0),
+	]), PackedFloat32Array([2.1, 2.0, 1.85, 1.65, 1.6, 1.6, 1.75, 1.85, 2.0, 2.0]))
+	_add_road("VillageWestLane", PackedVector2Array([
+		Vector2(-2.0, -7.0), Vector2(-3.8, -7.1), Vector2(-6.5, -7.0), Vector2(-9.3, -6.9),
+	]), PackedFloat32Array([0.78, 0.88, 0.82, 0.58]), 0.06, 0.3, true)
+	_add_road("VillageHearthLane", PackedVector2Array([
+		Vector2(1.55, -4.5), Vector2(2.2, -4.3), Vector2(3.3, -4.2),
+		Vector2(5.8, -4.6), Vector2(8.6, -5.0),
+	]), PackedFloat32Array([0.78, 0.92, 1.2, 1.02, 0.76]), 0.06, 0.32, true)
+	_add_road("VillageWagonLane", PackedVector2Array([
+		Vector2(-2.2, -2.0), Vector2(-3.4, -2.0), Vector2(-5.4, -2.4),
+	]), PackedFloat32Array([0.7, 0.82, 1.05]), 0.06, 0.28, true)
+	_add_road("VillageSouthLane", PackedVector2Array([
+		Vector2(-0.8, 7.4), Vector2(-3.2, 7.6), Vector2(-5.4, 7.6), Vector2(-9.6, 8.0),
+	]), PackedFloat32Array([0.72, 0.82, 0.84, 0.66]), 0.06, 0.3, true)
+	_add_road("PortalPath", PackedVector2Array([
+		Vector2(0.6, 10.8), Vector2(3.4, 10.9), Vector2(6.5, 10.7),
+		Vector2(9.2, 10.9), Vector2(11.3, 11.0),
+	]), PackedFloat32Array([1.45, 1.35, 1.45, 1.65, 1.9]), 0.06, 0.48, true)
+	_add_road("PondPath", PackedVector2Array([
+		Vector2(0.2, 11.3), Vector2(-1.4, 11.8), Vector2(-3.0, 12.4),
+		Vector2(-3.9, 12.5),
+	]), PackedFloat32Array([1.35, 1.3, 1.4, 1.55]), 0.065, 0.45, true)
+	_add_road("MistPassPath", PackedVector2Array([
+		Vector2(0.0, -27.2), Vector2(0.0, -29.2), Vector2(0.0, -31.5),
+	]), PackedFloat32Array([2.05, 2.35, 3.1]))
+	_add_ground_patch("MistPassTone", Vector3(0.0, 0.0, -29.0), 4.2, Vector2(0.65, 0.8), Color("666b62"), 0.105, 0.32)
 	_add_mist_pass()
 	var track_material := _material(Color("78644a"), 1.0)
+	track_material.albedo_color.a = 0.42
+	track_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	track_material.vertex_color_use_as_albedo = true
 	_add_cart_tracks("NorthCartTrack", PackedVector2Array([
-		Vector2(0.0, -27.5), Vector2(0.1, -23.0), Vector2(0.2, -19.0), Vector2(0.0, -14.5),
+		Vector2(0.0, -27.5), Vector2(0.4, -23.0), Vector2(0.8, -19.0),
+		Vector2(0.7, -16.0), Vector2(0.3, -14.5),
 	]), track_material)
 	_add_cart_tracks("SouthCartTrack", PackedVector2Array([
-		Vector2(0.0, 0.5), Vector2(0.15, 6.0), Vector2(0.0, 12.0),
-		Vector2(0.2, 18.0), Vector2(-0.1, 24.0), Vector2(0.0, 30.5),
+		Vector2(-0.2, 0.5), Vector2(0.4, 6.0), Vector2(0.7, 10.0),
+		Vector2(0.3, 14.0), Vector2(-0.1, 18.0), Vector2(-0.7, 23.0),
+		Vector2(-1.1, 28.0), Vector2(-1.2, 30.5),
 	]), track_material)
 	var village_wear := [
-		["VillageWearHearth", Vector3(4.8, 0.0, -3.8), 2.8, Vector2(1.1, 0.72), Color("6f5d48")],
-		["VillageWearHerbs", Vector3(-4.3, 0.0, -10.3), 2.1, Vector2(1.15, 0.68), Color("75624b")],
+		["VillageWearHearth", Vector3(4.3, 0.0, -5.5), 3.1, Vector2(1.05, 0.72), Color("6f5d48")],
+		["VillageWearHerbs", Vector3(-14.0, 0.0, -8.8), 3.5, Vector2(1.1, 0.72), Color("75624b")],
 		["VillageWearWagon", Vector3(-5.3, 0.0, -2.0), 2.4, Vector2(1.2, 0.7), Color("705e49")],
 		["VillageWearEastDoor", Vector3(6.3, 0.0, -7.2), 2.0, Vector2(0.9, 0.68), Color("75624b")],
 	]
 	for wear in village_wear:
 		_add_ground_patch(wear[0], wear[1], wear[2], wear[3], wear[4], 0.12, 0.34)
+	var village_grass_insets := [
+		["VillageGrassNorthWest", Vector3(-5.8, 0.0, -12.7), 3.2, Vector2(1.05, 0.72), Color("536f51")],
+		["VillageGrassWest", Vector3(-7.0, 0.0, -4.3), 3.0, Vector2(0.85, 1.0), Color("5e7b56")],
+		["VillageGrassNorthEast", Vector3(6.3, 0.0, -11.8), 2.8, Vector2(0.9, 0.75), Color("557252")],
+		["VillageGrassSouthEast", Vector3(6.6, 0.0, -1.8), 2.6, Vector2(0.95, 0.72), Color("607c58")],
+	]
+	for inset in village_grass_insets:
+		_add_ground_patch(inset[0], inset[1], inset[2], inset[3], inset[4], 0.115, 0.62)
+	var road_wear := [
+		["RoadWearNorth", Vector3(0.2, 0.0, -20.5), 3.7, Vector2(0.62, 1.0), Color("756651")],
+		["RoadWearFork", Vector3(0.0, 0.0, 11.2), 3.4, Vector2(0.8, 0.75), Color("7a664c")],
+		["RoadWearSouth", Vector3(0.25, 0.0, 23.0), 4.2, Vector2(0.58, 1.0), Color("725f49")],
+	]
+	for wear in road_wear:
+		_add_ground_patch(wear[0], wear[1], wear[2], wear[3], wear[4], 0.11, 0.28)
+	_add_ground_patch("PortalPathBlend", Vector3(2.4, 0.0, 11.1), 2.4, Vector2(0.72, 0.9), Color("8a7458"), 0.105, 0.24)
+	_add_ground_patch("PondPathBlend", Vector3(-2.3, 0.0, 11.8), 2.1, Vector2(0.72, 0.9), Color("846f55"), 0.105, 0.22)
+	_add_ground_patch("PondLookout", Vector3(-3.9, 0.0, 12.4), 1.5, Vector2(0.68, 0.95), Color("75624b"), 0.058, 0.28)
+	_add_ground_patch("HerbYardGrass", Vector3(-14.6, 0.0, -9.8), 4.6, Vector2(1.0, 0.78), Color("587451"), 0.035, 0.28)
+	_add_road("HerbYardPath", PackedVector2Array([
+		Vector2(-9.4, -6.9), Vector2(-11.2, -7.0), Vector2(-12.9, -7.6), Vector2(-14.4, -8.5),
+	]), PackedFloat32Array([0.72, 0.7, 0.78, 0.9]), 0.055, 0.25, true)
 
 	_add_house(Vector3(-9.0, 0.0, -10.0), 0.15)
 	_add_house(Vector3(9.0, 0.0, -8.0), -0.2)
@@ -373,8 +848,10 @@ func _build_world() -> void:
 	_add_village_props()
 	_add_herb_plot()
 	_add_ruin(Vector3(10.0, 0.0, 13.0))
-	_add_pond(Vector3(-10.0, 0.0, 12.0))
+	_add_pond(Vector3(-7.8, 0.0, 12.0))
 	_add_mistcaps()
+	_add_meadow_grass()
+	_add_ecosystem()
 
 	var trees := [
 		["CommonTree_1", Vector3(-17, 0, -17), 0.2, 1.05],
@@ -431,21 +908,24 @@ func _build_world() -> void:
 func _build_player() -> void:
 	var player := CharacterBody3D.new()
 	player.name = "Player"
-	player.position = portal_center + Vector3(0.0, 1.0, 3.0)
+	player.position = portal_center + Vector3(0.0, 0.0, 3.0)
 	player.set_script(PlayerScript)
 
 	var collider := CollisionShape3D.new()
 	collider.name = "CollisionShape3D"
 	var capsule := CapsuleShape3D.new()
-	capsule.radius = 0.45
-	capsule.height = 1.8
+	capsule.radius = 0.38
+	capsule.height = 1.6
 	collider.shape = capsule
+	collider.position.y = 0.8
 	player.add_child(collider)
 
 	var visual := Node3D.new()
 	visual.name = "Visual"
 	player.add_child(visual)
-	_attach_character_model(visual, DrifterCharacter, 1.0, 0.0)
+	_attach_character_model(visual, DrifterCharacter, 0.78, 0.0)
+	for mesh_node in visual.find_children("*", "MeshInstance3D", true, false):
+		(mesh_node as MeshInstance3D).layers |= 2
 
 	var rig := Node3D.new()
 	rig.name = "CameraRig"
@@ -457,6 +937,16 @@ func _build_player() -> void:
 	camera.fov = 36.5
 	camera.current = true
 	rig.add_child(camera)
+	player_fill_light = SpotLight3D.new()
+	player_fill_light.name = "PlayerFill"
+	player_fill_light.light_color = Color("c1cbc6")
+	player_fill_light.light_energy = 0.0
+	player_fill_light.light_cull_mask = 2
+	player_fill_light.spot_range = 35.0
+	player_fill_light.spot_angle = 10.0
+	player_fill_light.spot_attenuation = 0.8
+	player_fill_light.shadow_enabled = false
+	camera.add_child(player_fill_light)
 	var listener := AudioListener3D.new()
 	listener.name = "AudioListener3D"
 	player.add_child(listener)
@@ -466,29 +956,30 @@ func _build_player() -> void:
 
 
 func _build_villagers() -> void:
-	_add_villager("HerbalistMira", Vector3(-4.8, 0.0, -9.3), 2.55, MiraCharacter, Vector3.RIGHT)
-	_add_villager("GatekeeperToren", Vector3(5.0, 0.0, -7.0), -2.35, TorenCharacter, Vector3.BACK)
-	_add_villager("WeaverNia", Vector3(-5.5, 0.0, 6.5), 1.15, NiaCharacter, Vector3.BACK)
+	_add_villager("HerbalistMira", Vector3(-12.0, 0.0, -7.0), -2.4, MiraCharacter, Vector3(-0.65, 0.0, -0.75), 0.64)
+	_add_villager("GatekeeperToren", Vector3(3.0, 0.0, -15.2), 2.95, TorenCharacter, Vector3.BACK, 0.67)
+	_add_villager("WeaverNia", Vector3(-5.5, 0.0, 6.5), 1.15, NiaCharacter, Vector3.BACK, 0.78)
+	villager_patrol_pauses[1] = 2.8
 
 
-func _add_villager(npc_name: String, npc_position: Vector3, facing: float, character_scene: PackedScene, patrol_axis: Vector3) -> void:
+func _add_villager(npc_name: String, npc_position: Vector3, facing: float, character_scene: PackedScene, patrol_axis: Vector3, visual_scale: float) -> void:
 	var npc := CharacterBody3D.new()
 	npc.name = npc_name
 	npc.position = npc_position
 	add_child(npc)
 	villagers.append(npc)
 	villager_patrol_origins.append(npc_position)
-	villager_patrol_axes.append(patrol_axis)
+	villager_patrol_axes.append(patrol_axis.normalized())
 	villager_patrol_directions.append(1.0)
 	villager_patrol_pauses.append(0.0)
 
 	var collider := CollisionShape3D.new()
 	collider.name = "CollisionShape3D"
 	var capsule := CapsuleShape3D.new()
-	capsule.radius = 0.36
-	capsule.height = 1.65
+	capsule.radius = 0.32
+	capsule.height = 1.6
 	collider.shape = capsule
-	collider.position.y = 0.83
+	collider.position.y = 0.8
 	npc.add_child(collider)
 
 	var visual := Node3D.new()
@@ -497,7 +988,7 @@ func _add_villager(npc_name: String, npc_position: Vector3, facing: float, chara
 	npc.add_child(visual)
 	villager_visuals.append(visual)
 	villager_rotations.append(facing)
-	var animation_player := _attach_character_model(visual, character_scene, 1.0, 0.0)
+	var animation_player := _attach_character_model(visual, character_scene, visual_scale, 0.0)
 	animation_player.get_animation("Walk").loop_mode = Animation.LOOP_LINEAR
 	if npc_name == "HerbalistMira":
 		animation_player.get_animation("PickUp").loop_mode = Animation.LOOP_NONE
@@ -513,7 +1004,7 @@ func _add_villager(npc_name: String, npc_position: Vector3, facing: float, chara
 	label.position.y = _visual_height(npc_model) + 0.28
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.fixed_size = false
-	label.pixel_size = 0.012
+	label.pixel_size = 0.009
 	label.font_size = 26
 	label.outline_size = 7
 	label.modulate = Color(0.96, 0.94, 0.84, 0.0)
@@ -698,7 +1189,6 @@ func _build_audio() -> void:
 	portal_react_player.max_distance = 18.0
 	add_child(portal_react_player)
 
-
 func _add_house(position: Vector3, rotation_y: float) -> void:
 	var house := Node3D.new()
 	house_count += 1
@@ -706,44 +1196,94 @@ func _add_house(position: Vector3, rotation_y: float) -> void:
 	house.position = position
 	house.rotation.y = rotation_y
 	add_child(house)
+	houses.append(house)
 	var shell_material := plaster_material.duplicate() as StandardMaterial3D
-	shell_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_add_box("HouseCollision", Vector3(6.0, 3.1, 6.0), Vector3(0.0, 1.55, 0.0), shell_material, true, house)
-	house_fade_materials.append(shell_material)
-	house_fade_centers.append(position)
+	var trim_material := _material(Color("6f4c32"), 0.95)
+	var rug_material := _material(Color("75604d"), 0.98)
+	var house_collision := _add_box("HouseCollision", Vector3(6.0, 3.1, 6.0), Vector3(0.0, 1.55, 0.0), shell_material, true, house)
+	house_collision.visible = false
+	_add_box("HouseWallLeft", Vector3(0.18, 3.1, 5.8), Vector3(-2.91, 1.55, 0.0), shell_material, false, house)
+	_add_box("HouseWallRight", Vector3(0.18, 3.1, 5.8), Vector3(2.91, 1.55, 0.0), shell_material, false, house)
+	_add_box("HouseWallBack", Vector3(5.8, 3.1, 0.18), Vector3(0.0, 1.55, -2.91), shell_material, false, house)
+	_add_box("HouseInteriorFloor", Vector3(5.55, 0.06, 5.55), Vector3(0.0, 0.05, 0.0), interior_floor_material, false, house)
+	_add_box("HouseStoneBaseLeft", Vector3(0.14, 0.42, 5.7), Vector3(-3.02, 0.21, 0.0), stone_material, false, house)
+	_add_box("HouseStoneBaseRight", Vector3(0.14, 0.42, 5.7), Vector3(3.02, 0.21, 0.0), stone_material, false, house)
+	_add_box("HouseStoneBaseBack", Vector3(5.7, 0.42, 0.14), Vector3(0.0, 0.21, -3.02), stone_material, false, house)
+	for trim_data in [
+		["HouseTrimLeftFront", Vector3(0.16, 3.0, 0.16), Vector3(-3.03, 1.5, 2.55)],
+		["HouseTrimLeftMiddle", Vector3(0.16, 3.0, 0.16), Vector3(-3.03, 1.5, 0.0)],
+		["HouseTrimLeftBack", Vector3(0.16, 3.0, 0.16), Vector3(-3.03, 1.5, -2.55)],
+		["HouseTrimRightFront", Vector3(0.16, 3.0, 0.16), Vector3(3.03, 1.5, 2.55)],
+		["HouseTrimRightMiddle", Vector3(0.16, 3.0, 0.16), Vector3(3.03, 1.5, 0.0)],
+		["HouseTrimRightBack", Vector3(0.16, 3.0, 0.16), Vector3(3.03, 1.5, -2.55)],
+		["HouseTrimBackMiddle", Vector3(0.16, 3.0, 0.16), Vector3(0.0, 1.5, -3.03)],
+		["HouseTrimLeftTop", Vector3(0.16, 0.16, 5.7), Vector3(-3.03, 2.92, 0.0)],
+		["HouseTrimRightTop", Vector3(0.16, 0.16, 5.7), Vector3(3.03, 2.92, 0.0)],
+		["HouseTrimBackTop", Vector3(5.7, 0.16, 0.16), Vector3(0.0, 2.92, -3.03)],
+	]:
+		_add_box(trim_data[0], trim_data[1], trim_data[2], trim_material, false, house)
+	var back_window := _add_model("res://assets/quaternius/village/Window_Wide_Round1.gltf", Vector3(0.0, 0.0, -3.0), PI, 0.86, house)
+	back_window.name = "BackWindow"
+	_add_box("InteriorRug", Vector3(1.9, 0.03, 1.25), Vector3(0.35, 0.085, -0.2), rug_material, false, house)
+	_add_box("InteriorBenchSeat", Vector3(1.55, 0.18, 0.48), Vector3(1.25, 0.58, -1.65), trim_material, false, house)
+	_add_box("InteriorBenchLeftLeg", Vector3(0.16, 0.5, 0.38), Vector3(0.7, 0.3, -1.65), trim_material, false, house)
+	_add_box("InteriorBenchRightLeg", Vector3(0.16, 0.5, 0.38), Vector3(1.8, 0.3, -1.65), trim_material, false, house)
+	var interior_crate := _add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(-1.65, 0.0, -1.5), -0.2, 0.62, house)
+	interior_crate.name = "InteriorCrate"
 	var roof := _add_model("res://assets/quaternius/village/Roof_RoundTiles_6x8.gltf", Vector3(0.0, 3.05, 0.0), 0.0, 0.82, house)
 	roof.name = "Roof"
 	_add_model("res://assets/quaternius/village/Wall_Plaster_Straight.gltf", Vector3(-2.0, 0.0, 3.03), 0.0, 1.0, house)
 	_add_model("res://assets/quaternius/village/Wall_Plaster_Door_Round.gltf", Vector3(0.0, 0.0, 3.03), 0.0, 1.0, house)
 	_add_model("res://assets/quaternius/village/Wall_Plaster_Window_Wide_Round.gltf", Vector3(2.0, 0.0, 3.03), 0.0, 1.0, house)
-	_add_model("res://assets/quaternius/village/Door_1_Round.gltf", Vector3(0.0, 0.0, 3.16), 0.0, 1.0, house)
-	_add_model("res://assets/quaternius/village/Window_Wide_Round1.gltf", Vector3(2.0, 0.8, 3.16), 0.0, 1.0, house)
+	var door := _add_model("res://assets/quaternius/village/Door_1_Round.gltf", Vector3(-0.515, 0.0, 3.09), 0.0, 1.0, house)
+	door.name = "Door"
+	var window := _add_model("res://assets/quaternius/village/Window_Wide_Round1.gltf", Vector3(2.0, 0.0, 2.875), 0.0, 1.0, house)
+	window.name = "Window"
 	_add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(-2.2, 0.0, 3.8), 0.25, 0.85, house)
 	_add_model("res://assets/quaternius/village/Prop_Vine1.gltf", Vector3(-1.55, 0.35, 3.2), 0.0, 0.78, house)
-	_add_model("res://assets/quaternius/village/Prop_Chimney.gltf", Vector3(-2.45, 3.1, 0.8), 0.0, 1.0, house)
+	var chimney := _add_model("res://assets/quaternius/village/Prop_Chimney.gltf", Vector3(-2.45, 3.1, 0.8), 0.0, 1.0, house)
+	chimney.name = "Chimney"
+	chimney.reparent(roof, true)
 	for house_mesh in house.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := house_mesh as MeshInstance3D
 		for surface_index in mesh_instance.mesh.get_surface_count():
 			var source_material := mesh_instance.mesh.surface_get_material(surface_index) as StandardMaterial3D
 			if source_material == null:
 				continue
-			var fade_material := source_material.duplicate() as StandardMaterial3D
-			fade_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-			mesh_instance.set_surface_override_material(surface_index, fade_material)
-			house_fade_materials.append(fade_material)
-			house_fade_centers.append(position)
+			if source_material.resource_name == "MI_WindowGlass":
+				var glass_material := source_material.duplicate() as StandardMaterial3D
+				glass_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+				glass_material.albedo_color = Color(0.52, 0.30, 0.13, 0.66)
+				glass_material.roughness = 0.72
+				glass_material.emission_enabled = true
+				glass_material.emission = Color(0.64, 0.34, 0.13)
+				glass_material.emission_energy_multiplier = 0.18
+				mesh_instance.set_surface_override_material(surface_index, glass_material)
+				window_glass_materials.append(glass_material)
+			elif mesh_instance == roof or roof.is_ancestor_of(mesh_instance):
+				var roof_material := source_material.duplicate() as StandardMaterial3D
+				if source_material.resource_name == "MI_WoodTrim":
+					roof_material.albedo_color = Color("c6b99a")
+				elif source_material.resource_name == "MI_RoundTiles":
+					roof_material.albedo_texture = MutedRoofTiles
+				roof_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+				mesh_instance.set_surface_override_material(surface_index, roof_material)
+				house_fade_materials.append(roof_material)
+				house_fade_centers.append(position)
+				house_fade_alphas.append(roof_material.albedo_color.a)
 	var window_glow := OmniLight3D.new()
 	window_glow.name = "WindowGlow"
-	window_glow.position = Vector3(2.0, 1.2, 3.55)
+	window_glow.position = Vector3(2.0, 1.85, 3.18)
 	window_glow.light_color = Color("ffc276")
 	window_glow.light_energy = 0.14
 	window_glow.omni_range = 2.6
 	window_glow.shadow_enabled = false
 	house.add_child(window_glow)
+	window_glows.append(window_glow)
 	_add_smoke(house, Vector3(-2.45, 6.45, 0.8))
 
 
-func _add_smoke(parent: Node3D, origin: Vector3) -> void:
+func _add_smoke(parent: Node3D, origin: Vector3, drift_scale := 1.0, size_scale := 1.0, opacity_scale := 1.0) -> void:
 	if smoke_mesh == null:
 		var smoke_gradient := Gradient.new()
 		smoke_gradient.offsets = PackedFloat32Array([0.0, 0.55, 1.0])
@@ -775,12 +1315,15 @@ func _add_smoke(parent: Node3D, origin: Vector3) -> void:
 		parent.add_child(puff)
 		smoke_puffs.append(puff)
 		smoke_origins.append(origin)
+		smoke_drift_scales.append(drift_scale)
+		smoke_size_scales.append(size_scale)
+		smoke_opacity_scales.append(opacity_scale)
 
 
 func _add_village_hearth() -> void:
 	var hearth := Node3D.new()
 	hearth.name = "VillageHearth"
-	hearth.position = Vector3(4.8, 0.0, -3.8)
+	hearth.position = Vector3(4.3, 0.0, -5.5)
 	add_child(hearth)
 	for stone_index in 7:
 		var angle := TAU * float(stone_index) / 7.0
@@ -796,37 +1339,79 @@ func _add_village_hearth() -> void:
 		log.rotation = Vector3(0.0, log_rotation, PI * 0.5)
 		log.material = wood_material
 		hearth.add_child(log)
-	var ember_material := _material(Color("d85a28"), 0.5)
-	ember_material.emission_enabled = true
-	ember_material.emission = Color("ff792f")
-	ember_material.emission_energy_multiplier = 1.5
+	for bench_data in [
+		["HearthBenchEast", Vector3(1.45, 0.0, 0.15), PI * 0.5],
+		["HearthBenchSouth", Vector3(0.0, 0.0, -1.4), 0.0],
+	]:
+		var bench := Node3D.new()
+		bench.name = bench_data[0]
+		bench.position = bench_data[1]
+		bench.rotation.y = bench_data[2]
+		hearth.add_child(bench)
+		var seat := CSGCylinder3D.new()
+		seat.name = "Seat"
+		seat.radius = 0.22
+		seat.height = 1.65
+		seat.sides = 8
+		seat.position.y = 0.46
+		seat.rotation.z = PI * 0.5
+		seat.material = wood_material
+		seat.use_collision = true
+		bench.add_child(seat)
+		for leg_data in [["LeftLeg", -0.58], ["RightLeg", 0.58]]:
+			var leg := CSGCylinder3D.new()
+			leg.name = leg_data[0]
+			leg.radius = 0.13
+			leg.height = 0.42
+			leg.sides = 8
+			leg.position = Vector3(leg_data[1], 0.2, 0.0)
+			leg.material = wood_material
+			leg.use_collision = false
+			bench.add_child(leg)
+	var wood_crate := _add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(1.35, 0.0, -1.25), -0.2, 0.52, hearth)
+	wood_crate.name = "HearthWoodCrate"
+	hearth_ember_material = _material(Color("d85a28"), 0.5)
+	hearth_ember_material.emission_enabled = true
+	hearth_ember_material.emission = Color("ff792f")
+	hearth_ember_material.emission_energy_multiplier = 1.5
 	var ember := CSGCylinder3D.new()
 	ember.name = "FireEmber"
 	ember.radius = 0.5
 	ember.height = 0.08
 	ember.sides = 16
 	ember.position.y = 0.14
-	ember.material = ember_material
+	ember.material = hearth_ember_material
 	ember.use_collision = true
 	hearth.add_child(ember)
-	var flame_material := _material(Color(1.0, 0.44, 0.12, 0.82), 0.4)
-	flame_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	flame_material.emission_enabled = true
-	flame_material.emission = Color("ff6f24")
-	flame_material.emission_energy_multiplier = 2.2
-	flame_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	var flame_mesh := SphereMesh.new()
-	flame_mesh.radius = 0.32
-	flame_mesh.height = 0.72
-	flame_mesh.radial_segments = 10
-	flame_mesh.rings = 5
+	hearth_flame_material = _material(Color(1.0, 0.44, 0.12, 0.82), 0.4)
+	hearth_flame_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	hearth_flame_material.emission_enabled = true
+	hearth_flame_material.emission = Color("ff6f24")
+	hearth_flame_material.emission_energy_multiplier = 2.2
+	hearth_flame_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	for flame_index in 3:
-		var flame := MeshInstance3D.new()
+		var flame := CSGPolygon3D.new()
 		flame.name = "Flame%d" % flame_index
-		flame.mesh = flame_mesh
-		flame.material_override = flame_material
-		var origin := Vector3((float(flame_index) - 1.0) * 0.23, 0.64 + float(flame_index % 2) * 0.12, 0.0)
+		var tip_offset := -0.06 + float(flame_index) * 0.06
+		flame.polygon = PackedVector2Array([
+			Vector2(-0.28, -0.36),
+			Vector2(0.28, -0.36),
+			Vector2(0.23, -0.08),
+			Vector2(0.14, 0.16),
+			Vector2(tip_offset, 0.46),
+			Vector2(-0.08, 0.24),
+			Vector2(-0.2, 0.04),
+		])
+		flame.depth = 0.24
+		flame.material = hearth_flame_material
+		flame.use_collision = false
+		var origin := Vector3(
+			(float(flame_index) - 1.0) * 0.23,
+			0.56 + float(flame_index % 2) * 0.1,
+			-0.08 + float(flame_index % 2) * 0.16
+		)
 		flame.position = origin
+		flame.rotation.y = -0.18 + float(flame_index) * 0.18
 		flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		hearth.add_child(flame)
 		hearth_flames.append(flame)
@@ -839,7 +1424,7 @@ func _add_village_hearth() -> void:
 	hearth_light.omni_range = 5.0
 	hearth_light.shadow_enabled = false
 	hearth.add_child(hearth_light)
-	_add_smoke(hearth, Vector3(0.0, 1.25, 0.0))
+	_add_smoke(hearth, Vector3(0.0, 1.15, 0.0), 1.6, 1.15, 1.2)
 
 
 func _add_pond(position: Vector3) -> void:
@@ -986,19 +1571,26 @@ func _add_herb_plot() -> void:
 	var plot := Node3D.new()
 	plot.name = "HerbPlot"
 	plot.position = HERB_PLOT_POSITION
+	plot.rotation.y = PI * 0.5
 	add_child(plot)
-	_add_box("Soil", Vector3(2.2, 0.08, 1.0), Vector3(0.0, 0.04, 0.0), _material(Color("4e3b2b"), 1.0), false, plot)
+	_add_box("Soil", Vector3(4.6, 0.08, 2.8), Vector3(0.0, 0.04, 0.0), _material(Color("4e3b2b"), 1.0), false, plot)
 	var edging_material := _material(Color("6b4b2d"), 0.9)
-	_add_box("NorthEdge", Vector3(2.4, 0.14, 0.12), Vector3(0.0, 0.1, -0.56), edging_material, false, plot)
-	_add_box("SouthEdge", Vector3(2.4, 0.14, 0.12), Vector3(0.0, 0.1, 0.56), edging_material, false, plot)
-	_add_box("WestEdge", Vector3(0.12, 0.14, 1.0), Vector3(-1.14, 0.1, 0.0), edging_material, false, plot)
-	_add_box("EastEdge", Vector3(0.12, 0.14, 1.0), Vector3(1.14, 0.1, 0.0), edging_material, false, plot)
+	_add_box("NorthEdge", Vector3(4.8, 0.14, 0.12), Vector3(0.0, 0.1, -1.46), edging_material, false, plot)
+	_add_box("SouthEdge", Vector3(4.8, 0.14, 0.12), Vector3(0.0, 0.1, 1.46), edging_material, false, plot)
+	_add_box("MiddleEdge", Vector3(4.5, 0.1, 0.1), Vector3(0.0, 0.085, 0.0), edging_material, false, plot)
+	_add_box("WestEdge", Vector3(0.12, 0.14, 2.8), Vector3(-2.36, 0.1, 0.0), edging_material, false, plot)
+	_add_box("EastEdge", Vector3(0.12, 0.14, 2.8), Vector3(2.36, 0.1, 0.0), edging_material, false, plot)
 	var plants := [
-		["Fern_1", Vector3(-0.75, 0.08, -0.14), -0.3, 0.18],
-		["Grass_Common_Tall", Vector3(-0.35, 0.08, 0.16), 0.5, 0.28],
-		["Bush_Common_Flowers", Vector3(0.05, 0.08, -0.1), 1.1, 0.22],
-		["Fern_1", Vector3(0.45, 0.08, 0.16), 2.0, 0.16],
-		["Grass_Common_Tall", Vector3(0.8, 0.08, -0.14), 2.6, 0.24],
+		["Fern_1", Vector3(-1.65, 0.08, -0.58), -0.3, 0.24],
+		["Grass_Common_Tall", Vector3(-0.82, 0.08, -0.62), 0.5, 0.34],
+		["Bush_Common_Flowers", Vector3(0.02, 0.08, -0.56), 1.1, 0.28],
+		["Fern_1", Vector3(0.85, 0.08, -0.62), 2.0, 0.22],
+		["Grass_Common_Tall", Vector3(1.62, 0.08, -0.54), 2.6, 0.3],
+		["Bush_Common_Flowers", Vector3(-1.55, 0.08, 0.58), 0.2, 0.26],
+		["Fern_1", Vector3(-0.72, 0.08, 0.62), 1.8, 0.22],
+		["Grass_Common_Tall", Vector3(0.08, 0.08, 0.56), 2.4, 0.32],
+		["Bush_Common_Flowers", Vector3(0.88, 0.08, 0.62), 0.9, 0.24],
+		["Fern_1", Vector3(1.58, 0.08, 0.54), 2.9, 0.22],
 	]
 	for plant_data in plants:
 		var plant := _add_model("res://assets/quaternius/nature/%s.gltf" % plant_data[0], plant_data[1], plant_data[2], plant_data[3], plot)
@@ -1010,14 +1602,99 @@ func _add_village_props() -> void:
 	var props := Node3D.new()
 	props.name = "VillageProps"
 	add_child(props)
-	_add_model("res://assets/quaternius/village/Prop_Wagon.gltf", Vector3(-5.8, 0.0, -2.7), -0.25, 0.9, props)
-	_add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(-4.2, 0.0, -1.1), 0.1, 0.75, props)
-	_add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(-4.8, 0.0, -0.8), 0.4, 0.55, props)
+	var wagon := _add_model("res://assets/quaternius/village/Prop_Wagon.gltf", Vector3(-5.8, 0.0, -2.7), 1.37, 0.9, props)
+	wagon.name = "VillageWagon"
+	var wagon_crate_large := _add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(-7.4, 0.0, -2.1), 0.16, 0.75, props)
+	wagon_crate_large.name = "WagonUnloadCrateLarge"
+	var wagon_crate_small := _add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(-7.45, 0.0, -3.0), 0.42, 0.55, props)
+	wagon_crate_small.name = "WagonUnloadCrateSmall"
 	_add_model("res://assets/quaternius/village/Prop_WoodenFence_Single.gltf", Vector3(6.4, 0.0, -1.6), -0.18, 1.0, props)
 	_add_model("res://assets/quaternius/village/Prop_WoodenFence_Extension1.gltf", Vector3(8.4, 0.0, -1.95), -0.18, 1.0, props)
 	_add_model("res://assets/quaternius/village/Prop_WoodenFence_Extension1.gltf", Vector3(10.4, 0.0, -2.3), -0.18, 1.0, props)
-	var wagon_collision := _add_box("WagonCollision", Vector3(2.0, 1.5, 4.0), Vector3(-5.8, 0.75, -2.7), stone_material, true, props)
-	wagon_collision.rotation.y = -0.25
+	var work_wood_material := _material(Color("6f4c32"), 0.95)
+	var village_marker := Node3D.new()
+	village_marker.name = "VillageBoundaryMarker"
+	village_marker.position = Vector3(3.35, 0.0, 5.1)
+	village_marker.rotation.y = -0.08
+	props.add_child(village_marker)
+	var marker_stone := _add_model("res://assets/quaternius/nature/Rock_Medium_1.gltf", Vector3.ZERO, 0.45, 0.16, village_marker)
+	marker_stone.name = "BoundaryFooting"
+	var boundary_stone := CSGPolygon3D.new()
+	boundary_stone.name = "BoundaryStone"
+	boundary_stone.polygon = PackedVector2Array([
+		Vector2(-0.22, 0.0), Vector2(0.2, 0.0), Vector2(0.17, 0.5),
+		Vector2(0.07, 0.72), Vector2(-0.13, 0.65), Vector2(-0.2, 0.38),
+	])
+	boundary_stone.depth = 0.3
+	boundary_stone.position = Vector3(0.0, 0.03, 0.0)
+	boundary_stone.rotation.z = -0.055
+	boundary_stone.material = stone_material
+	boundary_stone.use_collision = false
+	village_marker.add_child(boundary_stone)
+	var village_wedge := _add_box("VillageWedge", Vector3(0.12, 0.11, 0.32), Vector3(0.03, 0.52, -0.2), work_wood_material, false, village_marker)
+	village_wedge.rotation.y = -0.12
+	village_wedge.rotation.x = -0.05
+	var herb_rack := Node3D.new()
+	herb_rack.name = "HerbDryingRack"
+	herb_rack.position = Vector3(-15.6, 0.0, -12.6)
+	herb_rack.rotation.y = 0.16
+	props.add_child(herb_rack)
+	var herb_left_post := _add_box("LeftPost", Vector3(0.1, 1.45, 0.1), Vector3(-0.72, 0.72, 0.0), work_wood_material, false, herb_rack)
+	herb_left_post.rotation.z = -0.025
+	var herb_right_post := _add_box("RightPost", Vector3(0.11, 1.4, 0.1), Vector3(0.72, 0.7, 0.0), work_wood_material, false, herb_rack)
+	herb_right_post.rotation.z = 0.018
+	var herb_crossbar := _add_box("Crossbar", Vector3(1.55, 0.09, 0.09), Vector3(0.0, 1.38, 0.0), work_wood_material, false, herb_rack)
+	herb_crossbar.rotation.z = 0.012
+	_add_box("DryingLine", Vector3(1.42, 0.035, 0.035), Vector3(0.0, 1.2, 0.0), _material(Color("4f3b2c"), 1.0), false, herb_rack)
+	for bundle_index in 4:
+		var bundle := _add_model(
+			"res://assets/quaternius/nature/Grass_Common_Tall.gltf",
+			Vector3(-0.54 + float(bundle_index) * 0.36, 1.08 - float(bundle_index % 2) * 0.08, 0.0),
+			0.0,
+			0.22 + float(bundle_index % 3) * 0.025,
+			herb_rack
+		)
+		bundle.name = "HerbBundle%d" % bundle_index
+		bundle.rotation.z = PI + (-0.1 + float(bundle_index) * 0.065)
+	var herb_crate := _add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(-14.35, 0.0, -12.55), 0.2, 0.48, props)
+	herb_crate.name = "HerbHarvestCrate"
+	var weaving_line := Node3D.new()
+	weaving_line.name = "WeaverDryingLine"
+	weaving_line.position = Vector3(-4.7, 0.0, 5.25)
+	weaving_line.rotation.y = 0.04
+	props.add_child(weaving_line)
+	var cloth_left_post := _add_box("LeftPost", Vector3(0.12, 1.65, 0.12), Vector3(-1.35, 0.82, 0.0), work_wood_material, false, weaving_line)
+	cloth_left_post.rotation.z = -0.028
+	var cloth_right_post := _add_box("RightPost", Vector3(0.1, 1.58, 0.11), Vector3(1.35, 0.79, 0.0), work_wood_material, false, weaving_line)
+	cloth_right_post.rotation.z = 0.02
+	var cloth_crossbar := _add_box("Crossbar", Vector3(2.82, 0.1, 0.1), Vector3(0.0, 1.58, 0.0), work_wood_material, false, weaving_line)
+	cloth_crossbar.rotation.z = 0.01
+	for cloth_data in [
+		["ClothRose", Vector3(-0.78, 1.15, 0.0), Color("8e5c60"), 0.58, 0.72, 0.03],
+		["ClothMoss", Vector3(0.0, 1.08, 0.0), Color("737b58"), 0.64, 0.86, -0.02],
+		["ClothOchre", Vector3(0.78, 1.17, 0.0), Color("98744e"), 0.54, 0.68, 0.05],
+	]:
+		var width: float = cloth_data[3]
+		var height: float = cloth_data[4]
+		var cloth := CSGPolygon3D.new()
+		cloth.name = cloth_data[0]
+		cloth.polygon = PackedVector2Array([
+			Vector2(-width * 0.5, height * 0.5),
+			Vector2(0.0, height * 0.45),
+			Vector2(width * 0.5, height * 0.5),
+			Vector2(width * 0.44, -height * 0.38),
+			Vector2(width * 0.08, -height * 0.52),
+			Vector2(-width * 0.46, -height * 0.43),
+		])
+		cloth.depth = 0.035
+		cloth.position = cloth_data[1]
+		cloth.rotation.z = cloth_data[5]
+		cloth.material = _material(cloth_data[2], 1.0)
+		cloth.use_collision = false
+		weaving_line.add_child(cloth)
+		wind_nodes.append(cloth)
+	var wagon_collision := _add_box("WagonCollision", Vector3(1.9, 1.5, 2.6), Vector3(-5.8, 0.75, -2.7), stone_material, true, props)
+	wagon_collision.rotation.y = 1.37
 	wagon_collision.visible = false
 	var fence_collision := _add_box("FenceCollision", Vector3(6.1, 0.9, 0.25), Vector3(8.4, 0.45, -1.95), stone_material, true, props)
 	fence_collision.rotation.y = -0.18
@@ -1080,10 +1757,10 @@ func _add_mist_pass() -> void:
 	mist_curtain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	pass_root.add_child(mist_curtain)
 
-	var rune_material := _material(Color("79c9bd"), 0.25)
-	rune_material.emission_enabled = true
-	rune_material.emission = Color("78d6c8")
-	rune_material.emission_energy_multiplier = 1.5
+	mist_pass_rune_material = _material(Color("79c9bd"), 0.25)
+	mist_pass_rune_material.emission_enabled = true
+	mist_pass_rune_material.emission = Color("78d6c8")
+	mist_pass_rune_material.emission_energy_multiplier = 1.5
 	var rune_mesh := SphereMesh.new()
 	rune_mesh.radius = 0.11
 	rune_mesh.height = 0.22
@@ -1096,7 +1773,7 @@ func _add_mist_pass() -> void:
 		var rune := MeshInstance3D.new()
 		rune.name = rune_data[0]
 		rune.mesh = rune_mesh
-		rune.material_override = rune_material
+		rune.material_override = mist_pass_rune_material
 		rune.position = rune_data[1]
 		pass_root.add_child(rune)
 
@@ -1125,6 +1802,7 @@ func _add_mist_pass() -> void:
 		light.light_energy = 0.42
 		light.omni_range = 4.0
 		pass_root.add_child(light)
+		mist_pass_lights.append(light)
 
 
 func _add_boundary_scenery() -> void:
@@ -1222,14 +1900,17 @@ func _add_nature(model: String, position: Vector3, rotation_y: float, scale: flo
 func _add_ruin(position: Vector3) -> void:
 	var center := position + Vector3(0.0, 0.0, -2.0)
 	portal_center = center
+	_add_ground_patch("PortalStoneBed", center, 4.7, Vector2(1.0, 0.82), Color("536b62"), 0.032, 0.28)
+	_add_ground_patch("PortalArrivalWear", center + Vector3(0.0, 0.0, 1.75), 3.1, Vector2(0.86, 0.62), Color("776a54"), 0.042, 0.24)
 	var platform := CSGCylinder3D.new()
 	platform.name = "PortalPlatform"
-	platform.radius = 4.1
-	platform.height = 0.22
+	platform.radius = 3.7
+	platform.height = 0.08
 	platform.sides = 32
-	platform.position = center + Vector3.UP * 0.08
+	platform.position = center + Vector3.UP * 0.02
 	platform.material = stone_material
 	platform.use_collision = true
+	platform.visible = false
 	add_child(platform)
 
 	var ruin := Node3D.new()
@@ -1249,6 +1930,20 @@ func _add_ruin(position: Vector3) -> void:
 	]
 	for stone in stones:
 		_add_model("res://assets/quaternius/nature/%s.gltf" % stone[0], stone[1], stone[2], stone[3], ruin)
+	var edge_details := [
+		["Rock_Medium_1", Vector3(-3.45, 0.02, -1.45), 0.6, 0.28],
+		["Rock_Medium_2", Vector3(-3.25, 0.02, 1.4), 2.2, 0.2],
+		["Rock_Medium_1", Vector3(3.35, 0.02, -1.15), 1.7, 0.25],
+		["Rock_Medium_2", Vector3(3.15, 0.02, 1.55), 0.3, 0.18],
+	]
+	for detail in edge_details:
+		_add_model("res://assets/quaternius/nature/%s.gltf" % detail[0], detail[1], detail[2], detail[3], ruin)
+	var fern := _add_model("res://assets/quaternius/nature/Fern_1.gltf", Vector3(-3.6, 0.0, 0.45), 1.1, 0.2, ruin)
+	fern.name = "PortalFern"
+	wind_nodes.append(fern)
+	var grass := _add_model("res://assets/quaternius/nature/Grass_Common_Tall.gltf", Vector3(3.55, 0.0, 0.8), 2.4, 0.48, ruin)
+	grass.name = "PortalGrass"
+	wind_nodes.append(grass)
 	var left_collision := _add_box("LeftArchCollision", Vector3(1.25, 3.2, 1.5), Vector3(-2.0, 1.6, 0.0), stone_material, true, ruin)
 	left_collision.visible = false
 	var right_collision := _add_box("RightArchCollision", Vector3(1.25, 3.2, 1.5), Vector3(2.0, 1.6, 0.0), stone_material, true, ruin)
@@ -1258,13 +1953,25 @@ func _add_ruin(position: Vector3) -> void:
 	portal_material.emission_enabled = true
 	portal_material.emission = Color("6fe7ce")
 	portal_material.emission_energy_multiplier = 0.8
-	var ground_ring := CSGTorus3D.new()
+	var ground_ring := Node3D.new()
 	ground_ring.name = "PortalGroundRing"
-	ground_ring.inner_radius = 3.05
-	ground_ring.outer_radius = 3.18
-	ground_ring.position = center + Vector3.UP * 0.2
-	ground_ring.material = portal_material
+	ground_ring.position = center + Vector3.UP * 0.075
 	add_child(ground_ring)
+	portal_ground_rune_material = portal_material.duplicate() as StandardMaterial3D
+	portal_ground_rune_material.albedo_color = Color("4f8c82")
+	portal_ground_rune_material.emission = Color("55b8a8")
+	portal_ground_rune_material.emission_energy_multiplier = 0.48
+	var rune_angles := [-2.85, -2.05, -1.3, -0.48, 0.48, 1.35, 2.35]
+	for index in rune_angles.size():
+		var angle: float = rune_angles[index]
+		var rune := CSGBox3D.new()
+		rune.name = "GroundRune%d" % index
+		rune.size = Vector3(0.48 + float(index % 3) * 0.1, 0.02, 0.075)
+		rune.position = Vector3(cos(angle) * 2.9, 0.0, sin(angle) * 2.9)
+		rune.rotation.y = -angle - PI * 0.5
+		rune.material = portal_ground_rune_material
+		rune.use_collision = false
+		ground_ring.add_child(rune)
 	portal_ring = CSGTorus3D.new()
 	portal_ring.name = "PortalRing"
 	portal_ring.inner_radius = 1.45
@@ -1273,13 +1980,18 @@ func _add_ruin(position: Vector3) -> void:
 	portal_ring.position = center + Vector3.UP * 1.85
 	portal_ring.material = portal_material
 	add_child(portal_ring)
-	var portal := CSGCylinder3D.new()
+	var portal_mesh := QuadMesh.new()
+	portal_mesh.size = Vector2(2.8, 2.8)
+	portal_surface_material = ShaderMaterial.new()
+	portal_surface_material.shader = PortalSurfaceShader
+	portal_surface_material.set_shader_parameter("reaction_strength", 0.0)
+	portal_surface_material.set_shader_parameter("time_glow", 1.0)
+	var portal := MeshInstance3D.new()
 	portal.name = "PortalSurface"
-	portal.radius = 1.4
-	portal.height = 0.08
-	portal.rotation_degrees.x = 90.0
+	portal.mesh = portal_mesh
 	portal.position = center + Vector3.UP * 1.85
-	portal.material = portal_material
+	portal.material_override = portal_surface_material
+	portal.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(portal)
 	portal_light = OmniLight3D.new()
 	portal_light.name = "PortalLight"
@@ -1288,10 +2000,10 @@ func _add_ruin(position: Vector3) -> void:
 	portal_light.light_energy = 0.7
 	portal_light.omni_range = 8.0
 	add_child(portal_light)
-	var mote_material := _material(Color("9df4de"), 0.2)
-	mote_material.emission_enabled = true
-	mote_material.emission = Color("7ae8d0")
-	mote_material.emission_energy_multiplier = 1.8
+	portal_mote_material = _material(Color("9df4de"), 0.2)
+	portal_mote_material.emission_enabled = true
+	portal_mote_material.emission = Color("7ae8d0")
+	portal_mote_material.emission_energy_multiplier = 1.8
 	var mote_mesh := SphereMesh.new()
 	mote_mesh.radius = 0.07
 	mote_mesh.height = 0.14
@@ -1301,7 +2013,7 @@ func _add_ruin(position: Vector3) -> void:
 		var mote := MeshInstance3D.new()
 		mote.name = "PortalMote%d" % index
 		mote.mesh = mote_mesh
-		mote.material_override = mote_material
+		mote.material_override = portal_mote_material
 		add_child(mote)
 		portal_motes.append(mote)
 
@@ -1317,35 +2029,466 @@ func _add_box(name: String, size: Vector3, position: Vector3, material: Material
 	return box
 
 
-func _add_path(
+func _add_road(
 	name: String,
-	points: PackedVector2Array,
+	centerline: PackedVector2Array,
+	half_widths: PackedFloat32Array,
 	elevation := 0.05,
-	material_override: Material = null,
-	depth := 0.08
-) -> CSGPolygon3D:
-	var path := CSGPolygon3D.new()
-	path.name = name
-	path.polygon = points
-	path.depth = depth
-	path.position.y = elevation
-	path.rotation_degrees.x = 90.0
-	path.material = material_override if material_override != null else path_material
-	path.use_collision = false
-	add_child(path)
-	return path
+	shoulder_width := 0.65,
+	fade_ends := false
+) -> MeshInstance3D:
+	assert(centerline.size() >= 2 and centerline.size() == half_widths.size())
+	var sampled := _sample_road(centerline, half_widths)
+	meadow_roads.append({"name": name, "points": sampled[0], "widths": sampled[1]})
+	var road := MeshInstance3D.new()
+	road.name = name
+	road.mesh = _road_mesh(sampled[0], sampled[1], elevation, false, shoulder_width, fade_ends, 0.07)
+	road.material_override = path_material
+	road.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(road)
+	var shoulder_material := _material(Color("806f55"), 1.0)
+	shoulder_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	shoulder_material.vertex_color_use_as_albedo = true
+	var shoulder := MeshInstance3D.new()
+	shoulder.name = "Shoulder"
+	shoulder.mesh = _road_mesh(sampled[0], sampled[1], elevation - 0.006, true, shoulder_width, fade_ends)
+	shoulder.material_override = shoulder_material
+	shoulder.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	road.add_child(shoulder)
+	_add_road_edge_stones(road, name, sampled[0], sampled[1], shoulder_width)
+	return road
+
+
+func _build_weather() -> void:
+	weather_schedule = _make_weather_schedule(weather_seed)
+	weather_schedule_index = 0
+	weather_segment_elapsed = 0.0
+	rain_field = Node3D.new()
+	rain_field.name = "LightRain"
+	rain_field.set_meta("weather_seed", weather_seed)
+	rain_field.set_meta("rain_seed", weather_seed + 701)
+	rain_field.set_meta("schedule", weather_schedule.duplicate(true))
+	add_child(rain_field)
+	rain_material = StandardMaterial3D.new()
+	rain_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	rain_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	rain_material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	rain_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var rain_mesh := QuadMesh.new()
+	rain_mesh.size = Vector2(0.025, 0.55)
+	var random := RandomNumberGenerator.new()
+	random.seed = weather_seed + 701
+	for index in 28:
+		var streak := MeshInstance3D.new()
+		streak.name = "RainStreak%02d" % index
+		streak.mesh = rain_mesh
+		streak.material_override = rain_material
+		streak.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		rain_field.add_child(streak)
+		rain_streaks.append(streak)
+		rain_params.append({
+			"x": random.randf_range(-9.0, 9.0),
+			"z": random.randf_range(-7.0, 7.0),
+			"start_y": random.randf_range(1.0, 10.0),
+			"speed": random.randf_range(7.5, 11.0),
+			"phase": random.randf_range(0.0, TAU),
+		})
+	_sample_weather()
+	_animate_weather()
+
+
+func _add_ecosystem() -> void:
+	butterflies = Node3D.new()
+	butterflies.name = "Butterflies"
+	butterflies.set_meta("seed", BUTTERFLY_SEED)
+	butterflies.set_meta("active_hours", Vector2(7.0, 19.0))
+	add_child(butterflies)
+	butterfly_material = StandardMaterial3D.new()
+	butterfly_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	butterfly_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	butterfly_material.albedo_texture = _butterfly_texture()
+	butterfly_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
+	butterfly_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	butterfly_material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	var butterfly_mesh := QuadMesh.new()
+	butterfly_mesh.size = Vector2(0.32, 0.22)
+	var butterfly_meadows := PackedVector2Array([
+		Vector2(-5.8, -15.2), Vector2(6.4, -13.6),
+		Vector2(7.0, -1.8),
+	])
+	var butterfly_random := RandomNumberGenerator.new()
+	butterfly_random.seed = BUTTERFLY_SEED
+	for index in BUTTERFLY_COUNT:
+		var home := butterfly_meadows[index % butterfly_meadows.size()] + Vector2(
+			butterfly_random.randf_range(-0.55, 0.55),
+			butterfly_random.randf_range(-0.55, 0.55)
+		)
+		var fly := MeshInstance3D.new()
+		fly.name = "Butterfly%02d" % index
+		fly.mesh = butterfly_mesh
+		fly.material_override = butterfly_material
+		fly.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		fly.set_meta("params", {
+			"home": home,
+			"radius_x": butterfly_random.randf_range(0.45, 0.80),
+			"radius_z": butterfly_random.randf_range(0.35, 0.65),
+			"speed": butterfly_random.randf_range(0.28, 0.44),
+			"phase": butterfly_random.randf_range(0.0, TAU),
+			"height": butterfly_random.randf_range(0.70, 1.15),
+		})
+		butterflies.add_child(fly)
+
+	fireflies = Node3D.new()
+	fireflies.name = "Fireflies"
+	fireflies.set_meta("seed", FIREFLY_SEED)
+	fireflies.set_meta("active_hours", Vector2(19.5, 5.5))
+	add_child(fireflies)
+	firefly_material = StandardMaterial3D.new()
+	firefly_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	firefly_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	firefly_material.albedo_texture = _ecosystem_glow_texture()
+	firefly_material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	var firefly_mesh := QuadMesh.new()
+	firefly_mesh.size = Vector2(0.12, 0.12)
+	var forest_edges := PackedVector2Array([
+		Vector2(-16.5, -2.0), Vector2(-17.5, 15.0),
+		Vector2(16.5, 2.5), Vector2(17.5, 13.0),
+	])
+	var firefly_random := RandomNumberGenerator.new()
+	firefly_random.seed = FIREFLY_SEED
+	for index in FIREFLY_COUNT:
+		var home := forest_edges[index % forest_edges.size()] + Vector2(
+			firefly_random.randf_range(-0.35, 0.35),
+			firefly_random.randf_range(-0.35, 0.35)
+		)
+		var fly := MeshInstance3D.new()
+		fly.name = "Firefly%02d" % index
+		fly.mesh = firefly_mesh
+		fly.material_override = firefly_material
+		fly.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		fly.set_meta("params", {
+			"home": home,
+			"radius_x": firefly_random.randf_range(0.35, 0.75),
+			"radius_z": firefly_random.randf_range(0.30, 0.65),
+			"speed": firefly_random.randf_range(0.16, 0.28),
+			"phase": firefly_random.randf_range(0.0, TAU),
+			"height": firefly_random.randf_range(0.30, 0.72),
+		})
+		fireflies.add_child(fly)
+	_animate_ecosystem()
+
+
+func _butterfly_texture() -> ImageTexture:
+	const SIZE := 32
+	var image := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	for y in SIZE:
+		for x in SIZE:
+			var point := Vector2(float(x) + 0.5, float(y) + 0.5)
+			for side in [-1.0, 1.0]:
+				var upper := Vector2((point.x - (16.0 + side * 6.2)) / 6.3, (point.y - 12.0) / 8.0)
+				var lower := Vector2((point.x - (16.0 + side * 5.1)) / 5.2, (point.y - 19.0) / 5.5)
+				if upper.length_squared() < 1.0:
+					var upper_shade := 0.88 if upper.length_squared() > 0.74 else 1.0
+					image.set_pixel(x, y, Color(0.94, 0.91, 0.81, 1.0) * upper_shade)
+				elif point.y > 12.0 and lower.length_squared() < 1.0:
+					var lower_shade := 0.80 if lower.length_squared() > 0.70 else 0.88
+					image.set_pixel(x, y, Color(0.94, 0.91, 0.81, 1.0) * lower_shade)
+			if absf(point.y - 16.0) < 1.1 and absf(point.x - 16.0) > 2.0 and image.get_pixel(x, y).a > 0.0:
+				image.set_pixel(x, y, Color(0.0, 0.0, 0.0, 0.0))
+			if absf(point.x - 16.0) < 1.8 and point.y > 7.0 and point.y < 26.0:
+				image.set_pixel(x, y, Color(0.18, 0.16, 0.13, 1.0))
+	return ImageTexture.create_from_image(image)
+
+
+func _ecosystem_glow_texture() -> ImageTexture:
+	const SIZE := 32
+	var image := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
+	for y in SIZE:
+		for x in SIZE:
+			var offset := (Vector2(float(x), float(y)) + Vector2.ONE * 0.5 - Vector2.ONE * 16.0) / 15.0
+			var alpha := pow(clampf(1.0 - offset.length(), 0.0, 1.0), 2.4)
+			image.set_pixel(x, y, Color(1.0, 1.0, 1.0, alpha))
+	image.generate_mipmaps()
+	return ImageTexture.create_from_image(image)
+
+
+func _add_meadow_grass() -> void:
+	var source := MeadowGrassScene.instantiate()
+	var mesh_nodes := source.find_children("*", "MeshInstance3D", true, false)
+	assert(mesh_nodes.size() == 1)
+	var source_mesh := (mesh_nodes[0] as MeshInstance3D).mesh
+	var source_material := source_mesh.surface_get_material(0) as StandardMaterial3D
+	assert(source_material != null and source_material.albedo_texture != null)
+
+	var noise := FastNoiseLite.new()
+	noise.seed = 20260901
+	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	noise.frequency = 0.075
+	var random := RandomNumberGenerator.new()
+	random.seed = 20260901
+	var transforms: Array[Transform3D] = []
+	var positions := PackedVector3Array()
+	var brightness_values := PackedFloat32Array()
+	for cell_z in range(-23, 29):
+		for cell_x in range(-22, 22):
+			var cell_center := Vector2(float(cell_x) + 0.5, float(cell_z) + 0.5)
+			var density := _meadow_density(cell_center, noise)
+			var instance_total := floori(density)
+			if random.randf() < density - float(instance_total):
+				instance_total += 1
+			for instance_index in instance_total:
+				var point := Vector2(
+					float(cell_x) + random.randf(),
+					float(cell_z) + random.randf()
+				)
+				if _is_meadow_excluded(point):
+					continue
+				var scale_value := random.randf_range(0.20, 0.34)
+				var basis := Basis(Vector3.UP, random.randf_range(0.0, TAU)).scaled(Vector3.ONE * scale_value)
+				var origin := Vector3(point.x, 0.01, point.y)
+				transforms.append(Transform3D(basis, origin))
+				positions.append(origin)
+				var brightness := random.randf_range(0.94, 1.06)
+				brightness_values.append(brightness)
+
+	var multimesh := MultiMesh.new()
+	assert(not transforms.is_empty())
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.use_custom_data = true
+	multimesh.mesh = source_mesh
+	multimesh.instance_count = transforms.size()
+	for index in transforms.size():
+		multimesh.set_instance_transform(index, transforms[index])
+		multimesh.set_instance_custom_data(index, Color(brightness_values[index], 0.0, 0.0, 1.0))
+
+	var material := ShaderMaterial.new()
+	material.shader = MeadowGrassShader
+	material.set_shader_parameter("albedo_tex", source_material.albedo_texture)
+	meadow_grass = MultiMeshInstance3D.new()
+	meadow_grass.name = "MeadowGrass"
+	meadow_grass.multimesh = multimesh
+	meadow_grass.material_override = material
+	meadow_grass.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	meadow_grass.custom_aabb = AABB(Vector3(-22.5, -0.1, -23.5), Vector3(45.0, 1.3, 53.0))
+	meadow_grass.set_meta("seed", 20260901)
+	meadow_grass.set_meta("positions", positions)
+	meadow_grass.set_meta("brightness_values", brightness_values)
+	add_child(meadow_grass)
+
+
+func _meadow_density(point: Vector2, noise: FastNoiseLite) -> float:
+	if _is_meadow_excluded(point):
+		return 0.0
+	var cluster := clampf((noise.get_noise_2d(point.x, point.y) + 1.0) * 0.5, 0.0, 1.0)
+	var cluster_gate := smoothstep(0.48, 0.68, cluster)
+	var density := 0.10 + cluster_gate * 1.6
+	if point.x > -20.0 and point.x < 18.0 and point.y > -19.0 and point.y < 9.5:
+		density = maxf(density, 0.18 + pow(cluster_gate, 1.35) * 7.0)
+	var road_edge := _meadow_road_edge_distance(point, "VillagePath")
+	if road_edge < 2.2:
+		var road_cluster := clampf((noise.get_noise_2d(point.x * 0.58 + 31.0, point.y * 0.58 - 19.0) + 1.0) * 0.5, 0.0, 1.0)
+		var roadside_gate := smoothstep(0.50, 0.66, road_cluster)
+		var roadside_profile := lerpf(1.0, 0.68, smoothstep(0.24, 2.2, road_edge))
+		var roadside_density := roadside_gate * lerpf(6.0, 8.0, road_cluster) * roadside_profile
+		density = maxf(density, roadside_density)
+	var portal_distance := point.distance_to(Vector2(portal_center.x, portal_center.z))
+	if portal_distance < 8.5:
+		density *= smoothstep(4.8, 8.5, portal_distance)
+	if point.y < -18.0:
+		density *= 0.42
+	return clampf(density, 0.0, 9.0)
+
+
+func _is_meadow_excluded(point: Vector2) -> bool:
+	if _meadow_road_edge_distance(point) <= 0.24:
+		return true
+	if point.distance_to(Vector2(portal_center.x, portal_center.z)) < 4.8:
+		return true
+	var pond_offset := point - Vector2(-7.8, 12.0)
+	if pow(pond_offset.x / 4.55, 2.0) + pow(pond_offset.y / 3.15, 2.0) < 1.0:
+		return true
+	if absf(point.x - HERB_PLOT_POSITION.x) < 2.7 and absf(point.y - HERB_PLOT_POSITION.z) < 3.6:
+		return true
+	if point.distance_to(Vector2(4.3, -5.5)) < 3.25:
+		return true
+	if absf(point.x + 5.8) < 2.2 and absf(point.y + 2.7) < 1.8:
+		return true
+	# Preserve visibly trampled space around the weaver and gatekeeper routines.
+	if absf(point.x + 4.9) < 2.1 and absf(point.y - 5.9) < 2.2:
+		return true
+	if absf(point.x - 3.0) < 1.4 and absf(point.y + 15.2) < 1.7:
+		return true
+	for house_center in [Vector2(-9.0, -10.0), Vector2(9.0, -8.0), Vector2(-10.0, 5.0)]:
+		if absf(point.x - house_center.x) < 3.45 and absf(point.y - house_center.y) < 3.45:
+			return true
+	if point.y < -22.0 and absf(point.x) < 7.5:
+		return true
+	return false
+
+
+func _meadow_road_edge_distance(point: Vector2, only_name := "") -> float:
+	var closest := INF
+	for road in meadow_roads:
+		if not only_name.is_empty() and road["name"] != only_name:
+			continue
+		var points: PackedVector2Array = road["points"]
+		var widths: PackedFloat32Array = road["widths"]
+		for index in points.size() - 1:
+			var start := points[index]
+			var segment := points[index + 1] - start
+			var length_squared := segment.length_squared()
+			var t := 0.0 if is_zero_approx(length_squared) else clampf((point - start).dot(segment) / length_squared, 0.0, 1.0)
+			var width := lerpf(widths[index], widths[index + 1], t)
+			closest = minf(closest, point.distance_to(start + segment * t) - width)
+	return closest
+
+
+func _sample_road(centerline: PackedVector2Array, half_widths: PackedFloat32Array) -> Array:
+	var points := PackedVector2Array()
+	var widths := PackedFloat32Array()
+	for segment_index in centerline.size() - 1:
+		var p0 := centerline[maxi(segment_index - 1, 0)]
+		var p1 := centerline[segment_index]
+		var p2 := centerline[segment_index + 1]
+		var p3 := centerline[mini(segment_index + 2, centerline.size() - 1)]
+		for step in 5:
+			var t := float(step) / 5.0
+			var t2 := t * t
+			var t3 := t2 * t
+			points.append(0.5 * ((2.0 * p1) + (-p0 + p2) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2 + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3))
+			widths.append(lerpf(half_widths[segment_index], half_widths[segment_index + 1], t))
+	points.append(centerline[-1])
+	widths.append(half_widths[-1])
+	return [points, widths]
+
+
+func _road_mesh(
+	points: PackedVector2Array,
+	half_widths: PackedFloat32Array,
+	elevation: float,
+	feathered: bool,
+	feather_width := 0.65,
+	fade_ends := false,
+	center_wear := 0.0,
+	broken_wear := false,
+	wear_offset := 0.0
+) -> ArrayMesh:
+	var has_center_wear := not feathered and center_wear > 0.0
+	var lane_count := 4 if feathered else (3 if has_center_wear else 2)
+	var vertices := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var colors := PackedColorArray()
+	var indices := PackedInt32Array()
+	var total_distance := 0.0
+	for distance_index in points.size() - 1:
+		total_distance += points[distance_index].distance_to(points[distance_index + 1])
+	var distance := 0.0
+	for point_index in points.size():
+		if point_index > 0:
+			distance += points[point_index].distance_to(points[point_index - 1])
+		var previous := points[maxi(point_index - 1, 0)]
+		var following := points[mini(point_index + 1, points.size() - 1)]
+		var tangent := (following - previous).normalized()
+		var normal := Vector2(-tangent.y, tangent.x)
+		var width := half_widths[point_index]
+		var offsets := (
+			[-width - feather_width, -width, width, width + feather_width]
+			if feathered
+			else ([-width, 0.0, width] if has_center_wear else [-width, width])
+		)
+		var end_fade := 1.0
+		if fade_ends:
+			var edge_distance := mini(point_index, points.size() - 1 - point_index)
+			end_fade = smoothstep(0.0, 5.0, float(edge_distance))
+		for lane_index in lane_count:
+			var offset: float = offsets[lane_index]
+			var vertex := points[point_index] + normal * offset
+			vertices.append(Vector3(vertex.x, elevation, vertex.y))
+			normals.append(Vector3.UP)
+			var u := float(lane_index) / float(lane_count - 1)
+			uvs.append(Vector2(u, distance / 3.0))
+			var alpha := 0.0 if feathered and (lane_index == 0 or lane_index == lane_count - 1) else 0.48
+			var shade := 1.0 - center_wear * (1.0 - absf(2.0 * u - 1.0)) if has_center_wear else 1.0
+			var vertex_alpha := alpha * end_fade if feathered else end_fade
+			if broken_wear:
+				var wear_progress := distance / maxf(total_distance, 0.001)
+				for gap in [Vector2(0.24 + wear_offset, 0.055), Vector2(0.53 + wear_offset, 0.075), Vector2(0.79 + wear_offset, 0.05)]:
+					vertex_alpha *= smoothstep(0.0, 1.0, absf(wear_progress - gap.x) / gap.y)
+			colors.append(Color(shade, shade, shade, vertex_alpha))
+	for point_index in points.size() - 1:
+		for lane_index in lane_count - 1:
+			var current := point_index * lane_count + lane_index
+			var next := current + lane_count
+			indices.append_array(PackedInt32Array([current, next, current + 1, current + 1, next, next + 1]))
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_COLOR] = colors
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
+
+
+func _add_road_edge_stones(
+	road: MeshInstance3D,
+	road_name: String,
+	points: PackedVector2Array,
+	half_widths: PackedFloat32Array,
+	shoulder_width: float
+) -> void:
+	var group := Node3D.new()
+	group.name = "EdgeStones"
+	var seed_value := 490031 + absi(road_name.hash() % 100000)
+	group.set_meta("seed", seed_value)
+	road.add_child(group)
+	var random := RandomNumberGenerator.new()
+	random.seed = seed_value
+	var point_index := random.randi_range(3, mini(6, points.size() - 4))
+	var stone_index := 0
+	while point_index < points.size() - 3:
+		var previous := points[point_index - 1]
+		var following := points[point_index + 1]
+		var tangent := (following - previous).normalized()
+		var normal := Vector2(-tangent.y, tangent.x)
+		var side := -1.0 if random.randf() < 0.5 else 1.0
+		var offset := half_widths[point_index] + random.randf_range(0.10, maxf(0.16, shoulder_width * 0.78))
+		var point := points[point_index] + normal * offset * side
+		var asset_name := "Rock_Medium_1" if random.randf() < 0.55 else "Rock_Medium_2"
+		var asset_path := "res://assets/quaternius/nature/%s.gltf" % asset_name
+		var stone := _add_model(
+			asset_path,
+			Vector3(point.x, 0.0, point.y),
+			random.randf_range(0.0, TAU),
+			random.randf_range(0.055, 0.095),
+			group
+		)
+		stone.name = "EdgeStone%02d" % stone_index
+		stone.set_meta("source_asset", asset_path)
+		stone_index += 1
+		point_index += random.randi_range(7, 11)
 
 
 func _add_cart_tracks(name_prefix: String, centerline: PackedVector2Array, material: Material) -> void:
 	for side in [-1.0, 1.0]:
 		var points := PackedVector2Array()
+		var widths := PackedFloat32Array()
 		for center in centerline:
-			points.append(Vector2(center.x + side * 0.95 - 0.13, center.y))
-		for index in range(centerline.size() - 1, -1, -1):
-			var center := centerline[index]
-			points.append(Vector2(center.x + side * 0.95 + 0.13, center.y))
+			points.append(Vector2(center.x + side * 0.92, center.y))
+			widths.append(0.14)
 		var suffix := "Left" if side < 0.0 else "Right"
-		_add_path(name_prefix + suffix, points, 0.12, material, 0.01)
+		var sampled := _sample_road(points, widths)
+		var track := MeshInstance3D.new()
+		track.name = name_prefix + suffix
+		var wear_offset := -0.025 if side < 0.0 else 0.035
+		track.mesh = _road_mesh(sampled[0], sampled[1], 0.12, false, 0.65, true, 0.0, true, wear_offset)
+		track.material_override = material
+		track.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(track)
 
 
 func _add_ground_patch(
@@ -1406,34 +2549,137 @@ func _material(color: Color, roughness: float) -> StandardMaterial3D:
 	return material
 
 
-func _surface_texture(grass: bool) -> ImageTexture:
-	var image := Image.create(64, 64, false, Image.FORMAT_RGBA8)
-	for y in 64:
-		for x in 64:
-			var broad := sin(TAU * float(x) / 64.0) * 0.035 + cos(TAU * float(y) / 64.0) * 0.03
-			var fine := sin(TAU * float(x * 5 + y * 3) / 64.0) * 0.025
-			var value := clampf(0.91 + broad + fine, 0.82, 0.98)
-			image.set_pixel(x, y, Color(value, value, value, 1.0))
-
+func _ground_texture() -> ImageTexture:
+	const SIZE := 128
+	var image := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
 	var random := RandomNumberGenerator.new()
-	random.seed = 731 if grass else 1451
-	var detail_count := 28 if grass else 24
-	for index in detail_count:
-		var x := random.randi_range(2, 61)
-		var y := random.randi_range(3, 60)
-		var shade := random.randf_range(0.72, 0.84) if grass else random.randf_range(0.78, 0.9)
-		image.set_pixel(x, y, Color(shade, shade, shade, 1.0))
-		if grass:
-			image.set_pixel(x, y - 1, Color(shade + 0.04, shade + 0.04, shade + 0.04, 1.0))
-			image.set_pixel(x + (-1 if index % 2 == 0 else 1), y - 2, Color(shade + 0.09, shade + 0.09, shade + 0.09, 1.0))
-		else:
-			var direction := Vector2i(1, 0) if index % 3 == 0 else Vector2i(0, 1)
-			image.set_pixel(x + direction.x, y + direction.y, Color(shade + 0.05, shade + 0.05, shade + 0.05, 1.0))
-			if index % 4 == 0:
-				image.set_pixel(x - 1, y + 1, Color(0.96, 0.96, 0.96, 1.0))
+	random.seed = 9001
+	var patches: Array = []
+	for patch_index in 14:
+		patches.append({
+			"x": random.randf_range(0.0, float(SIZE)),
+			"y": random.randf_range(0.0, float(SIZE)),
+			"radius": random.randf_range(12.0, 36.0),
+			"brightness": random.randf_range(0.02, 0.05) * (1.0 if patch_index % 2 == 0 else -1.0),
+			"warmth": random.randf_range(0.02, 0.03) * (1.0 if patch_index % 4 < 2 else -1.0),
+		})
 
-	for index in 64:
-		image.set_pixel(63, index, image.get_pixel(0, index))
-		image.set_pixel(index, 63, image.get_pixel(index, 0))
+	for y in SIZE:
+		for x in SIZE:
+			var value := 0.94
+			var warmth := 0.0
+			for patch in patches:
+				var dx := absf(float(x) - (patch["x"] as float))
+				dx = minf(dx, float(SIZE) - dx)
+				var dy := absf(float(y) - (patch["y"] as float))
+				dy = minf(dy, float(SIZE) - dy)
+				var distance := sqrt(dx * dx + dy * dy)
+				var radius := patch["radius"] as float
+				if distance >= radius:
+					continue
+				var falloff := 1.0 - distance / radius
+				falloff = falloff * falloff * (3.0 - 2.0 * falloff)
+				value += falloff * (patch["brightness"] as float)
+				warmth += falloff * (patch["warmth"] as float)
+			value = clampf(value, 0.88, 0.99)
+			warmth = clampf(warmth, -0.03, 0.03)
+			image.set_pixel(x, y, Color(
+				minf(value * (1.0 + warmth), 0.995),
+				minf(value * (1.0 + warmth * 0.12), 0.995),
+				minf(value * (1.0 - warmth), 0.995),
+				1.0
+			))
+
+	var plot_stroke := func(px: int, py: int, shade: float) -> void:
+		var x := posmod(px, SIZE)
+		var y := posmod(py, SIZE)
+		var base := image.get_pixel(x, y)
+		image.set_pixel(x, y, Color(
+			clampf(base.r * shade, 0.82, 0.995),
+			clampf(base.g * shade, 0.82, 0.995),
+			clampf(base.b * shade, 0.82, 0.995),
+			1.0
+		))
+	for stroke_index in 430:
+		var x := random.randi_range(0, SIZE - 1)
+		var y := random.randi_range(0, SIZE - 1)
+		var height := random.randi_range(2, 4)
+		var lean := random.randi_range(-1, 1)
+		var shade := random.randf_range(0.92, 0.97) if random.randf() < 0.72 else random.randf_range(1.01, 1.04)
+		for step in height:
+			plot_stroke.call(x + lean * step, y - step, shade)
+
+	for edge in SIZE:
+		image.set_pixel(SIZE - 1, edge, image.get_pixel(0, edge))
+		image.set_pixel(edge, SIZE - 1, image.get_pixel(edge, 0))
+	image.generate_mipmaps()
+	return ImageTexture.create_from_image(image)
+
+
+func _road_texture() -> ImageTexture:
+	const SIZE := 128
+	var image := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
+	var random := RandomNumberGenerator.new()
+	random.seed = 4903
+	var patches: Array = []
+	for patch_index in 16:
+		patches.append({
+			"x": random.randf_range(0.0, float(SIZE)),
+			"y": random.randf_range(0.0, float(SIZE)),
+			"radius_x": random.randf_range(12.0, 30.0),
+			"radius_y": random.randf_range(8.0, 22.0),
+			"brightness": random.randf_range(0.022, 0.052) * (-1.0 if random.randf() < 0.62 else 1.0),
+			"warmth": random.randf_range(-1.0, 1.0),
+		})
+	for y in SIZE:
+		for x in SIZE:
+			var value := 1.0
+			var warmth := 0.0
+			for patch in patches:
+				var dx := absf(float(x) - (patch["x"] as float))
+				dx = minf(dx, float(SIZE) - dx) / (patch["radius_x"] as float)
+				var dy := absf(float(y) - (patch["y"] as float))
+				dy = minf(dy, float(SIZE) - dy) / (patch["radius_y"] as float)
+				var distance := sqrt(dx * dx + dy * dy)
+				if distance >= 1.0:
+					continue
+				var falloff := 1.0 - distance
+				falloff = falloff * falloff * (3.0 - 2.0 * falloff)
+				value += falloff * (patch["brightness"] as float)
+				warmth += falloff * (patch["warmth"] as float)
+			value = clampf(value, 0.88, 1.06)
+			warmth = clampf(warmth, -1.0, 1.0)
+			image.set_pixel(x, y, Color(
+				value * (1.0 + warmth * 0.014),
+				value * (1.0 + warmth * 0.002),
+				value * (1.0 - warmth * 0.012),
+				1.0
+			))
+
+	for mark_index in 96:
+		var mark_x := random.randi_range(0, SIZE - 1)
+		var mark_y := random.randi_range(0, SIZE - 1)
+		var mark_length := random.randi_range(2, 5)
+		var lean := random.randi_range(-1, 1)
+		var shade := random.randf_range(0.80, 0.93) if random.randf() < 0.82 else random.randf_range(1.02, 1.055)
+		for step in mark_length:
+			var px := posmod(mark_x + roundi(float(lean * step) / float(maxi(mark_length - 1, 1))), SIZE)
+			var py := posmod(mark_y + step, SIZE)
+			var base := image.get_pixel(px, py)
+			image.set_pixel(px, py, Color(base.r * shade, base.g * shade, base.b * shade, 1.0))
+
+	for pebble_index in 34:
+		var pebble_x := random.randi_range(1, SIZE - 2)
+		var pebble_y := random.randi_range(1, SIZE - 2)
+		var base := image.get_pixel(pebble_x, pebble_y)
+		var pebble_shade := random.randf_range(0.68, 0.82)
+		image.set_pixel(pebble_x, pebble_y, Color(base.r * pebble_shade, base.g * pebble_shade, base.b * pebble_shade, 1.0))
+		if pebble_index % 3 == 0:
+			var highlight := image.get_pixel(pebble_x + 1, pebble_y - 1)
+			image.set_pixel(pebble_x + 1, pebble_y - 1, Color(highlight.r * 1.025, highlight.g * 1.025, highlight.b * 1.025, 1.0))
+
+	for edge in SIZE:
+		image.set_pixel(SIZE - 1, edge, image.get_pixel(0, edge))
+		image.set_pixel(edge, SIZE - 1, image.get_pixel(edge, 0))
 	image.generate_mipmaps()
 	return ImageTexture.create_from_image(image)
