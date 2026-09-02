@@ -788,3 +788,24 @@
 - 隐藏 Compatibility 捕获：专项 `IMAGE_COUNT=3`、`UNIQUE_HASHES=3`；21 机位 `IMAGE_COUNT=21`、`UNIQUE_HASHES=21`。
 - 完整回归：`SMOKE TEST PASSED`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED`、`git diff --check` 通过。
 - 证据归档为 `captures/phase59-pond-*` 五张。三类终审 P0/P1 清零；美术只保留峰值波纹多边形感 P2，Phase 59 完成。
+
+# 2026-09-02 Phase 60
+
+- 当前提交 `668000f`、工作树和后台试玩进程均已复核；继续以 `docs/art-direction.md` 0.4 为唯一权威，排除山口、减草、新资产包和新系统。
+- 三类代理重新提名后，Phase 60 选择修复屋顶无意义切除 P1；三户室内同模和波纹峰值几何感保留为后续 P2。
+- 首轮实现保留原淡出链，在 6 米距离条件上增加相机到玩家的二维遮挡带判断；冒烟和专项捕获同步改为三屋正反镜头 A/B。
+- 首轮冒烟在解析阶段发现测试作用域已有 `camera_rig`；生产场景尚未加载，新增测试变量已改名为 `roof_camera_rig`。
+- 第二轮屋顶断言通过，但测试未恢复玩家位置导致后续 NPC 标签断言失败；已结束两个残留无头测试进程，保留试玩 PID `51896`，并在屋顶契约末尾恢复玩家到远处。
+- 第三轮确认零时长更新不会推进已显示标签的淡出；恢复步骤改为 1 秒真实更新，仍不改变生产代码。
+- 1 秒清理虽然恢复标签，却改变了末段 NPC 动效基线；测试收尾已重构为保存/恢复 `portal_time` 并直接复原标签状态，彻底隔离屋顶契约的时间副作用。
+- 隔离后的完整冒烟输出 `SMOKE TEST PASSED`；XZ 线段增加零长度保护后再次通过。
+- 隐藏 Compatibility 专项捕获完成，`IMAGE_COUNT=7`、`UNIQUE_HASHES=7`。三处正面/活动区完整屋顶和三处反向切顶均生效，远景恢复正常。
+- 隐藏 21 机位扫查完成，`IMAGE_COUNT=21`、`UNIQUE_HASHES=21`；炉火活动区和西屋普通近景保持完整屋顶，药圃斜向实际遮挡仍正确切顶，远景村庄轮廓无回归。
+
+## 2026-09-02 Phase 60 完成
+
+- `scripts/main.gd`：保留 6 米近屋初筛和 `delta * 5.0` 平滑过渡，新增相机到玩家 XZ 视线遮挡带与零长度保护；只有房屋确实位于镜头和玩家之间时才切顶。
+- `docs/art-direction.md` 升级为 0.5：单纯靠近、站在门前、炉火旁或房屋侧面不再构成切顶条件。
+- `tests/smoke_test.gd` 与 `tests/roof_fade_capture.gd`：覆盖三屋正常完整、反向遮挡切顶、恢复、非目标房屋和窗玻璃隔离，并隔离测试时间与标签状态。
+- 专项证据 `7/7`、全场景扫查 `21/21` 唯一哈希；三类终审均通过且 P0/P1 清零，实体墙真实遮挡只保留为生活气息 P2。
+- 最终回归：`SMOKE TEST PASSED`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED`、`git diff --check` 通过；Godot 退出仅保留既有 DummyRenderer 资源清理告警。

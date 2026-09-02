@@ -835,14 +835,18 @@ func _initialize() -> void:
 	assert(first_house_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA)
 	assert(is_equal_approx(first_house_material.albedo_color.a, 1.0))
 	assert((main.get("house_fade_alphas") as Array).all(func(alpha): return is_equal_approx(alpha, 1.0)))
+	var roof_animation_time: float = main.get("portal_time")
+	var roof_camera_rig := player.get_node("CameraRig") as Node3D
+	player.set("camera_target_height", 10.0)
+	player.call("_update_camera_zoom", 1.0)
 	player.position = Vector3(-9.0, 1.0, -5.5)
+	roof_camera_rig.rotation.y = 0.0
+	for frame_index in 120:
+		main.call("_process", 1.0 / 60.0)
+	assert(first_house_material.albedo_color.a > 0.99)
+	roof_camera_rig.rotation.y = PI
 	main.call("_process", 1.0 / 60.0)
 	assert(first_house_material.albedo_color.a > 0.0 and first_house_material.albedo_color.a < 1.0)
-	var entering_alpha := first_house_material.albedo_color.a
-	player.position = Vector3(0.0, 1.0, 30.0)
-	main.call("_process", 1.0 / 60.0)
-	assert(first_house_material.albedo_color.a > entering_alpha)
-	player.position = Vector3(-9.0, 1.0, -5.5)
 	for frame_index in 120:
 		main.call("_process", 1.0 / 60.0)
 	assert(first_house_material.albedo_color.a < 0.001)
@@ -850,13 +854,25 @@ func _initialize() -> void:
 	var second_house_index := (main.get("house_fade_centers") as Array).find(Vector3(9.0, 0.0, -8.0))
 	assert(second_house_index >= 0)
 	assert(is_equal_approx((house_fade_materials[second_house_index] as StandardMaterial3D).albedo_color.a, 1.0))
-	player.position = Vector3(0.0, 1.0, 30.0)
+	roof_camera_rig.rotation.y = 0.0
 	main.call("_process", 1.0 / 60.0)
 	assert(first_house_material.albedo_color.a > 0.0 and first_house_material.albedo_color.a < 1.0)
 	for frame_index in 120:
 		main.call("_process", 1.0 / 60.0)
 	assert(first_house_material.albedo_color.a > 0.99)
 	assert(is_equal_approx(warm_glass_materials[0].albedo_color.a, 0.66))
+	player.position = Vector3(0.0, 1.0, 30.0)
+	main.set("portal_time", roof_animation_time)
+	for roof_label_node in main.get("villager_labels") as Array:
+		var roof_label := roof_label_node as Label3D
+		var roof_label_color := roof_label.modulate
+		roof_label_color.a = 0.0
+		roof_label.modulate = roof_label_color
+		var roof_outline_color := roof_label.outline_modulate
+		roof_outline_color.a = 0.0
+		roof_label.outline_modulate = roof_outline_color
+		roof_label.visible = false
+	main.call("_process", 0.0)
 	assert(main.get_node_or_null("RuinPillar") == null)
 	assert(main.get_node_or_null("RuinLintel") == null)
 	assert(main.get("portal_ring") != null)

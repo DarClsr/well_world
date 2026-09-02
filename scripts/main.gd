@@ -243,12 +243,20 @@ func _process(delta: float) -> void:
 		fog_banks[index].position = fog_bank_origins[index] + Vector3(sin(fog_phase) * 1.1, cos(fog_phase * 0.7) * 0.08, cos(fog_phase * 0.8) * 0.35)
 		fog_banks[index].transparency = 0.28 + (sin(fog_phase * 0.9) + 1.0) * 0.1
 	var player := get_node_or_null("Player") as CharacterBody3D
+	var camera := player.get_node_or_null("CameraRig/Camera3D") as Camera3D if player != null else null
 	for index in house_fade_materials.size():
 		var target_alpha := house_fade_alphas[index]
-		if player != null:
-			var house_distance := Vector2(player.position.x, player.position.z).distance_to(Vector2(house_fade_centers[index].x, house_fade_centers[index].z))
-			if house_distance < 6.0:
-				target_alpha = 0.0
+		if player != null and camera != null:
+			var player_xz := Vector2(player.global_position.x, player.global_position.z)
+			var camera_xz := Vector2(camera.global_position.x, camera.global_position.z)
+			var house_xz := Vector2(house_fade_centers[index].x, house_fade_centers[index].z)
+			var camera_to_player := player_xz - camera_xz
+			var segment_length_squared := camera_to_player.length_squared()
+			if segment_length_squared > 0.001:
+				var projection := (house_xz - camera_xz).dot(camera_to_player) / segment_length_squared
+				var closest_point := camera_xz + camera_to_player * projection
+				if house_xz.distance_to(player_xz) < 6.0 and projection > 0.0 and projection < 1.0 and house_xz.distance_to(closest_point) < 3.2:
+					target_alpha = 0.0
 		var house_color := house_fade_materials[index].albedo_color
 		house_color.a = lerpf(house_color.a, target_alpha, minf(delta * 5.0, 1.0))
 		house_fade_materials[index].albedo_color = house_color

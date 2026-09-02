@@ -2,9 +2,12 @@ extends SceneTree
 
 
 const SHOTS := [
-	["hearth-cutaway", Vector3(4.2, 1.0, -5.8), 15.0, 10.0],
-	["herb-cutaway", Vector3(-9.0, 1.0, -6.0), 0.0, 10.0],
-	["west-cutaway", Vector3(-10.0, 1.0, 9.0), 0.0, 10.0],
+	["hearth-activity-intact", Vector3(4.2, 1.0, -5.8), 15.0, 10.0],
+	["hearth-cutaway", Vector3(9.0, 1.0, -4.0), 180.0, 10.0],
+	["herb-front-intact", Vector3(-9.0, 1.0, -6.0), 0.0, 10.0],
+	["herb-cutaway", Vector3(-9.0, 1.0, -6.0), 180.0, 10.0],
+	["west-front-intact", Vector3(-10.0, 1.0, 9.0), 0.0, 10.0],
+	["west-cutaway", Vector3(-10.0, 1.0, 9.0), 180.0, 10.0],
 	["village-restored", Vector3(0.0, 1.0, -4.0), 0.0, 20.0],
 ]
 
