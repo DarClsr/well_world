@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="QuestData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/quest_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/quests/quest_step_data.gd" id="2"]
+
+[sub_resource type="Resource" id="QuestStep_portal"]
+script = ExtResource("2")
+id = &"inspect_portal"
+description_key = &"quest.arrival.portal"
+required_event = &"portal_inspected"
+
+[sub_resource type="Resource" id="QuestStep_toren"]
+script = ExtResource("2")
+id = &"meet_toren"
+description_key = &"quest.arrival.toren"
+required_event = &"toren_met"
+
+[sub_resource type="Resource" id="QuestStep_hearth"]
+script = ExtResource("2")
+id = &"reach_hearth"
+description_key = &"quest.arrival.hearth"
+required_event = &"hearth_reached"
+
+[resource]
+script = ExtResource("1")
+id = &"arrival"
+title_key = &"quest.arrival.title"
+steps = Array[ExtResource("2")]([SubResource("QuestStep_portal"), SubResource("QuestStep_toren"), SubResource("QuestStep_hearth")])
