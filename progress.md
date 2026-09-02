@@ -849,3 +849,31 @@
 - 既有开放山墙只透见少量室内轮廓；职业物件未穿过屋瓦、墙体或烟囱，完整屋顶与村庄远景构图保持稳定。
 - 七张切顶 A/B 归档为 `captures/phase62-interior-*`；专项 `7/7`、全场景 `21/21` 唯一哈希。
 - 最终验证通过 `SMOKE TEST PASSED`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED` 与 `git diff --check`。
+
+# 2026-09-02 Phase 63
+
+- Phase 62 已提交并推送为 `00f4937`，本地与 `origin/main` 引用一致；Phase 63 从干净基线独立开始。
+- 只读诊断确认屋顶闪烁主因是逐帧硬阈值无迟滞，速度归一化的镜头提前量会放大边界摆动；Compatibility Alpha 排序是次因。
+- `docs/art-direction.md` 升级为 0.6，明确同屋顶共享状态、进入/退出迟滞和速度比例镜头提前量，玩家沿边界移动或贴墙时不得反复闪现。
+- 生产逻辑已按房屋共享切顶状态，采用 `5.8/6.3m` 玩家距离与 `3.0/3.6m` 视线横距双阈值；镜头提前量增加 `0.2m/s` deadzone 并按真实速度比例缩放，满速仍保持 `1.6m`。
+- 冒烟新增距离与视线横距迟滞带来回移动契约，并覆盖微速、半速、满速镜头提前量；首轮完整测试输出 `SMOKE TEST PASSED`。
+- 新增 `tests/roof_motion_capture.gd`，使用固定昼间晴天和 8 秒移动路径验证阈值外往返、进入、迟滞带内往返及退出，要求整段只发生两次屋顶状态切换。
+- 动态脚本无头运行输出 `ROOF MOTION TEST PASSED transitions=2`；首轮真实 Compatibility 录像为 571 帧、60fps，三张抽帧和 2fps 联系表确认完整、切顶、恢复均有效且无反复闪现。
+- 首轮片头仍含捕获初始化前的出生点帧；只提前固定房屋机位并隐藏开场 UI，生产场景不变，准备重录正式动态证据。
+- 去掉片头后的第二轮联系表在切顶状态仍为 `false` 的移动开始时出现完整屋顶瓦面/深色叠层跳变，确认透明排序次因仍存在，阶段未通过。
+- 屋顶与烟囱材质改为 Alpha Hash，窗玻璃继续使用普通 Alpha；不改变显隐阈值、Alpha 插值、屋顶模型或场景构图，准备沿用同一路径复测。
+- Alpha Hash 复测脚本仍为 `transitions=2`，但实机 511 帧中切顶阶段屋顶始终可见，候选失败并已撤销；改试保留连续 Alpha 的 Depth Pre-Pass，继续使用完全相同的固定路径验证。
+- Depth Pre-Pass 能完整切顶，但恢复末段仍回到深色叠层，候选失败并撤销。结构化解析确认屋顶同一网格仅含木梁与外层瓦片两个重叠表面；恢复普通 Alpha，并固定瓦片 `render_priority = 1`、木梁 `0` 后沿同一路径复测。
+- 固定绘制顺序复测为 `1280x720`、60fps、511 帧，输出 `ROOF MOTION TEST PASSED transitions=2`；联系表和完整/切顶/恢复三帧确认阈值外瓦面稳定、迟滞带内不回闪、退出后恢复一致，该候选通过动态专项。
+- 最终动态证据准备归档为 `captures/phase63-roof-motion-*`；继续重跑七机位屋顶 A/B 与 21 机位全场景，验证其他房屋和远景没有材质顺序回归。
+- 最终动态联系表、完整、切顶、恢复四图已归档，逐文件 SHA-256 与通过候选抽帧一致。
+- 改后屋顶专项 `IMAGE_COUNT=7`、`UNIQUE_HASHES=7`；全场景 `IMAGE_COUNT=21`、`UNIQUE_HASHES=21`。人工复核村庄远景、炉火近景、药师屋切顶和西屋近景均通过，提交三类代理终审。
+- 三类首轮终审全部 `PASS 0/0/0`。动效审核发现动态证据的人工路径分段含位置跳变，虽不属于生产回归，仍将测试轨迹改为连续缓入缓出与零速度衔接后重录，避免证据中的无关镜头峰值。
+
+## 2026-09-02 Phase 63 完成
+
+- 最终平滑 Compatibility 录像为 `1280x720`、60fps、511 帧，输出 `ROOF MOTION TEST PASSED transitions=2`；阈值外完整瓦面稳定，进入后完全切顶，迟滞带内不回闪，退出后恢复一致。
+- 人工路径差分峰值较旧证据收敛约 77%-78%；动态联系表、完整、切顶、恢复四图已用最终平滑版本覆盖归档。
+- 屋顶专项 `7/7`、全场景 `21/21` 唯一哈希；三类终审全部 `PASS 0/0/0`。
+- 最终自动回归为 `SMOKE TEST PASSED`、`ROOF MOTION TEST PASSED transitions=2`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED`，`git diff --check` 通过。
+- 提交前删除已被按房屋索引映射取代的 `house_fade_centers` 死数据；再次执行上述四项测试和 `git diff --check` 全部通过。

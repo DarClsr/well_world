@@ -327,6 +327,11 @@ func _initialize() -> void:
 	assert(camera.fov < 42.0)
 	var camera_position := camera.position
 	var listener_position := listener.position
+	player.call("_update_camera_lead", 1.0, Vector3(0.1, 0.0, 0.0))
+	assert(camera_rig.position.is_zero_approx())
+	player.call("_update_camera_lead", 1.0, Vector3(3.5, 0.0, 0.0))
+	assert(camera_rig.position.is_equal_approx(Vector3(0.8, 0.0, 0.0)))
+	camera_rig.position = Vector3.ZERO
 	player.call("_update_camera_lead", 1.0 / 60.0, Vector3(7.0, 0.0, 0.0))
 	assert(camera_rig.position.x > 0.0 and camera_rig.position.x < 1.6)
 	assert(is_zero_approx(camera_rig.position.z))
@@ -830,9 +835,11 @@ func _initialize() -> void:
 				if roof_material.resource_name == "MI_WoodTrim":
 					roof_wood_materials.append(roof_material)
 					assert(roof_material.albedo_color.is_equal_approx(Color("c6b99a")))
+					assert(roof_material.render_priority == 0)
 				elif roof_material.resource_name == "MI_RoundTiles":
 					roof_tile_materials.append(roof_material)
 					assert(roof_material.albedo_texture.resource_path == "res://assets/quaternius/village/T_RoundTiles_BaseColor_Muted.png")
+					assert(roof_material.render_priority == 1)
 	assert(roof_wood_materials.size() == 3 and roof_tile_materials.size() == 3)
 	var source_tile_image := (load("res://assets/quaternius/village/T_RoundTiles_BaseColor.png") as Texture2D).get_image()
 	var muted_tile_image := (roof_tile_materials[0].albedo_texture as Texture2D).get_image()
@@ -866,8 +873,10 @@ func _initialize() -> void:
 	var house_fade_materials: Array = main.get("house_fade_materials")
 	assert(not house_fade_materials.is_empty())
 	assert(house_fade_materials.size() >= 6)
-	assert(house_fade_materials.size() == main.get("house_fade_centers").size())
 	assert(house_fade_materials.size() == main.get("house_fade_alphas").size())
+	assert(house_fade_materials.size() == main.get("house_fade_house_indices").size())
+	assert((main.get("house_roofs_faded") as Array).size() == 3)
+	assert((main.get("house_roofs_faded") as Array).all(func(is_faded): return not is_faded))
 	var first_house_material := house_fade_materials[0] as StandardMaterial3D
 	assert(first_house_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA)
 	assert(is_equal_approx(first_house_material.albedo_color.a, 1.0))
@@ -887,10 +896,40 @@ func _initialize() -> void:
 	for frame_index in 120:
 		main.call("_process", 1.0 / 60.0)
 	assert(first_house_material.albedo_color.a < 0.001)
+	assert((main.get("house_roofs_faded") as Array)[0])
+	var house_fade_house_indices: Array = main.get("house_fade_house_indices")
+	for material_index in house_fade_materials.size():
+		if house_fade_house_indices[material_index] == 0:
+			assert((house_fade_materials[material_index] as StandardMaterial3D).albedo_color.a < 0.001)
 	assert(is_equal_approx(warm_glass_materials[0].albedo_color.a, 0.66))
-	var second_house_index := (main.get("house_fade_centers") as Array).find(Vector3(9.0, 0.0, -8.0))
+	var second_house_index := (main.get("house_fade_house_indices") as Array).find(1)
 	assert(second_house_index >= 0)
 	assert(is_equal_approx((house_fade_materials[second_house_index] as StandardMaterial3D).albedo_color.a, 1.0))
+	player.position = Vector3(-9.0, 1.0, -4.1)
+	main.call("_process", 1.0 / 60.0)
+	assert((main.get("house_roofs_faded") as Array)[0], "Active roof must stay faded inside the 5.8m-6.3m distance hysteresis band")
+	player.position = Vector3(-9.0, 1.0, -3.6)
+	main.call("_process", 1.0 / 60.0)
+	assert(not (main.get("house_roofs_faded") as Array)[0])
+	player.position = Vector3(-9.0, 1.0, -4.1)
+	main.call("_process", 1.0 / 60.0)
+	assert(not (main.get("house_roofs_faded") as Array)[0], "Inactive roof must stay intact inside the 5.8m-6.3m distance hysteresis band")
+	player.position = Vector3(-9.0, 1.0, -4.3)
+	main.call("_process", 1.0 / 60.0)
+	assert((main.get("house_roofs_faded") as Array)[0])
+	player.position = Vector3(-5.7, 1.0, -5.5)
+	main.call("_process", 1.0 / 60.0)
+	assert((main.get("house_roofs_faded") as Array)[0], "Active roof must stay faded inside the 3.0m-3.6m view hysteresis band")
+	player.position = Vector3(-5.3, 1.0, -5.5)
+	main.call("_process", 1.0 / 60.0)
+	assert(not (main.get("house_roofs_faded") as Array)[0])
+	player.position = Vector3(-5.7, 1.0, -5.5)
+	main.call("_process", 1.0 / 60.0)
+	assert(not (main.get("house_roofs_faded") as Array)[0], "Inactive roof must stay intact inside the 3.0m-3.6m view hysteresis band")
+	player.position = Vector3(-6.1, 1.0, -5.5)
+	main.call("_process", 1.0 / 60.0)
+	assert((main.get("house_roofs_faded") as Array)[0])
+	player.position = Vector3(-9.0, 1.0, -5.5)
 	roof_camera_rig.rotation.y = 0.0
 	main.call("_process", 1.0 / 60.0)
 	assert(first_house_material.albedo_color.a > 0.0 and first_house_material.albedo_color.a < 1.0)
@@ -899,6 +938,8 @@ func _initialize() -> void:
 	assert(first_house_material.albedo_color.a > 0.99)
 	assert(is_equal_approx(warm_glass_materials[0].albedo_color.a, 0.66))
 	player.position = Vector3(0.0, 1.0, 30.0)
+	main.call("_process", 0.0)
+	assert((main.get("house_roofs_faded") as Array).all(func(is_faded): return not is_faded))
 	main.set("portal_time", roof_animation_time)
 	for roof_label_node in main.get("villager_labels") as Array:
 		var roof_label := roof_label_node as Label3D

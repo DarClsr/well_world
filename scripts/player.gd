@@ -9,6 +9,7 @@ const CAMERA_Z_RATIO := 14.0 / 15.0
 const CAMERA_ZOOM_STEP := 1.5
 const CAMERA_LEAD_DISTANCE := 1.6
 const CAMERA_LEAD_SPEED := 6.0
+const CAMERA_LEAD_DEADZONE := 0.2
 const FOOTSTEP_STREAMS: Array[AudioStream] = [
 	preload("res://assets/audio/footstep_1.ogg"),
 	preload("res://assets/audio/footstep_2.ogg"),
@@ -75,7 +76,9 @@ func _update_camera_zoom(delta: float) -> void:
 
 func _update_camera_lead(delta: float, real_velocity: Vector3) -> void:
 	var planar_velocity := Vector3(real_velocity.x, 0.0, real_velocity.z)
-	var target := planar_velocity.normalized() * CAMERA_LEAD_DISTANCE if planar_velocity.length_squared() > 0.01 else Vector3.ZERO
+	var planar_speed := planar_velocity.length()
+	var lead_amount := minf(planar_speed / SPEED, 1.0) * CAMERA_LEAD_DISTANCE
+	var target := planar_velocity.normalized() * lead_amount if planar_speed >= CAMERA_LEAD_DEADZONE else Vector3.ZERO
 	$CameraRig.position = $CameraRig.position.lerp(target, minf(delta * CAMERA_LEAD_SPEED, 1.0))
 
 

@@ -25,6 +25,11 @@ const FIREFLY_COUNT := 14
 const WEATHER_SEED := 20260902
 const WEATHER_TRANSITION_HOURS := 0.75
 const WEATHER_STATES := ["clear", "cloudy", "mist", "light_rain"]
+const ROOF_FADE_ENTER_PLAYER_DISTANCE := 5.8
+const ROOF_FADE_EXIT_PLAYER_DISTANCE := 6.3
+const ROOF_FADE_ENTER_VIEW_DISTANCE := 3.0
+const ROOF_FADE_EXIT_VIEW_DISTANCE := 3.6
+const ROOF_FADE_EXIT_PROJECTION_MARGIN := 0.05
 const NIA_HEARTH_ROUTE := [
 	Vector3(-4.0, 0.0, 5.5), Vector3(-2.0, 0.0, 2.0), Vector3(1.0, 0.0, -1.0),
 	Vector3(3.5, 0.0, -3.5), Vector3(5.6, 0.0, -4.2),
@@ -71,8 +76,9 @@ var smoke_mesh: QuadMesh
 var smoke_material: StandardMaterial3D
 var house_count := 0
 var house_fade_materials: Array[StandardMaterial3D] = []
-var house_fade_centers: Array[Vector3] = []
 var house_fade_alphas: Array[float] = []
+var house_fade_house_indices: Array[int] = []
+var house_roofs_faded: Array[bool] = []
 var houses: Array[Node3D] = []
 var hearth_flames: Array[CSGPolygon3D] = []
 var hearth_flame_origins: Array[Vector3] = []
@@ -150,6 +156,23 @@ func _ready() -> void:
 	_build_portal_interaction()
 	_build_audio()
 	_apply_time_of_day()
+
+
+func _is_house_roof_occluding(camera_xz: Vector2, player_xz: Vector2, house_xz: Vector2, was_occluding: bool) -> bool:
+	var player_distance_limit := ROOF_FADE_EXIT_PLAYER_DISTANCE if was_occluding else ROOF_FADE_ENTER_PLAYER_DISTANCE
+	if house_xz.distance_to(player_xz) >= player_distance_limit:
+		return false
+	var camera_to_player := player_xz - camera_xz
+	var segment_length_squared := camera_to_player.length_squared()
+	if segment_length_squared <= 0.001:
+		return false
+	var projection := (house_xz - camera_xz).dot(camera_to_player) / segment_length_squared
+	var projection_margin := ROOF_FADE_EXIT_PROJECTION_MARGIN if was_occluding else 0.0
+	if projection <= -projection_margin or projection >= 1.0 + projection_margin:
+		return false
+	var closest_point := camera_xz + camera_to_player * clampf(projection, 0.0, 1.0)
+	var view_distance_limit := ROOF_FADE_EXIT_VIEW_DISTANCE if was_occluding else ROOF_FADE_ENTER_VIEW_DISTANCE
+	return house_xz.distance_to(closest_point) < view_distance_limit
 
 
 func _process(delta: float) -> void:
@@ -244,19 +267,16 @@ func _process(delta: float) -> void:
 		fog_banks[index].transparency = 0.28 + (sin(fog_phase * 0.9) + 1.0) * 0.1
 	var player := get_node_or_null("Player") as CharacterBody3D
 	var camera := player.get_node_or_null("CameraRig/Camera3D") as Camera3D if player != null else null
+	if player != null and camera != null:
+		var player_xz := Vector2(player.global_position.x, player.global_position.z)
+		var camera_xz := Vector2(camera.global_position.x, camera.global_position.z)
+		for house_index in house_roofs_faded.size():
+			var house_position := houses[house_index].global_position
+			var house_xz := Vector2(house_position.x, house_position.z)
+			house_roofs_faded[house_index] = _is_house_roof_occluding(camera_xz, player_xz, house_xz, house_roofs_faded[house_index])
 	for index in house_fade_materials.size():
-		var target_alpha := house_fade_alphas[index]
-		if player != null and camera != null:
-			var player_xz := Vector2(player.global_position.x, player.global_position.z)
-			var camera_xz := Vector2(camera.global_position.x, camera.global_position.z)
-			var house_xz := Vector2(house_fade_centers[index].x, house_fade_centers[index].z)
-			var camera_to_player := player_xz - camera_xz
-			var segment_length_squared := camera_to_player.length_squared()
-			if segment_length_squared > 0.001:
-				var projection := (house_xz - camera_xz).dot(camera_to_player) / segment_length_squared
-				var closest_point := camera_xz + camera_to_player * projection
-				if house_xz.distance_to(player_xz) < 6.0 and projection > 0.0 and projection < 1.0 and house_xz.distance_to(closest_point) < 3.2:
-					target_alpha = 0.0
+		var house_index := house_fade_house_indices[index]
+		var target_alpha := 0.0 if house_roofs_faded[house_index] else house_fade_alphas[index]
 		var house_color := house_fade_materials[index].albedo_color
 		house_color.a = lerpf(house_color.a, target_alpha, minf(delta * 5.0, 1.0))
 		house_fade_materials[index].albedo_color = house_color
@@ -1213,6 +1233,7 @@ func _add_house(position: Vector3, rotation_y: float) -> void:
 	house.rotation.y = rotation_y
 	add_child(house)
 	houses.append(house)
+	house_roofs_faded.append(false)
 	var shell_material := plaster_material.duplicate() as StandardMaterial3D
 	var trim_material := _material(Color("6f4c32"), 0.95)
 	var interior_index := house_count - 1
@@ -1324,11 +1345,12 @@ func _add_house(position: Vector3, rotation_y: float) -> void:
 					roof_material.albedo_color = Color("c6b99a")
 				elif source_material.resource_name == "MI_RoundTiles":
 					roof_material.albedo_texture = MutedRoofTiles
+					roof_material.render_priority = 1
 				roof_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 				mesh_instance.set_surface_override_material(surface_index, roof_material)
 				house_fade_materials.append(roof_material)
-				house_fade_centers.append(position)
 				house_fade_alphas.append(roof_material.albedo_color.a)
+				house_fade_house_indices.append(interior_index)
 	var window_glow := OmniLight3D.new()
 	window_glow.name = "WindowGlow"
 	window_glow.position = Vector3(2.0, 1.85, 3.18)
