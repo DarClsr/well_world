@@ -1215,7 +1215,11 @@ func _add_house(position: Vector3, rotation_y: float) -> void:
 	houses.append(house)
 	var shell_material := plaster_material.duplicate() as StandardMaterial3D
 	var trim_material := _material(Color("6f4c32"), 0.95)
-	var rug_material := _material(Color("75604d"), 0.98)
+	var interior_index := house_count - 1
+	var interior_identities: Array[String] = ["herbalist", "hearth", "weaver"]
+	var rug_colors: Array[Color] = [Color("697563"), Color("806552"), Color("755f66")]
+	house.set_meta("interior_identity", interior_identities[interior_index])
+	var rug_material := _material(rug_colors[interior_index], 0.98)
 	var house_collision := _add_box("HouseCollision", Vector3(6.0, 3.1, 6.0), Vector3(0.0, 1.55, 0.0), shell_material, true, house)
 	house_collision.visible = false
 	_add_box("HouseWallLeft", Vector3(0.18, 3.1, 5.8), Vector3(-2.91, 1.55, 0.0), shell_material, false, house)
@@ -1240,12 +1244,50 @@ func _add_house(position: Vector3, rotation_y: float) -> void:
 		_add_box(trim_data[0], trim_data[1], trim_data[2], trim_material, false, house)
 	var back_window := _add_model("res://assets/quaternius/village/Window_Wide_Round1.gltf", Vector3(0.0, 0.0, -3.0), PI, 0.86, house)
 	back_window.name = "BackWindow"
-	_add_box("InteriorRug", Vector3(1.9, 0.03, 1.25), Vector3(0.35, 0.085, -0.2), rug_material, false, house)
-	_add_box("InteriorBenchSeat", Vector3(1.55, 0.18, 0.48), Vector3(1.25, 0.58, -1.65), trim_material, false, house)
-	_add_box("InteriorBenchLeftLeg", Vector3(0.16, 0.5, 0.38), Vector3(0.7, 0.3, -1.65), trim_material, false, house)
-	_add_box("InteriorBenchRightLeg", Vector3(0.16, 0.5, 0.38), Vector3(1.8, 0.3, -1.65), trim_material, false, house)
-	var interior_crate := _add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(-1.65, 0.0, -1.5), -0.2, 0.62, house)
+	var rug_sizes: Array[Vector3] = [Vector3(2.1, 0.03, 1.0), Vector3(2.3, 0.03, 1.5), Vector3(1.8, 0.03, 1.4)]
+	var rug_positions: Array[Vector3] = [Vector3(1.2, 0.085, 0.6), Vector3(0.9, 0.085, 0.55), Vector3(1.2, 0.085, 0.65)]
+	var rug_yaws: Array[float] = [0.08, -0.08, 0.05]
+	var rug := _add_box("InteriorRug", rug_sizes[interior_index], rug_positions[interior_index], rug_material, false, house)
+	rug.rotation.y = rug_yaws[interior_index]
+	var bench_centers: Array[Vector3] = [Vector3(1.45, 0.58, -1.75), Vector3(-1.55, 0.58, -1.15), Vector3(1.55, 0.58, -1.65)]
+	var bench_yaws: Array[float] = [0.0, PI * 0.5, 0.0]
+	var bench_center := bench_centers[interior_index]
+	var bench_yaw := bench_yaws[interior_index]
+	var bench_axis := Vector3.RIGHT.rotated(Vector3.UP, bench_yaw)
+	var bench_seat := _add_box("InteriorBenchSeat", Vector3(1.55, 0.18, 0.48), bench_center, trim_material, false, house)
+	bench_seat.rotation.y = bench_yaw
+	var bench_left_leg := _add_box("InteriorBenchLeftLeg", Vector3(0.16, 0.5, 0.38), bench_center - bench_axis * 0.55 + Vector3.DOWN * 0.28, trim_material, false, house)
+	bench_left_leg.rotation.y = bench_yaw
+	var bench_right_leg := _add_box("InteriorBenchRightLeg", Vector3(0.16, 0.5, 0.38), bench_center + bench_axis * 0.55 + Vector3.DOWN * 0.28, trim_material, false, house)
+	bench_right_leg.rotation.y = bench_yaw
+	var crate_positions: Array[Vector3] = [Vector3(-1.9, 0.0, -1.35), Vector3(1.85, 0.0, -1.75), Vector3(-1.9, 0.0, -1.65)]
+	var crate_yaws: Array[float] = [-0.35, 0.25, -0.2]
+	var crate_scales: Array[float] = [0.55, 0.6, 0.55]
+	var interior_crate := _add_model("res://assets/quaternius/village/Prop_Crate.gltf", crate_positions[interior_index], crate_yaws[interior_index], crate_scales[interior_index], house)
 	interior_crate.name = "InteriorCrate"
+	# One readable work center per home keeps the cutaway sparse but identifiable.
+	match interior_index:
+		0:
+			var herb_table_material := _material(Color("6f5941"), 0.96)
+			_add_box("InteriorHerbTableTop", Vector3(1.8, 0.14, 0.58), Vector3(1.2, 0.82, 0.6), herb_table_material, false, house)
+			_add_box("InteriorHerbTableLeftLeg", Vector3(0.12, 0.75, 0.4), Vector3(0.6, 0.42, 0.6), herb_table_material, false, house)
+			_add_box("InteriorHerbTableRightLeg", Vector3(0.12, 0.75, 0.4), Vector3(1.8, 0.42, 0.6), herb_table_material, false, house)
+			var herb_bundle_colors: Array[Color] = [Color("718066"), Color("847b59"), Color("667369")]
+			for bundle_index in 3:
+				_add_box("InteriorHerbBundle%d" % bundle_index, Vector3(0.28, 0.1, 0.16), Vector3(0.75 + float(bundle_index) * 0.45, 0.94, 0.6), _material(herb_bundle_colors[bundle_index], 1.0), false, house)
+		1:
+			_add_box("InteriorHearthTableTop", Vector3(1.15, 0.18, 0.85), Vector3(0.9, 0.48, 0.55), trim_material, false, house)
+			_add_box("InteriorHearthTableBase", Vector3(0.36, 0.45, 0.36), Vector3(0.9, 0.25, 0.55), trim_material, false, house)
+			_add_box("InteriorHearthStool", Vector3(0.65, 0.34, 0.65), Vector3(1.9, 0.25, 0.55), trim_material, false, house)
+		2:
+			var loom_material := _material(Color("624b38"), 0.96)
+			_add_box("InteriorLoomLeftPost", Vector3(0.12, 1.7, 0.14), Vector3(0.5, 0.9, 0.65), loom_material, false, house)
+			_add_box("InteriorLoomRightPost", Vector3(0.12, 1.7, 0.14), Vector3(1.9, 0.9, 0.65), loom_material, false, house)
+			_add_box("InteriorLoomTopBeam", Vector3(1.6, 0.12, 0.14), Vector3(1.2, 1.7, 0.65), loom_material, false, house)
+			_add_box("InteriorLoomBottomBeam", Vector3(1.6, 0.12, 0.14), Vector3(1.2, 0.18, 0.65), loom_material, false, house)
+			var cloth_colors: Array[Color] = [Color("785d66"), Color("88745a"), Color("667469")]
+			for cloth_index in 3:
+				_add_box("InteriorLoomCloth%d" % cloth_index, Vector3(0.38, 1.15, 0.04), Vector3(0.8 + float(cloth_index) * 0.4, 0.92, 0.75), _material(cloth_colors[cloth_index], 1.0), false, house)
 	var roof := _add_model("res://assets/quaternius/village/Roof_RoundTiles_6x8.gltf", Vector3(0.0, 3.05, 0.0), 0.0, 0.82, house)
 	roof.name = "Roof"
 	_add_model("res://assets/quaternius/village/Wall_Plaster_Straight.gltf", Vector3(-2.0, 0.0, 3.03), 0.0, 1.0, house)

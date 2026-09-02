@@ -755,9 +755,17 @@ func _initialize() -> void:
 	assert(portal_react.position.distance_to(main.get("portal_center") + Vector3.UP * 1.8) < 0.01)
 	var roof_wood_materials: Array[StandardMaterial3D] = []
 	var roof_tile_materials: Array[StandardMaterial3D] = []
+	var expected_interior_identities: Array[String] = ["herbalist", "hearth", "weaver"]
+	var expected_rug_colors: Array[Color] = [Color("697563"), Color("806552"), Color("755f66")]
+	var expected_rug_sizes: Array[Vector3] = [Vector3(2.1, 0.03, 1.0), Vector3(2.3, 0.03, 1.5), Vector3(1.8, 0.03, 1.4)]
+	var expected_rug_positions: Array[Vector3] = [Vector3(1.2, 0.085, 0.6), Vector3(0.9, 0.085, 0.55), Vector3(1.2, 0.085, 0.65)]
+	var expected_bench_yaws: Array[float] = [0.0, PI * 0.5, 0.0]
+	var expected_crate_positions: Array[Vector3] = [Vector3(-1.9, 0.0, -1.35), Vector3(1.85, 0.0, -1.75), Vector3(-1.9, 0.0, -1.65)]
 	for house_index in range(1, 4):
 		var house := main.get_node_or_null("VillageHouse%d" % house_index)
 		assert(house != null)
+		var interior_index := house_index - 1
+		assert(house.get_meta("interior_identity") == expected_interior_identities[interior_index])
 		assert(house.get_node_or_null("Roof") is Node3D)
 		var house_collision := house.get_node_or_null("HouseCollision") as CSGBox3D
 		assert(house_collision.use_collision and not house_collision.visible)
@@ -777,9 +785,38 @@ func _initialize() -> void:
 			var house_trim := house.get_node_or_null(trim_name) as CSGBox3D
 			assert(house_trim != null and not house_trim.use_collision)
 		assert(house.get_node_or_null("BackWindow") is Node3D)
-		assert(house.get_node_or_null("InteriorRug") is CSGBox3D)
-		assert(house.get_node_or_null("InteriorBenchSeat") is CSGBox3D)
-		assert(house.get_node_or_null("InteriorCrate") is Node3D)
+		var interior_rug := house.get_node_or_null("InteriorRug") as CSGBox3D
+		assert(interior_rug != null and not interior_rug.use_collision)
+		assert(interior_rug.size.is_equal_approx(expected_rug_sizes[interior_index]))
+		assert(interior_rug.position.is_equal_approx(expected_rug_positions[interior_index]))
+		assert((interior_rug.material as StandardMaterial3D).albedo_color.is_equal_approx(expected_rug_colors[interior_index]))
+		var interior_bench := house.get_node_or_null("InteriorBenchSeat") as CSGBox3D
+		assert(interior_bench != null and not interior_bench.use_collision)
+		assert(is_equal_approx(interior_bench.rotation.y, expected_bench_yaws[interior_index]))
+		var interior_crate := house.get_node_or_null("InteriorCrate") as Node3D
+		assert(interior_crate != null and interior_crate.position.is_equal_approx(expected_crate_positions[interior_index]))
+		for interior_box in house.find_children("Interior*", "CSGBox3D", true, false):
+			assert(not (interior_box as CSGBox3D).use_collision)
+		match house_index:
+			1:
+				assert(house.get_node_or_null("InteriorHerbTableTop") is CSGBox3D)
+				for bundle_index in 3:
+					assert(house.get_node_or_null("InteriorHerbBundle%d" % bundle_index) is CSGBox3D)
+				assert(house.get_node_or_null("InteriorHearthTableTop") == null)
+				assert(house.get_node_or_null("InteriorLoomTopBeam") == null)
+			2:
+				assert(house.get_node_or_null("InteriorHearthTableTop") is CSGBox3D)
+				assert(house.get_node_or_null("InteriorHearthTableBase") is CSGBox3D)
+				assert(house.get_node_or_null("InteriorHearthStool") is CSGBox3D)
+				assert(house.get_node_or_null("InteriorHerbTableTop") == null)
+				assert(house.get_node_or_null("InteriorLoomTopBeam") == null)
+			3:
+				assert(house.get_node_or_null("InteriorLoomTopBeam") is CSGBox3D)
+				assert(house.get_node_or_null("InteriorLoomBottomBeam") is CSGBox3D)
+				for cloth_index in 3:
+					assert(house.get_node_or_null("InteriorLoomCloth%d" % cloth_index) is CSGBox3D)
+				assert(house.get_node_or_null("InteriorHerbTableTop") == null)
+				assert(house.get_node_or_null("InteriorHearthTableTop") == null)
 		assert(house.get_node_or_null("Roof/Chimney") is Node3D)
 		assert(house.get_node_or_null("WindowGlow") is OmniLight3D)
 		assert(house.get_node_or_null("SmokePuff0") is MeshInstance3D)
