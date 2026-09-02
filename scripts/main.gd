@@ -1515,7 +1515,7 @@ func _add_pond(position: Vector3) -> void:
 	var ripple_mesh := TorusMesh.new()
 	ripple_mesh.inner_radius = 0.52
 	ripple_mesh.outer_radius = 0.58
-	ripple_mesh.rings = 12
+	ripple_mesh.rings = 32
 	ripple_mesh.ring_segments = 16
 	for index in 2:
 		var ripple := MeshInstance3D.new()

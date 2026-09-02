@@ -930,6 +930,10 @@ func _initialize() -> void:
 	assert(muted_bush_average_value < source_bush_average_value)
 	var pond_ripples: Array = main.get("pond_ripples")
 	assert(pond_ripples.size() == 2)
+	var pond_ripple_mesh := (pond_ripples[0] as MeshInstance3D).mesh as TorusMesh
+	assert(pond_ripple_mesh != null and pond_ripple_mesh.rings == 32)
+	assert(pond_ripple_mesh.ring_segments == 16)
+	assert((pond_ripples[1] as MeshInstance3D).mesh == pond_ripple_mesh)
 	var mistcap_caps: Array = main.get("mistcap_caps")
 	var mistcap_lights: Array = main.get("mistcap_lights")
 	assert(mistcap_caps.size() == 12)

@@ -2,9 +2,14 @@ extends SceneTree
 
 
 const SHOTS := [
-	["before-wrap", 4.95],
-	["after-wrap", 5.05],
-	["mid-cycle", 2.5],
+	# [name, portal_time, player_position, yaw_degrees, camera_height, camera_rig_offset]
+	["before-wrap", 4.95, Vector3(-9.0, 1.0, 13.5), -35.0, 10.0, Vector3.ZERO],
+	["after-wrap", 5.05, Vector3(-9.0, 1.0, 13.5), -35.0, 10.0, Vector3.ZERO],
+	["fork-peak", 2.5, Vector3(-3.5, 1.0, 11.0), 0.0, 12.0, Vector3.ZERO],
+	["fork-large", 4.0, Vector3(-3.5, 1.0, 11.0), 0.0, 12.0, Vector3.ZERO],
+	["close-peak", 2.5, Vector3(-9.0, 1.0, 13.5), -35.0, 10.0, Vector3.ZERO],
+	["detail-peak", 2.5, Vector3(-6.2, 1.0, 12.0), 0.0, 7.0, Vector3(-2.4, 0.0, 0.0)],
+	["detail-large", 4.0, Vector3(-6.2, 1.0, 12.0), 0.0, 7.0, Vector3(-2.4, 0.0, 0.0)],
 ]
 
 
@@ -28,12 +33,14 @@ func _record() -> void:
 	main.set_process(false)
 	var player := main.get_node("Player") as CharacterBody3D
 	player.set_physics_process(false)
-	player.position = Vector3(-9.0, 1.0, 13.5)
-	player.camera_yaw = deg_to_rad(-35.0)
-	player.camera_target_height = 10.0
-	(player.get_node("CameraRig") as Node3D).rotation.y = deg_to_rad(-35.0)
-	player.call("_update_camera_zoom", 1.0)
+	var camera_rig := player.get_node("CameraRig") as Node3D
 	for shot in SHOTS:
+		player.position = shot[2]
+		player.camera_yaw = deg_to_rad(shot[3])
+		player.camera_target_height = shot[4]
+		camera_rig.position = shot[5]
+		camera_rig.rotation.y = deg_to_rad(shot[3])
+		player.call("_update_camera_zoom", 1.0)
 		main.set("portal_time", shot[1])
 		main.call("_process", 0.0)
 		await process_frame
