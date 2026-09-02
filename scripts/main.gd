@@ -153,6 +153,10 @@ var weather_target_state := "clear"
 var weather_blend := 0.0
 var weather_rain_amount := 0.0
 var weather_wind_amount := 0.62
+var time_weather_controller: TimeWeatherController
+var villager_controller: VillagerController
+var ecosystem_controller: EcosystemController
+var fog_valley_runtime: FogValleyRuntime
 var rain_field: Node3D
 var rain_streaks: Array[MeshInstance3D] = []
 var rain_params: Array[Dictionary] = []
@@ -173,6 +177,7 @@ var day_keys := [
 
 
 func _ready() -> void:
+	_setup_runtime_controllers()
 	_build_world()
 	_build_player()
 	_build_weather()
@@ -181,6 +186,23 @@ func _ready() -> void:
 	_build_portal_interaction()
 	_build_audio()
 	_apply_time_of_day()
+
+
+func _setup_runtime_controllers() -> void:
+	time_weather_controller = TimeWeatherController.new()
+	time_weather_controller.name = "TimeWeatherController"
+	add_child(time_weather_controller)
+	time_weather_controller.configure(day_keys, WEATHER_STATES, WEATHER_TRANSITION_HOURS)
+	villager_controller = VillagerController.new()
+	villager_controller.name = "VillagerController"
+	add_child(villager_controller)
+	ecosystem_controller = EcosystemController.new()
+	ecosystem_controller.name = "EcosystemController"
+	add_child(ecosystem_controller)
+	fog_valley_runtime = FogValleyRuntime.new()
+	fog_valley_runtime.name = "FogValleyRuntime"
+	add_child(fog_valley_runtime)
+	fog_valley_runtime.configure(self)
 
 
 func _is_house_roof_occluding(camera_xz: Vector2, player_xz: Vector2, house_xz: Vector2, was_occluding: bool) -> bool:
@@ -201,6 +223,11 @@ func _is_house_roof_occluding(camera_xz: Vector2, player_xz: Vector2, house_xz: 
 
 
 func _process(delta: float) -> void:
+	if fog_valley_runtime != null:
+		fog_valley_runtime.tick(delta)
+
+
+func _runtime_tick(delta: float) -> void:
 	if portal_ring == null:
 		return
 	if time_running:
@@ -527,10 +554,7 @@ func _update_villager_interaction() -> void:
 
 
 func _villager_name(npc_name: String) -> String:
-	match npc_name:
-		"HerbalistMira": return "米拉"
-		"GatekeeperToren": return "托伦"
-		_: return "尼娅"
+	return villager_controller.display_name(StringName(npc_name))
 
 
 func _show_villager_dialogue() -> void:
@@ -585,79 +609,23 @@ func _apply_time_of_day() -> void:
 
 
 func _sample_day(hour: float) -> Dictionary:
-	var h := fposmod(hour, 24.0)
-	for index in range(day_keys.size() - 1):
-		var from_key: Array = day_keys[index]
-		var to_key: Array = day_keys[index + 1]
-		if h < from_key[0] or h > to_key[0]:
-			continue
-		var blend := (h - (from_key[0] as float)) / ((to_key[0] as float) - (from_key[0] as float))
-		blend = blend * blend * (3.0 - 2.0 * blend)
-		return {
-			"elev": lerpf(from_key[1], to_key[1], blend),
-			"azim": rad_to_deg(lerp_angle(deg_to_rad(from_key[2]), deg_to_rad(to_key[2]), blend)),
-			"sun_color": (from_key[3] as Color).lerp(to_key[3], blend),
-			"sun_energy": lerpf(from_key[4], to_key[4], blend),
-			"amb_color": (from_key[5] as Color).lerp(to_key[5], blend),
-			"amb_energy": lerpf(from_key[6], to_key[6], blend),
-			"fog_color": (from_key[7] as Color).lerp(to_key[7], blend),
-			"fog_density": lerpf(from_key[8], to_key[8], blend),
-			"bg_color": (from_key[9] as Color).lerp(to_key[9], blend),
-			"shadow_opacity": lerpf(from_key[10], to_key[10], blend),
-		}
-	return {}
+	return time_weather_controller.sample_day(hour)
 
 
 func _night_focus(hour: float) -> float:
-	var h := fposmod(hour, 24.0)
-	if h < 7.0:
-		return 1.0 - _smoothstep_range(5.0, 7.0, h)
-	if h >= 17.5:
-		return _smoothstep_range(17.5, 19.5, h)
-	return 0.0
+	return time_weather_controller.night_focus(hour)
 
 
 func _smoothstep_range(from_value: float, to_value: float, value: float) -> float:
-	var blend := clampf((value - from_value) / (to_value - from_value), 0.0, 1.0)
-	return blend * blend * (3.0 - 2.0 * blend)
+	return time_weather_controller.smoothstep_range(from_value, to_value, value)
 
 
 func _make_weather_schedule(seed_value: int) -> Array:
-	var random := RandomNumberGenerator.new()
-	random.seed = seed_value
-	var schedule: Array = [{"state": "clear", "duration": random.randf_range(5.0, 8.0)}]
-	var previous_state := "clear"
-	for cycle in 3:
-		var pool: Array = WEATHER_STATES.duplicate()
-		for index in range(pool.size() - 1, 0, -1):
-			var swap_index := random.randi_range(0, index)
-			var temporary = pool[index]
-			pool[index] = pool[swap_index]
-			pool[swap_index] = temporary
-		if pool[0] == previous_state:
-			var temporary = pool[0]
-			pool[0] = pool[1]
-			pool[1] = temporary
-		for state in pool:
-			var duration_range := _weather_duration_range(state)
-			schedule.append({
-				"state": state,
-				"duration": random.randf_range(duration_range.x, duration_range.y),
-			})
-			previous_state = state
-	if schedule[-1]["state"] == schedule[0]["state"]:
-		var temporary = schedule[-1]
-		schedule[-1] = schedule[-2]
-		schedule[-2] = temporary
-	return schedule
+	return time_weather_controller.make_weather_schedule(seed_value)
 
 
 func _weather_duration_range(state: String) -> Vector2:
-	match state:
-		"clear": return Vector2(5.0, 8.0)
-		"cloudy": return Vector2(4.0, 7.0)
-		"mist": return Vector2(3.0, 5.5)
-		_: return Vector2(3.0, 5.0)
+	return time_weather_controller.weather_duration_range(state)
 
 
 func _update_weather(delta: float) -> void:
@@ -694,52 +662,11 @@ func _sample_weather() -> Dictionary:
 
 
 func _weather_profile(state: String) -> Dictionary:
-	match state:
-		"cloudy":
-			return {
-				"sun_energy": 0.78, "sun_tint": 0.20, "ambient_energy": 1.02,
-				"ambient_tint": 0.16, "shadow": 0.78, "fog_density": 1.22,
-				"fog_color_mix": 0.18, "background_tint": 0.20, "rain": 0.0, "wind": 0.86,
-				"tint": Color("b5c2c1"), "fog_tint": Color("899d9f"),
-			}
-		"mist":
-			return {
-				"sun_energy": 0.84, "sun_tint": 0.24, "ambient_energy": 1.04,
-				"ambient_tint": 0.20, "shadow": 0.66, "fog_density": 2.0,
-				"fog_color_mix": 0.34, "background_tint": 0.32, "rain": 0.0, "wind": 0.48,
-				"tint": Color("b9c5bd"), "fog_tint": Color("94a8a3"),
-			}
-		"light_rain":
-			return {
-				"sun_energy": 0.66, "sun_tint": 0.30, "ambient_energy": 1.0,
-				"ambient_tint": 0.24, "shadow": 0.56, "fog_density": 1.48,
-				"fog_color_mix": 0.28, "background_tint": 0.30, "rain": 1.0, "wind": 1.12,
-				"tint": Color("aab9bb"), "fog_tint": Color("778f95"),
-			}
-		_:
-			return {
-				"sun_energy": 1.0, "sun_tint": 0.0, "ambient_energy": 1.0,
-				"ambient_tint": 0.0, "shadow": 1.0, "fog_density": 1.0,
-				"fog_color_mix": 0.0, "background_tint": 0.0, "rain": 0.0, "wind": 0.62,
-				"tint": Color.WHITE, "fog_tint": Color.WHITE,
-			}
+	return time_weather_controller.weather_profile(state)
 
 
 func _blend_weather_profiles(from_profile: Dictionary, to_profile: Dictionary, blend: float) -> Dictionary:
-	return {
-		"sun_energy": lerpf(from_profile["sun_energy"], to_profile["sun_energy"], blend),
-		"sun_tint": lerpf(from_profile["sun_tint"], to_profile["sun_tint"], blend),
-		"ambient_energy": lerpf(from_profile["ambient_energy"], to_profile["ambient_energy"], blend),
-		"ambient_tint": lerpf(from_profile["ambient_tint"], to_profile["ambient_tint"], blend),
-		"shadow": lerpf(from_profile["shadow"], to_profile["shadow"], blend),
-		"fog_density": lerpf(from_profile["fog_density"], to_profile["fog_density"], blend),
-		"fog_color_mix": lerpf(from_profile["fog_color_mix"], to_profile["fog_color_mix"], blend),
-		"background_tint": lerpf(from_profile["background_tint"], to_profile["background_tint"], blend),
-		"rain": lerpf(from_profile["rain"], to_profile["rain"], blend),
-		"wind": lerpf(from_profile["wind"], to_profile["wind"], blend),
-		"tint": (from_profile["tint"] as Color).lerp(to_profile["tint"], blend),
-		"fog_tint": (from_profile["fog_tint"] as Color).lerp(to_profile["fog_tint"], blend),
-	}
+	return time_weather_controller.blend_weather_profiles(from_profile, to_profile, blend)
 
 
 func _animate_weather() -> void:
@@ -771,13 +698,11 @@ func _animate_weather() -> void:
 
 
 func _butterfly_alpha(hour: float) -> float:
-	var h := fposmod(hour, 24.0)
-	return _smoothstep_range(7.0, 8.0, h) * (1.0 - _smoothstep_range(18.0, 19.0, h))
+	return ecosystem_controller.butterfly_alpha(hour)
 
 
 func _firefly_alpha(hour: float) -> float:
-	var h := fposmod(hour, 24.0)
-	return maxf(_smoothstep_range(19.5, 20.5, h), 1.0 - _smoothstep_range(4.5, 5.5, h))
+	return ecosystem_controller.firefly_alpha(hour)
 
 
 func _animate_ecosystem() -> void:
