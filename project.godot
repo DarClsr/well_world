@@ -7,6 +7,7 @@ run/main_scene="res://scenes/main.tscn"
 
 EventBus="*res://scripts/core/event_bus.gd"
 GameState="*res://scripts/core/game_state.gd"
+SaveService="*res://scripts/save/save_service.gd"
 
 [display]
 

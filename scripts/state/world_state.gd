@@ -28,12 +28,13 @@ func to_dictionary() -> Dictionary:
 
 
 static func from_dictionary(data: Dictionary) -> WorldState:
-	if not data.has("version") or typeof(data["version"]) != TYPE_INT:
+	if not data.has("version") or typeof(data["version"]) not in [TYPE_INT, TYPE_FLOAT]:
 		return null
-	if int(data["version"]) != CURRENT_VERSION:
+	var parsed_version := int(data["version"])
+	if float(data["version"]) != float(parsed_version) or parsed_version != CURRENT_VERSION:
 		return null
 	var state := WorldState.new()
-	state.version = int(data["version"])
+	state.version = parsed_version
 	state.current_region = StringName(str(data.get("current_region", "fog_valley")))
 	state.spawn_id = StringName(str(data.get("spawn_id", "portal_arrival")))
 	state.flags = _name_keys(data.get("flags", {}) as Dictionary)
