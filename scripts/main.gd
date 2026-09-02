@@ -803,20 +803,21 @@ func _build_world() -> void:
 	_add_fog_banks()
 	_add_road("VillagePath", PackedVector2Array([
 		Vector2(0.0, -28.0), Vector2(0.4, -23.0), Vector2(0.8, -17.0),
-		Vector2(0.3, -11.0), Vector2(-0.6, -5.0), Vector2(-0.2, 2.0),
-		Vector2(0.75, 9.0), Vector2(0.2, 16.0), Vector2(-0.7, 23.0),
+		Vector2(0.15, -11.0), Vector2(-0.75, -5.0), Vector2(-0.35, 2.0),
+		Vector2(0.55, 9.0), Vector2(0.2, 16.0), Vector2(-0.7, 23.0),
 		Vector2(-1.2, 31.0),
-	]), PackedFloat32Array([2.1, 2.0, 1.85, 1.65, 1.6, 1.6, 1.75, 1.85, 2.0, 2.0]))
+	]), PackedFloat32Array([2.1, 2.0, 1.85, 1.42, 1.28, 1.32, 1.48, 1.85, 2.0, 2.0]))
 	_add_road("VillageWestLane", PackedVector2Array([
-		Vector2(-2.0, -7.0), Vector2(-3.8, -7.1), Vector2(-6.5, -7.0), Vector2(-9.3, -6.9),
-	]), PackedFloat32Array([0.78, 0.88, 0.82, 0.58]), 0.06, 0.3, true)
+		Vector2(-1.35, -6.85), Vector2(-2.7, -7.12), Vector2(-6.4, -7.0), Vector2(-9.3, -6.9),
+	]), PackedFloat32Array([0.62, 0.82, 0.82, 0.58]), 0.06, 0.3, true)
 	_add_road("VillageHearthLane", PackedVector2Array([
-		Vector2(1.55, -4.5), Vector2(2.2, -4.3), Vector2(3.3, -4.2),
+		Vector2(1.3, -4.55), Vector2(1.9, -4.3), Vector2(3.3, -4.2),
 		Vector2(5.8, -4.6), Vector2(8.6, -5.0),
-	]), PackedFloat32Array([0.78, 0.92, 1.2, 1.02, 0.76]), 0.06, 0.32, true)
+	]), PackedFloat32Array([0.62, 0.82, 1.2, 1.02, 0.76]), 0.06, 0.32, true)
 	_add_road("VillageWagonLane", PackedVector2Array([
-		Vector2(-2.2, -2.0), Vector2(-3.4, -2.0), Vector2(-5.4, -2.4),
-	]), PackedFloat32Array([0.7, 0.82, 1.05]), 0.06, 0.28, true)
+		Vector2(-1.35, -1.9), Vector2(-2.7, -2.05), Vector2(-4.8, -2.45),
+		Vector2(-6.9, -2.75),
+	]), PackedFloat32Array([0.58, 0.72, 1.0, 1.25]), 0.06, 0.28, true)
 	_add_road("VillageSouthLane", PackedVector2Array([
 		Vector2(-0.8, 7.4), Vector2(-3.2, 7.6), Vector2(-5.4, 7.6), Vector2(-9.6, 8.0),
 	]), PackedFloat32Array([0.72, 0.82, 0.84, 0.66]), 0.06, 0.3, true)
@@ -849,7 +850,7 @@ func _build_world() -> void:
 	var village_wear := [
 		["VillageWearHearth", Vector3(4.3, 0.0, -5.5), 3.1, Vector2(1.05, 0.72), Color("6f5d48")],
 		["VillageWearHerbs", Vector3(-14.0, 0.0, -8.8), 3.5, Vector2(1.1, 0.72), Color("75624b")],
-		["VillageWearWagon", Vector3(-5.3, 0.0, -2.0), 2.4, Vector2(1.2, 0.7), Color("705e49")],
+		["VillageWearWagon", Vector3(-6.25, 0.0, -2.65), 2.5, Vector2(1.25, 0.72), Color("705e49")],
 		["VillageWearEastDoor", Vector3(6.3, 0.0, -7.2), 2.0, Vector2(0.9, 0.68), Color("75624b")],
 	]
 	for wear in village_wear:

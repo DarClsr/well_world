@@ -877,3 +877,19 @@
 - 屋顶专项 `7/7`、全场景 `21/21` 唯一哈希；三类终审全部 `PASS 0/0/0`。
 - 最终自动回归为 `SMOKE TEST PASSED`、`ROOF MOTION TEST PASSED transitions=2`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED`，`git diff --check` 通过。
 - 提交前删除已被按房屋索引映射取代的 `house_fade_centers` 死数据；再次执行上述四项测试和 `git diff --check` 全部通过。
+
+# 2026-09-02 Phase 64
+
+- 从干净提交 `bdf119c` 继续，后台试玩 PID `48684` 响应正常；山口继续排除。
+- 三类只读提名完成：美术提出村庄核心主路过宽过匀 P1，动效提出托伦短直线巡逻 P1，生活气息提出板车停靠磨损不足 P2；本阶段先处理影响全部村庄机位的道路大形。
+- `docs/art-direction.md` 升级为 0.7，明确住宅核心段道路应收窄并轻微摆动，生活支路从路缘散开，板车磨损覆盖车轮与卸货区但不得扩成硬边广场。
+- `VillagePath` 核心半宽由最低 `1.6m` 收至 `1.28m`，西屋、炉火和板车支路接头同步收向新路缘；板车支路延到车尾，既有磨损面后移并轻微扩大。道路系统、草量、房屋、NPC 与其他区域均未改。
+- 首轮完整冒烟输出 `SMOKE TEST PASSED`；隐藏、非激活、`HWND_BOTTOM` Compatibility 扫查生成 21 张 `1280x720` 有效画面，`IMAGE_COUNT=21`、`UNIQUE_HASHES=21`。
+- 改前/改后主路与接头联系表人工复核通过；板车专项录像为 `1280x720`、30fps、97 帧，近景确认支路和软磨损面覆盖车轮、车尾及卸货箱，且不侵入主路或封住绕行空间。
+- `KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED` 与 `git diff --check` 通过；三类终审均为 `PASS 0/0/0`。
+
+## 2026-09-02 Phase 64 完成
+
+- `docs/art-direction.md` 0.7、道路参数和冒烟契约同步完成；核心主路最窄完整宽度为 `2.56m`，南北入口保持原有宽度层级。
+- 最终证据归档为 `captures/phase64-road-final-village.png`、`phase64-road-final-far.png`、`phase64-road-final-entry.png` 与 `phase64-road-final-wagon.png`。
+- 托伦多锚点巡守是下一独立动效阶段，不与本轮静态道路改动混合。

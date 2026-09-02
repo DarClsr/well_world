@@ -389,13 +389,21 @@ func _initialize() -> void:
 		var cross_section_width := village_path_vertices[vertex_index].distance_to(village_path_vertices[vertex_index + 2])
 		village_path_min_width = minf(village_path_min_width, cross_section_width)
 		village_path_max_width = maxf(village_path_max_width, cross_section_width)
-	assert(is_equal_approx(village_path_min_width, 3.2))
+	assert(is_equal_approx(village_path_min_width, 2.56))
 	assert(is_equal_approx(village_path_max_width, 4.2))
 	assert(main.get_node_or_null("VillageSquare") == null)
 	for lane_name in ["VillageWestLane", "VillageHearthLane", "VillageWagonLane", "VillageSouthLane"]:
 		var lane := main.get_node_or_null(lane_name) as MeshInstance3D
 		assert(lane != null and lane.mesh is ArrayMesh)
 		assert(lane.get_node_or_null("Shoulder") is MeshInstance3D)
+	var village_west_vertices := (main.get_node("VillageWestLane") as MeshInstance3D).mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
+	var village_hearth_vertices := (main.get_node("VillageHearthLane") as MeshInstance3D).mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
+	var village_wagon_vertices := (main.get_node("VillageWagonLane") as MeshInstance3D).mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
+	assert(Vector2(village_west_vertices[1].x, village_west_vertices[1].z).is_equal_approx(Vector2(-1.35, -6.85)))
+	assert(Vector2(village_hearth_vertices[1].x, village_hearth_vertices[1].z).is_equal_approx(Vector2(1.3, -4.55)))
+	assert(Vector2(village_wagon_vertices[1].x, village_wagon_vertices[1].z).is_equal_approx(Vector2(-1.35, -1.9)))
+	var wagon_lane_end := village_wagon_vertices[village_wagon_vertices.size() - 2]
+	assert(Vector2(wagon_lane_end.x, wagon_lane_end.z).is_equal_approx(Vector2(-6.9, -2.75)))
 	assert(main.get_node_or_null("VillageCommonGround") == null)
 	var mist_pass_path := main.get_node("MistPassPath") as MeshInstance3D
 	assert(mist_pass_path.mesh is ArrayMesh and mist_pass_path.get_node_or_null("Shoulder") is MeshInstance3D)
@@ -657,6 +665,9 @@ func _initialize() -> void:
 		assert(wear_material.albedo_texture is GradientTexture2D)
 		var wear_texture := wear_material.albedo_texture as GradientTexture2D
 		assert(is_equal_approx(wear_texture.gradient.colors[0].a, 0.34))
+	var wagon_wear := main.get_node("VillageWearWagon") as MeshInstance3D
+	assert(wagon_wear.position.is_equal_approx(Vector3(-6.25, 0.12, -2.65)))
+	assert((wagon_wear.mesh as PlaneMesh).size.is_equal_approx(Vector2(6.25, 3.6)))
 	for inset_name in ["VillageGrassNorthWest", "VillageGrassWest", "VillageGrassNorthEast", "VillageGrassSouthEast"]:
 		var inset := main.get_node_or_null(inset_name) as MeshInstance3D
 		assert(inset != null and is_equal_approx(inset.position.y, 0.115))
