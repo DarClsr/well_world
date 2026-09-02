@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/game_root.gd" id="1_root"]
+[ext_resource type="Script" path="res://scripts/core/scene_router.gd" id="2_router"]
+[ext_resource type="Script" path="res://scripts/quests/quest_runtime.gd" id="3_quest"]
+[ext_resource type="Script" path="res://scripts/dialogue/dialogue_runner.gd" id="4_dialogue"]
+
+[node name="GameRoot" type="Node"]
+script = ExtResource("1_root")
+
+[node name="RegionContainer" type="Node" parent="."]
+
+[node name="PersistentUI" type="CanvasLayer" parent="."]
+
+[node name="DialogueRunner" type="Node" parent="."]
+script = ExtResource("4_dialogue")
+
+[node name="QuestRuntime" type="Node" parent="."]
+script = ExtResource("3_quest")
+
+[node name="SceneRouter" type="Node" parent="."]
+script = ExtResource("2_router")
