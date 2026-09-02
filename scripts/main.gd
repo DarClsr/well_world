@@ -226,9 +226,10 @@ func _process(delta: float) -> void:
 		player_fill_light.light_energy = lerpf(0.0, 4.0, night_focus)
 	for index in pond_ripples.size():
 		var phase := fmod(portal_time * 0.2 + float(index) * 0.5, 1.0)
+		var ripple_visibility := sin(PI * phase)
 		var ripple := pond_ripples[index]
 		ripple.scale = Vector3(0.45 + phase * 1.65, 1.0, 0.32 + phase * 1.1)
-		ripple.transparency = 0.35 + phase * 0.63
+		ripple.transparency = 1.0 - ripple_visibility * 0.62
 	if mistcap_material != null:
 		mistcap_material.emission_energy_multiplier = (0.42 + sin(portal_time * 1.35) * 0.1) * lerpf(0.66, 1.55, night_focus)
 	for index in mistcap_lights.size():
@@ -247,7 +248,7 @@ func _process(delta: float) -> void:
 		if player != null:
 			var house_distance := Vector2(player.position.x, player.position.z).distance_to(Vector2(house_fade_centers[index].x, house_fade_centers[index].z))
 			if house_distance < 6.0:
-				target_alpha = 0.22
+				target_alpha = 0.0
 		var house_color := house_fade_materials[index].albedo_color
 		house_color.a = lerpf(house_color.a, target_alpha, minf(delta * 5.0, 1.0))
 		house_fade_materials[index].albedo_color = house_color

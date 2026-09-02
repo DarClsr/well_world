@@ -2,10 +2,9 @@ extends SceneTree
 
 
 const SHOTS := [
-	["hearth-cutaway", Vector3(4.2, 1.0, -5.8), 15.0, 10.0],
-	["herb-cutaway", Vector3(-9.0, 1.0, -6.0), 0.0, 10.0],
-	["west-cutaway", Vector3(-10.0, 1.0, 9.0), 0.0, 10.0],
-	["village-restored", Vector3(0.0, 1.0, -4.0), 0.0, 20.0],
+	["before-wrap", 4.95],
+	["after-wrap", 5.05],
+	["mid-cycle", 2.5],
 ]
 
 
@@ -14,7 +13,7 @@ func _initialize() -> void:
 
 
 func _record() -> void:
-	var output_dir := "res://temp/roof-fade"
+	var output_dir := "res://temp/pond-ripple"
 	DirAccess.make_dir_recursive_absolute(output_dir)
 	var scene := load("res://scenes/main.tscn") as PackedScene
 	var main := scene.instantiate()
@@ -25,17 +24,18 @@ func _record() -> void:
 	main.set("weather_override", "clear")
 	root.add_child(main)
 	(main.get_node("Opening") as CanvasLayer).visible = false
-	await create_timer(1.6).timeout
+	await create_timer(1.5).timeout
+	main.set_process(false)
 	var player := main.get_node("Player") as CharacterBody3D
 	player.set_physics_process(false)
-	var camera_rig := player.get_node("CameraRig") as Node3D
+	player.position = Vector3(-9.0, 1.0, 13.5)
+	player.camera_yaw = deg_to_rad(-35.0)
+	player.camera_target_height = 10.0
+	(player.get_node("CameraRig") as Node3D).rotation.y = deg_to_rad(-35.0)
+	player.call("_update_camera_zoom", 1.0)
 	for shot in SHOTS:
-		player.position = shot[1]
-		player.camera_yaw = deg_to_rad(shot[2])
-		player.camera_target_height = shot[3]
-		camera_rig.rotation.y = deg_to_rad(shot[2])
-		player.call("_update_camera_zoom", 1.0)
-		await create_timer(1.2).timeout
+		main.set("portal_time", shot[1])
+		main.call("_process", 0.0)
 		await process_frame
 		await process_frame
 		var image := root.get_texture().get_image()

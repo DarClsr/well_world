@@ -759,3 +759,32 @@
 - 最终证据归档为 `captures/phase57-hearth-*` 共 5 张，固定昼夜、天气、`portal_time`、角色和镜头，`5/5` 唯一哈希。
 - 完整验证：`SMOKE TEST PASSED`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED`、21 机位 `21/21` 唯一哈希。
 - 三类终审：美术、生活气息、动效均为 `PASS 0/0/0`；Phase 57 完成。
+
+# 2026-09-02 Phase 58 候选复审
+
+- 目标继续保持为按 `docs/art-direction.md` 0.3 迭代序章场景；当前工作树以已推送提交 `02f5fc7` 为基线。
+- 已向美术、生活气息和动效三个现有专项代理发起下一项单一提名，明确排除山口、草量减少、新资产包和新系统。
+- 人工总览最新 21 机位，先记录近距离屋顶淡出叠线为候选，等待三方优先级结论后再决定是否建立 Phase 58。
+- 三类提名已返回：屋顶透明叠层与雾池水波循环均为 P1，三户身份差异为 P2。Phase 58 选择先处理直接影响角色/活动区可读性的屋顶 P1，雾池水波留作后续独立阶段。
+- 范围锁定为现有屋顶淡出端态、冒烟契约和固定近屋证据；不改房屋结构、室内布局、草量、天气、NPC 或山口。
+- 首轮实现将近屋目标 Alpha 从 `0.22` 收至 `0.0`，保留原有平滑插值；冒烟契约新增进入/离开中间态、近景完全隐藏、远景恢复及非目标房屋不变。
+- 扩展现有 `tests/roof_fade_capture.gd`，固定时刻/天气并覆盖炉火屋、药圃屋、西屋切顶和村庄全屋顶恢复四张证据。
+- 完整冒烟输出 `SMOKE TEST PASSED`；首轮隐藏 Compatibility 捕获 `IMAGE_COUNT=4`、`UNIQUE_HASHES=4`。
+- 人工复核确认生产效果通过，但药圃屋/西屋捕获站位落在侧墙后；已仅调整证据站位到两栋正门前，准备重录。
+- 第二轮正门站位仍因反向相机 yaw 把玩家放到背墙后；最终捕获仅将两张 yaw 归零，从正门方向重录。
+
+## 2026-09-02 Phase 58 完成
+
+- `scripts/main.gd`：近屋屋顶目标 Alpha 从 `0.22` 收至 `0.0`，保留原有 `delta * 5.0` 平滑进入与恢复；墙壳、室内、家具、门窗和碰撞不变。
+- `docs/art-direction.md` 升级到 0.4，明确最新规范效力、切顶完整隐藏和“疏密不等于减草”。
+- `tests/smoke_test.gd` 使用 `1/60s` 连续帧验证进入、反向、淡出和恢复；`tests/roof_fade_capture.gd` 固定时刻与天气覆盖三屋切顶和村庄恢复。
+- 验证：`SMOKE TEST PASSED`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED`；21 机位 `21/21` 唯一哈希，专项证据 `4/4` 唯一哈希。
+- 证据归档为 `captures/phase58-roof-*` 四张。三类终审 P0/P1 清零；美术只保留距离触发语义 P2，Phase 58 完成并进入 Phase 59 雾池水波连续性修复。
+
+## 2026-09-02 Phase 59 完成
+
+- `scripts/main.gd`：雾池波纹透明度改为首尾消隐、中段渐显的连续正弦包络；保留两枚波纹的缩放、位置、材质与半周期错相。
+- `tests/smoke_test.gd`：新增 `fmod` 回绕两侧与周期中点的确定性透明度契约；`tests/pond_ripple_capture.gd` 固定昼间晴天、镜头和 `portal_time` 录制三张 A/B 证据。
+- 隐藏 Compatibility 捕获：专项 `IMAGE_COUNT=3`、`UNIQUE_HASHES=3`；21 机位 `IMAGE_COUNT=21`、`UNIQUE_HASHES=21`。
+- 完整回归：`SMOKE TEST PASSED`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED`、`git diff --check` 通过。
+- 证据归档为 `captures/phase59-pond-*` 五张。三类终审 P0/P1 清零；美术只保留峰值波纹多边形感 P2，Phase 59 完成。
