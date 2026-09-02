@@ -977,6 +977,21 @@ func _initialize() -> void:
 	var tree_canopies: Array = main.get("tree_canopies")
 	var tree_canopy_materials: Array = main.get("tree_canopy_materials")
 	assert(tree_canopies.size() == 16 and tree_canopy_materials.size() == 16)
+	var northwest_tree_canopy: MeshInstance3D
+	var northwest_pine_canopy: MeshInstance3D
+	for canopy_node in tree_canopies:
+		var candidate := canopy_node as MeshInstance3D
+		if Vector2(candidate.global_position.x, candidate.global_position.z).is_equal_approx(Vector2(-21.0, -24.8)):
+			northwest_tree_canopy = candidate
+		elif Vector2(candidate.global_position.x, candidate.global_position.z).is_equal_approx(Vector2(-24.8, -12.5)):
+			northwest_pine_canopy = candidate
+	assert(northwest_tree_canopy != null and northwest_pine_canopy != null)
+	var northwest_tree_collision: CSGCylinder3D
+	for child in main.get_children():
+		if child is CSGCylinder3D and (child as CSGCylinder3D).position.is_equal_approx(Vector3(-21.0, 1.8375, -24.8)):
+			northwest_tree_collision = child as CSGCylinder3D
+			break
+	assert(northwest_tree_collision != null and northwest_tree_collision.position.z < -24.5)
 	for canopy_index in tree_canopies.size():
 		var canopy := tree_canopies[canopy_index] as MeshInstance3D
 		var canopy_material := tree_canopy_materials[canopy_index] as ShaderMaterial
@@ -995,6 +1010,8 @@ func _initialize() -> void:
 	assert(falling_leaves.get_meta("seed") == 20260903)
 	var leaf_clusters: Array = falling_leaves.get_meta("clusters")
 	assert(leaf_clusters.size() == 4)
+	assert((leaf_clusters[0] as Vector2).is_equal_approx(Vector2(-21.0, -24.4)))
+	assert((leaf_clusters[0] as Vector2).distance_to(Vector2(northwest_tree_canopy.global_position.x, northwest_tree_canopy.global_position.z)) <= 0.41)
 	for cluster in leaf_clusters:
 		assert(absf((cluster as Vector2).x) >= 8.0)
 	var falling_leaf_materials: Array = main.get("falling_leaf_materials")

@@ -26,7 +26,7 @@ const FIREFLY_COUNT := 14
 const FALLING_LEAF_COUNT := 12
 const FALLING_LEAF_SEED := 20260903
 const FALLING_LEAF_CLUSTERS := [
-	Vector2(-17.0, -17.0), Vector2(18.0, 3.0),
+	Vector2(-21.0, -24.4), Vector2(18.0, 3.0),
 	Vector2(-16.0, 17.0), Vector2(8.0, 23.0),
 ]
 const WEATHER_SEED := 20260902
@@ -978,7 +978,7 @@ func _build_world() -> void:
 	_add_ecosystem()
 
 	var trees := [
-		["CommonTree_1", Vector3(-17, 0, -17), 0.2, 1.05],
+		["CommonTree_1", Vector3(-21, 0, -24.8), 0.2, 1.05],
 		["CommonTree_3", Vector3(17, 0, -18), 2.1, 0.9],
 		["Pine_2", Vector3(-19, 0, 1), 1.4, 1.15],
 		["CommonTree_1", Vector3(18, 0, 3), 2.8, 1.0],
@@ -1995,7 +1995,7 @@ func _add_boundary_scenery() -> void:
 		var model := "Rock_Medium_1" if index % 2 == 0 else "Rock_Medium_2"
 		_add_model("res://assets/quaternius/nature/%s.gltf" % model, rocks[index][0], rocks[index][1], rocks[index][2], boundary)
 	var trees := [
-		["Pine_2", Vector3(-22, 0, -17), 0.4, 1.1], ["CommonTree_1", Vector3(-22, 0, 14), 1.5, 1.0],
+		["Pine_2", Vector3(-24.8, 0, -12.5), 0.4, 1.1], ["CommonTree_1", Vector3(-22, 0, 14), 1.5, 1.0],
 		["CommonTree_3", Vector3(22, 0, -16), 2.2, 0.95], ["Pine_2", Vector3(22, 0, 15), 0.9, 1.15],
 		["CommonTree_1", Vector3(-15, 0, -22), 1.9, 1.0], ["CommonTree_3", Vector3(15, 0, -22), 0.5, 0.92],
 		["Pine_2", Vector3(-14, 0, 27), 2.7, 1.1], ["CommonTree_1", Vector3(14, 0, 27), 1.2, 1.05],
