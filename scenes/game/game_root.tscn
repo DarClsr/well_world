@@ -12,10 +12,10 @@ script = ExtResource("1_root")
 
 [node name="PersistentUI" type="CanvasLayer" parent="."]
 
-[node name="DialogueRunner" type="Node" parent="."]
+[node name="DialogueRunner" type="Node" parent="." groups=["dialogue_runner"]]
 script = ExtResource("4_dialogue")
 
-[node name="QuestRuntime" type="Node" parent="."]
+[node name="QuestRuntime" type="Node" parent="." groups=["quest_runtime"]]
 script = ExtResource("3_quest")
 
 [node name="SceneRouter" type="Node" parent="."]

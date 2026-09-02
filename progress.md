@@ -955,3 +955,13 @@
 - 最终旧问题点四向 Compatibility 截图全部恢复玩家完整轮廓，证据归档为 `captures/phase67-tree-occlusion-yaw000/090/180/270.png`。
 - 完整门禁通过：`SMOKE TEST PASSED`、`TREE OCCLUSION CAPTURE PASSED shots=4`、`TREE MOTION TEST PASSED canopies=16 leaves=12`、`DRIFTER VISUAL TEST PASSED`、`KAYKIT NPC VISUAL TEST PASSED`、21 机位 `21/21` 唯一哈希、`git diff --check`。
 - 美术、生活气息与动效三类终审全部 `PASS`；Phase 67 完成。按用户要求，本阶段提交推送后停止继续开发，不进入 Phase 68/69。
+
+## 2026-09-02 Phase 68：可扩展游戏基础
+
+- 在 `codex/phase0-scalable-foundation` 隔离分支执行，按 `docs/superpowers/plans/2026-09-02-phase0-scalable-foundation.md` 完成阶段 0。
+- 新增导入安全启动脚本和雾谷基线门禁；修正两项纹理 UID，使新拉取工作区在 `--import` 后不再因缺失 `.ctex` 显示空白背景。
+- 新增 `WorldState`、`EventBus`、`GameState`、`SaveService`，覆盖深复制、JSON 往返、备份回退和状态替换后的运行时重绑定。
+- 新增数据化 Quest/Dialogue Resource、运行时与 `InteractionTarget`；石环、托伦和炉火已推进 `arrival` 序章任务。
+- 新增持久 `GameRoot`、`SceneRouter`、雾谷区域包装及 `portal_arrival` / `mist_pass_return` 命名出生点。
+- 把昼夜/天气纯计算、NPC 名称职责、生态显隐和运行时编排迁入独立控制器，旧 `main.gd` 接口继续供既有测试和捕获脚本使用。
+- 核心自动回归共 12 项通过：8 项新基础/集成测试，加雾谷基线、完整冒烟、KayKit NPC 和漂泊者视觉测试。

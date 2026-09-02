@@ -1,5 +1,7 @@
 extends Node
 
+signal state_replaced(state: WorldState)
+
 var active: WorldState = WorldState.new()
 var event_bus: Node
 
@@ -11,11 +13,13 @@ func _ready() -> void:
 
 func start_new_game() -> void:
 	active = WorldState.new()
+	state_replaced.emit(active)
 
 
 func replace_state(state: WorldState) -> void:
 	assert(state != null)
 	active = state
+	state_replaced.emit(active)
 
 
 func set_flag(key: StringName, value: Variant) -> bool:

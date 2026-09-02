@@ -13,11 +13,15 @@ var visible_choice_ids: Array[StringName] = []
 
 
 func start(data: DialogueData, world_state: WorldState) -> bool:
-	if data == null or world_state == null or data.get_line(data.start_line_id) == null:
+	return start_at(data, world_state, data.start_line_id if data != null else &"")
+
+
+func start_at(data: DialogueData, world_state: WorldState, line_id: StringName) -> bool:
+	if data == null or world_state == null or data.get_line(line_id) == null:
 		return false
 	active_data = data
 	state = world_state
-	current_line_id = data.start_line_id
+	current_line_id = line_id
 	visible_choice_ids.clear()
 	return _show_current()
 
@@ -76,4 +80,3 @@ func _finish() -> void:
 	current_line_id = &""
 	visible_choice_ids.clear()
 	dialogue_finished.emit(dialogue_id)
-

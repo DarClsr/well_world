@@ -8,24 +8,28 @@ script = ExtResource("2")
 id = &"portal"
 speaker_id = &"world"
 text_key = &"异界气息仍在石环深处回响。"
+emit_event_ids = Array[StringName]([&"portal_inspected"])
 
 [sub_resource type="Resource" id="Mira"]
 script = ExtResource("2")
 id = &"mira"
 speaker_id = &"mira"
 text_key = &"米拉：雾起前采下的药草，效力最好。"
+emit_event_ids = Array[StringName]([&"mira_met"])
 
 [sub_resource type="Resource" id="Toren"]
 script = ExtResource("2")
 id = &"toren"
 speaker_id = &"toren"
 text_key = &"托伦：沿石路走，别踏进谷边的浓雾。"
+emit_event_ids = Array[StringName]([&"toren_met"])
 
 [sub_resource type="Resource" id="Nia"]
 script = ExtResource("2")
 id = &"nia"
 speaker_id = &"nia"
 text_key = &"尼娅：雾里的丝线，总会织出陌生的花纹。"
+emit_event_ids = Array[StringName]([&"nia_met"])
 
 [resource]
 script = ExtResource("1")

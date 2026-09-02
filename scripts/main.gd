@@ -17,6 +17,7 @@ const MiraCharacter = preload("res://scenes/npc/mira_visual.tscn")
 const TorenCharacter = preload("res://scenes/npc/toren_visual.tscn")
 const NiaCharacter = preload("res://scenes/npc/nia_visual.tscn")
 const ValleyBoundaryScene = preload("res://scenes/world/valley_boundary.tscn")
+const FogValleyDialogue = preload("res://data/dialogue/fog_valley_intro.tres")
 const HERB_PLOT_POSITION := Vector3(-14.8, 0.0, -10.0)
 const DAY_DURATION_SECONDS := 1800.0
 const BUTTERFLY_SEED := 3131
@@ -157,6 +158,10 @@ var time_weather_controller: TimeWeatherController
 var villager_controller: VillagerController
 var ecosystem_controller: EcosystemController
 var fog_valley_runtime: FogValleyRuntime
+var prologue_quest_runtime: QuestRuntime
+var story_player: CharacterBody3D
+var story_hearth: Node3D
+var hearth_event_emitted := false
 var rain_field: Node3D
 var rain_streaks: Array[MeshInstance3D] = []
 var rain_params: Array[Dictionary] = []
@@ -186,6 +191,9 @@ func _ready() -> void:
 	_build_portal_interaction()
 	_build_audio()
 	_apply_time_of_day()
+	story_player = get_node_or_null("Player") as CharacterBody3D
+	story_hearth = get_node_or_null("VillageHearth") as Node3D
+	prologue_quest_runtime = get_tree().get_first_node_in_group("quest_runtime") as QuestRuntime
 
 
 func _setup_runtime_controllers() -> void:
@@ -244,6 +252,7 @@ func _runtime_tick(delta: float) -> void:
 	var proximity := _portal_proximity()
 	var night_focus := _night_focus(time_hour)
 	_update_villager_interaction()
+	_update_hearth_event()
 	portal_ring.scale = Vector3.ONE * (1.0 + pulse * 0.035 + reaction * 0.12)
 	portal_material.emission_energy_multiplier = (0.75 + pulse * 0.12 + proximity * 0.3 + reaction * 0.65) * lerpf(0.88, 1.35, night_focus)
 	portal_surface_material.set_shader_parameter("reaction_strength", clampf(reaction + proximity * 0.16, 0.0, 1.0))
@@ -520,9 +529,16 @@ func _portal_proximity() -> float:
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("interact"):
 		return
+	var player := get_node_or_null("Player") as CharacterBody3D
 	if nearby_villager != null:
+		var villager_target := nearby_villager.get_node_or_null("InteractionTarget") as InteractionTarget
+		if villager_target == null or not villager_target.interact(player):
+			return
 		_show_villager_dialogue()
 	elif portal_nearby:
+		var portal_target := get_node_or_null("PortalRuin/InteractionTarget") as InteractionTarget
+		if portal_target == null or not portal_target.interact(player):
+			return
 		_show_portal_lore()
 	else:
 		return
@@ -560,8 +576,14 @@ func _villager_name(npc_name: String) -> String:
 func _show_villager_dialogue() -> void:
 	var message := "尼娅：雾里的丝线，总会织出陌生的花纹。"
 	match nearby_villager.name:
-		"HerbalistMira": message = "米拉：雾起前采下的药草，效力最好。"
-		"GatekeeperToren": message = "托伦：沿石路走，别踏进谷边的浓雾。"
+		"HerbalistMira":
+			message = "米拉：雾起前采下的药草，效力最好。"
+			_start_migrated_dialogue(&"mira")
+		"GatekeeperToren":
+			message = "托伦：沿石路走，别踏进谷边的浓雾。"
+			_start_migrated_dialogue(&"toren")
+		_:
+			_start_migrated_dialogue(&"nia")
 	var model := nearby_villager.get_node("Visual/CharacterModel") as Node3D
 	var model_y := model.position.y
 	var nod := create_tween()
@@ -571,6 +593,7 @@ func _show_villager_dialogue() -> void:
 
 
 func _show_portal_lore() -> void:
+	_start_migrated_dialogue(&"portal")
 	portal_reaction_time = 1.0
 	portal_react_player.play()
 	_show_interaction_text("石环残留着与你相似的异界气息。")
@@ -588,6 +611,21 @@ func _show_interaction_text(message: String) -> void:
 	portal_lore_tween.tween_interval(2.4)
 	portal_lore_tween.tween_property(portal_lore, "modulate:a", 0.0, 0.55)
 	portal_lore_tween.tween_callback(portal_lore.hide)
+
+
+func _start_migrated_dialogue(line_id: StringName) -> bool:
+	var runner := get_tree().get_first_node_in_group("dialogue_runner") as DialogueRunner
+	var game_state := get_node_or_null("/root/GameState")
+	if runner == null or game_state == null:
+		return false
+	return runner.start_at(FogValleyDialogue, game_state.active, line_id)
+
+
+func _update_hearth_event() -> void:
+	if hearth_event_emitted or story_player == null or story_hearth == null or prologue_quest_runtime == null:
+		return
+	if story_player.global_position.distance_to(story_hearth.global_position) <= 4.0:
+		hearth_event_emitted = prologue_quest_runtime.advance(&"arrival", &"hearth_reached")
 
 
 func _apply_time_of_day() -> void:
@@ -1017,6 +1055,12 @@ func _add_villager(npc_name: String, npc_position: Vector3, facing: float, chara
 	npc.name = npc_name
 	npc.position = npc_position
 	add_child(npc)
+	var interaction_target := InteractionTarget.new()
+	interaction_target.name = "InteractionTarget"
+	interaction_target.target_id = StringName(npc_name)
+	interaction_target.prompt_key = &"interaction.talk"
+	interaction_target.interaction_distance = 3.0
+	npc.add_child(interaction_target)
 	villagers.append(npc)
 	villager_patrol_origins.append(npc_position)
 	villager_patrol_axes.append(patrol_axis.normalized())
@@ -2106,6 +2150,12 @@ func _add_ruin(position: Vector3) -> void:
 	ruin.name = "PortalRuin"
 	ruin.position = center
 	add_child(ruin)
+	var interaction_target := InteractionTarget.new()
+	interaction_target.name = "InteractionTarget"
+	interaction_target.target_id = &"portal"
+	interaction_target.prompt_key = &"interaction.inspect"
+	interaction_target.interaction_distance = 4.8
+	ruin.add_child(interaction_target)
 	var stones := [
 		["Rock_Medium_1", Vector3(-2.1, 0.15, 0), 0.2, 0.9],
 		["Rock_Medium_2", Vector3(-1.95, 1.35, 0), 1.1, 0.76],

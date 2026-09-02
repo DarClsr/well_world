@@ -7,8 +7,7 @@
 [node name="Main" parent="." instance=ExtResource("1_main")]
 
 [node name="PortalArrival" type="Marker3D" parent="." groups=["region_spawn:portal_arrival"]]
-position = Vector3(10, 0, 16)
+position = Vector3(10, 0, 14)
 
 [node name="MistPassReturn" type="Marker3D" parent="." groups=["region_spawn:mist_pass_return"]]
 position = Vector3(0, 0, -22)
-
