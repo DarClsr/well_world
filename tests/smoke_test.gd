@@ -101,7 +101,19 @@ func _initialize() -> void:
 		assert((streak as MeshInstance3D).cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
 	var clear_sun_energy := sun.light_energy
 	var clear_fog_density := environment_settings.fog_density
+	main.set("portal_time", 2.75)
+	main.call("_process", 0.0)
 	var clear_hearth_energy := (main.get("hearth_light") as OmniLight3D).light_energy
+	var clear_hearth_flame_emission := (main.get("hearth_flame_material") as StandardMaterial3D).emission_energy_multiplier
+	var clear_hearth_ember_emission := (main.get("hearth_ember_material") as StandardMaterial3D).emission_energy_multiplier
+	var clear_hearth_flame_scale := ((main.get("hearth_flames") as Array)[0] as CSGPolygon3D).scale
+	var clear_hearth_flame_position := ((main.get("hearth_flames") as Array)[0] as CSGPolygon3D).position
+	var clear_hearth_smoke := (main.get("smoke_puffs") as Array)[9] as MeshInstance3D
+	var clear_hearth_smoke_position := clear_hearth_smoke.position
+	var clear_hearth_smoke_transparency := clear_hearth_smoke.transparency
+	var clear_house_smoke := (main.get("smoke_puffs") as Array)[0] as MeshInstance3D
+	var clear_house_smoke_position := clear_house_smoke.position
+	var clear_house_smoke_transparency := clear_house_smoke.transparency
 	var clear_portal_energy := (main.get("portal_light") as OmniLight3D).light_energy
 	main.set("weather_override", "cloudy")
 	main.call("_process", 0.0)
@@ -121,7 +133,19 @@ func _initialize() -> void:
 	assert(environment_settings.fog_density > clear_fog_density)
 	assert(environment_settings.ambient_light_energy >= 0.35)
 	assert(rain_field.visible and rain_material.albedo_color.a > 0.25)
-	assert(is_equal_approx((main.get("hearth_light") as OmniLight3D).light_energy, clear_hearth_energy))
+	var rain_hearth_energy := (main.get("hearth_light") as OmniLight3D).light_energy
+	var rain_hearth_flame_emission := (main.get("hearth_flame_material") as StandardMaterial3D).emission_energy_multiplier
+	var rain_hearth_ember_emission := (main.get("hearth_ember_material") as StandardMaterial3D).emission_energy_multiplier
+	var rain_hearth_flame := (main.get("hearth_flames") as Array)[0] as CSGPolygon3D
+	assert(rain_hearth_energy < clear_hearth_energy and rain_hearth_energy > clear_hearth_energy * 0.9)
+	assert(rain_hearth_flame_emission < clear_hearth_flame_emission and rain_hearth_flame_emission > clear_hearth_flame_emission * 0.93)
+	assert(rain_hearth_ember_emission < clear_hearth_ember_emission and rain_hearth_ember_emission > clear_hearth_ember_emission * 0.95)
+	assert(rain_hearth_flame.scale.y < clear_hearth_flame_scale.y and rain_hearth_flame.scale.y > clear_hearth_flame_scale.y * 0.87)
+	assert(rain_hearth_flame.position.distance_to(main.get("hearth_flame_origins")[0]) < clear_hearth_flame_position.distance_to(main.get("hearth_flame_origins")[0]))
+	assert(clear_hearth_smoke.transparency > clear_hearth_smoke_transparency)
+	assert(Vector2(clear_hearth_smoke.position.x, clear_hearth_smoke.position.z).length() > Vector2(clear_hearth_smoke_position.x, clear_hearth_smoke_position.z).length())
+	assert(clear_house_smoke.position.is_equal_approx(clear_house_smoke_position))
+	assert(is_equal_approx(clear_house_smoke.transparency, clear_house_smoke_transparency))
 	assert(is_equal_approx((main.get("portal_light") as OmniLight3D).light_energy, clear_portal_energy))
 	var rain_position := (rain_field.get_child(0) as Node3D).position
 	main.set("portal_time", 1.0)
@@ -834,6 +858,49 @@ func _initialize() -> void:
 	assert(lore != null)
 	var wind_nodes: Array = main.get("wind_nodes")
 	assert(wind_nodes.size() >= 15)
+	var seasonal_bushes: Array = main.get("seasonal_bushes")
+	var seasonal_bush_materials: Array = main.get("seasonal_bush_materials")
+	assert(seasonal_bushes.size() == 3)
+	assert(seasonal_bush_materials.size() == 3)
+	for index in seasonal_bushes.size():
+		assert((seasonal_bushes[index] as Node3D).name == "SeasonalBush%d" % index)
+		assert((seasonal_bushes[index] as Node3D) in wind_nodes)
+		var bush_material := seasonal_bush_materials[index] as StandardMaterial3D
+		assert(bush_material.resource_name == "SeasonalBushLeaves")
+		assert(bush_material.albedo_texture.resource_path == "res://assets/quaternius/nature/Leaves_TwistedTree_C_Muted.png")
+		assert(not bush_material.emission_enabled)
+		assert(bush_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR)
+		assert(bush_material.cull_mode == BaseMaterial3D.CULL_DISABLED)
+		if index > 0:
+			assert(bush_material != seasonal_bush_materials[0])
+	var source_bush_image := (load("res://assets/quaternius/nature/Leaves_TwistedTree_C.png") as Texture2D).get_image()
+	var muted_bush_image := (seasonal_bush_materials[0] as StandardMaterial3D).albedo_texture.get_image()
+	assert(muted_bush_image.get_size() == source_bush_image.get_size())
+	var source_bush_saturation := 0.0
+	var muted_bush_saturation := 0.0
+	var source_bush_value := 0.0
+	var muted_bush_value := 0.0
+	var bush_sample_count := 0
+	for y in range(0, source_bush_image.get_height(), 16):
+		for x in range(0, source_bush_image.get_width(), 16):
+			var source_pixel := source_bush_image.get_pixel(x, y)
+			if source_pixel.a < 0.5:
+				continue
+			var muted_pixel := muted_bush_image.get_pixel(x, y)
+			assert(absf(muted_pixel.a - source_pixel.a) < 0.02)
+			source_bush_saturation += source_pixel.s
+			muted_bush_saturation += muted_pixel.s
+			source_bush_value += source_pixel.v
+			muted_bush_value += muted_pixel.v
+			bush_sample_count += 1
+	assert(bush_sample_count > 1000)
+	var source_bush_average_saturation := source_bush_saturation / float(bush_sample_count)
+	var muted_bush_average_saturation := muted_bush_saturation / float(bush_sample_count)
+	var source_bush_average_value := source_bush_value / float(bush_sample_count)
+	var muted_bush_average_value := muted_bush_value / float(bush_sample_count)
+	assert(muted_bush_average_saturation < source_bush_average_saturation * 0.7)
+	assert(muted_bush_average_value > source_bush_average_value * 0.85)
+	assert(muted_bush_average_value < source_bush_average_value)
 	var pond_ripples: Array = main.get("pond_ripples")
 	assert(pond_ripples.size() == 2)
 	var mistcap_caps: Array = main.get("mistcap_caps")

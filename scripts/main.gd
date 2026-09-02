@@ -10,6 +10,7 @@ const PortalSurfaceShader = preload("res://shaders/portal_surface.gdshader")
 const MeadowGrassShader = preload("res://shaders/meadow_grass.gdshader")
 const MeadowGrassScene = preload("res://assets/quaternius/nature/Grass_Common_Tall.gltf")
 const MutedRoofTiles = preload("res://assets/quaternius/village/T_RoundTiles_BaseColor_Muted.png")
+const MutedBushLeaves = preload("res://assets/quaternius/nature/Leaves_TwistedTree_C_Muted.png")
 const DrifterCharacter = preload("res://scenes/player/drifter_visual.tscn")
 const MiraCharacter = preload("res://scenes/npc/mira_visual.tscn")
 const TorenCharacter = preload("res://scenes/npc/toren_visual.tscn")
@@ -55,6 +56,8 @@ var portal_time := 0.0
 var portal_center := Vector3.ZERO
 var portal_motes: Array[MeshInstance3D] = []
 var wind_nodes: Array[Node3D] = []
+var seasonal_bushes: Array[Node3D] = []
+var seasonal_bush_materials: Array[StandardMaterial3D] = []
 var portal_prompt: Label
 var portal_lore: Label
 var portal_nearby := false
@@ -190,7 +193,10 @@ func _process(delta: float) -> void:
 	for index in smoke_puffs.size():
 		var phase := fmod(portal_time * 0.12 + float(index % 3) * 0.34 + float(index / 3) * 0.13, 1.0)
 		var puff := smoke_puffs[index]
-		var drift_scale := smoke_drift_scales[index]
+		var is_hearth_smoke := index >= smoke_puffs.size() - 3
+		var rain_smoke_drift := lerpf(1.0, 1.1, weather_rain_amount) if is_hearth_smoke else 1.0
+		var rain_smoke_opacity := lerpf(1.0, 0.8, weather_rain_amount) if is_hearth_smoke else 1.0
+		var drift_scale := smoke_drift_scales[index] * rain_smoke_drift
 		puff.position = smoke_origins[index] + Vector3(
 			sin(portal_time * 0.52 + index) * 0.3 * drift_scale,
 			phase * 2.25,
@@ -198,19 +204,20 @@ func _process(delta: float) -> void:
 		)
 		puff.scale = Vector3.ONE * (0.42 + phase * 0.82) * smoke_size_scales[index]
 		var smoke_fade := 0.02 + pow(phase, 1.55) * 0.92
-		puff.transparency = clampf(1.0 - (1.0 - smoke_fade) * smoke_opacity_scales[index], 0.0, 1.0)
+		puff.transparency = clampf(1.0 - (1.0 - smoke_fade) * smoke_opacity_scales[index] * rain_smoke_opacity, 0.0, 1.0)
+	var rain_flame_scale := lerpf(1.0, 0.88, weather_rain_amount)
 	for index in hearth_flames.size():
 		var primary := sin(portal_time * (4.65 + float(index) * 0.55) + float(index) * 1.8)
 		var secondary := sin(portal_time * (7.2 + float(index) * 0.37) + float(index) * 0.9)
 		var flicker := primary * 0.72 + secondary * 0.28
 		var sway := sin(portal_time * (3.8 + float(index) * 0.33) + float(index) * 2.1)
 		var flame := hearth_flames[index]
-		flame.position = hearth_flame_origins[index] + Vector3(sway * 0.045, flicker * 0.075, secondary * 0.035)
-		flame.scale = Vector3(0.42 - flicker * 0.04, 0.78 + flicker * 0.1, 0.42 - flicker * 0.04)
+		flame.position = hearth_flame_origins[index] + Vector3(sway * 0.045, flicker * 0.075, secondary * 0.035) * rain_flame_scale
+		flame.scale = Vector3(0.42 - flicker * 0.04, (0.78 + flicker * 0.1) * rain_flame_scale, 0.42 - flicker * 0.04)
 	if hearth_light != null:
-		hearth_light.light_energy = (0.78 + sin(portal_time * 3.4) * 0.07 + sin(portal_time * 5.7 + 1.1) * 0.05) * lerpf(1.0, 1.8, night_focus)
-		hearth_ember_material.emission_energy_multiplier = 1.5 * lerpf(0.9, 1.35, night_focus)
-		hearth_flame_material.emission_energy_multiplier = 2.2 * lerpf(0.92, 1.32, night_focus)
+		hearth_light.light_energy = (0.78 + sin(portal_time * 3.4) * 0.07 + sin(portal_time * 5.7 + 1.1) * 0.05) * lerpf(1.0, 1.8, night_focus) * lerpf(1.0, 0.92, weather_rain_amount)
+		hearth_ember_material.emission_energy_multiplier = 1.5 * lerpf(0.9, 1.35, night_focus) * lerpf(1.0, 0.96, weather_rain_amount)
+		hearth_flame_material.emission_energy_multiplier = 2.2 * lerpf(0.92, 1.32, night_focus) * lerpf(1.0, 0.94, weather_rain_amount)
 	for window_glow in window_glows:
 		window_glow.light_energy = 0.14 * lerpf(0.68, 1.9, night_focus)
 	for glass_material in window_glass_materials:
@@ -1884,6 +1891,20 @@ func _add_fog_banks() -> void:
 
 func _add_nature(model: String, position: Vector3, rotation_y: float, scale: float, collision := true) -> void:
 	var instance := _add_model("res://assets/quaternius/nature/%s.gltf" % model, position, rotation_y, scale)
+	if instance != null and model == "Bush_Common":
+		instance.name = "SeasonalBush%d" % seasonal_bushes.size()
+		for mesh_node in instance.find_children("*", "MeshInstance3D", true, false):
+			var mesh_instance := mesh_node as MeshInstance3D
+			for surface_index in mesh_instance.mesh.get_surface_count():
+				var source_material := mesh_instance.mesh.surface_get_material(surface_index) as StandardMaterial3D
+				if source_material == null:
+					continue
+				var bush_material := source_material.duplicate() as StandardMaterial3D
+				bush_material.resource_name = "SeasonalBushLeaves"
+				bush_material.albedo_texture = MutedBushLeaves
+				mesh_instance.set_surface_override_material(surface_index, bush_material)
+				seasonal_bush_materials.append(bush_material)
+		seasonal_bushes.append(instance)
 	if instance != null and (model.begins_with("Bush") or model.begins_with("Fern") or model.begins_with("Grass")):
 		wind_nodes.append(instance)
 	if collision:

@@ -719,4 +719,43 @@
 - `tests/smoke_test.gd` 与 `tests/nia_routine_capture.gd`：覆盖日间、黄昏、夜间、雨天、交谈优先级及天气切换路线；四张证据 `4/4` 唯一哈希，21 机位 `21/21` 唯一哈希。
 - 验证：`SMOKE TEST PASSED`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED`、`git diff --check` 通过；只保留后台试玩 PID `19276`。
 - 三类终审：美术 `PASS 0/0/0`、生活气息 `PASS 0/0/0`、动效 `PASS 0/0/1`；P0/P1 清零，P2 仅为缺少完整回屋与清晨恢复录像。
-- Phase 55 后三类代理独立提名下一项，结果一致为 `P0=0、P1=0`，并建议停止继续堆改动；不创建 Phase 56，当前出生点场景进入稳定验收状态。
+- Phase 55 后三类代理独立提名下一项，结果一致为 `P0=0、P1=0`；当前阶段进入稳定验收状态，当时暂停自动扩展，但不永久冻结后续美术迭代。
+
+# 2026-09-02 Phase 56
+
+- 用户明确要求继续按现有美术风格迭代；开始审计非叙事植被的焦点层级。
+- 修正规划门禁：P0/P1 清零只代表当前阶段验收通过；用户要求继续时，允许从 P2 中选择一个符合规范、收益明确的独立精修项。
+- 已定位高饱和红叶来自普通 `Bush_Common` 的原始 `Leaves_TwistedTree` 材质；阶段范围锁定为材质收敛，不改草量、布局、动效和叙事光源。
+- `docs/art-direction.md` 升级到 0.3：取消高饱和对象绝对白名单，改为主焦点、次级环境点缀和大面积底色的层级规则；红叶保留与否改由实际构图审核决定。
+- 三类审核一致确认红叶为当前最高收益的单一 P2 精修，且没有更高收益的 P1；保留红叶季节性，只校准其注意力层级。
+- 新增 `Leaves_TwistedTree_C_Muted.png` 派生纹理；3 个 `Bush_Common` 使用各自材质副本，保持 Alpha scissor、双面、粗糙受光、无自发光和原 CPU 风摆。
+- `tests/smoke_test.gd` 新增实例数量、材质独立性、贴图路径、透明边缘、尺寸、饱和度和明度契约；第二版候选输出 `SMOKE TEST PASSED`。
+- `tests/seasonal_foliage_capture.gd` 固定种子、时刻和天气，完成晴天 A/B、日落与夜雨 4 张证据，`IMAGE_COUNT=4`、`UNIQUE_HASHES=4`。
+
+## 2026-09-02 Phase 56 完成
+
+- 21 机位隐藏扫查 `IMAGE_COUNT=21`、`UNIQUE_HASHES=21`；普通灌木统一调色，红叶乔木保持原季节锚点。
+- 完整验证：`SMOKE TEST PASSED`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED`、`git diff --check` 通过。
+- 最终证据归档为 `captures/phase56-foliage-*` 共 6 张，包含晴天风摆 A/B、日落、夜雨、村庄远景和季节锚点，`6/6` 唯一哈希。
+- 三类终审：美术 `PASS 0/0/0`、生活气息 `PASS 0/0/0`、动效 `PASS 0/0/0`；Phase 56 完成。
+
+# 2026-09-02 Phase 57
+
+- 用户确认旧高饱和绝对白名单不合理；`docs/art-direction.md` 0.3 的三级色彩层级继续作为唯一美术权威。
+- 开始评估轻雨下露天炉火的克制天气响应；范围锁定为复用现有雨量、炉火、烟雾和点光变量，不增加系统、不改天气日程或尼娅作息。
+- 已向美术、生活气息和场景动效三个现有专项代理发起只读优先级审核；动效审核先返回 `GO / P1=1`，确认晴雨完全一致是当前最小可信度缺口。
+- 三类代理均返回 `GO`；按共同建议在 `_process()` 内加入连续雨量倍率，没有新增 helper、状态机、随机源、素材或依赖。
+- `tests/smoke_test.gd` 已同步晴雨火焰、烟雾、点光、余烬/火焰发光与传送门独立性契约；新增 `tests/hearth_weather_capture.gd` 固定昼夜、天气、相位、角色和相机。
+- 首轮完整冒烟输出 `SMOKE TEST PASSED`；退出时仅有既有 Dummy 渲染资源清理提示。
+- 隐藏 Compatibility 专项捕获成功生成 5 张固定证据，`IMAGE_COUNT=5`、`UNIQUE_HASHES=5`；夜间晴/雨同相位人工对照确认炉火主焦点保持。
+- 人工复核发现首张昼晴图仍带开场地点标题；已在捕获脚本中显式隐藏 `Opening`，首轮图片不作为最终证据，准备同条件重录。
+- 隐藏重录再次得到 `5/5` 唯一哈希；昼间晴/雨、夜间晴/雨及夜雨 A/B 人工复核均通过，未见熄火、色相漂移、暖光范围回归或火焰静止。
+- 隐藏运行 21 机位全场景扫查成功，`IMAGE_COUNT=21`、`UNIQUE_HASHES=21`；人工抽查炉火近景和村庄远景通过。
+- 角色视觉回归通过：`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED`。
+
+## 2026-09-02 Phase 57 完成
+
+- 轻雨只连续调制露天炉火：满雨量火焰高度/位移 `0.88`、点光 `0.92`、火焰发光 `0.94`、余烬 `0.96`、炉火烟可见量 `0.80`、烟漂移 `1.10`；房屋炊烟、色相、光照范围、天气日程和尼娅作息不变。
+- 最终证据归档为 `captures/phase57-hearth-*` 共 5 张，固定昼夜、天气、`portal_time`、角色和镜头，`5/5` 唯一哈希。
+- 完整验证：`SMOKE TEST PASSED`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED`、21 机位 `21/21` 唯一哈希。
+- 三类终审：美术、生活气息、动效均为 `PASS 0/0/0`；Phase 57 完成。
