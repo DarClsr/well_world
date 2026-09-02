@@ -3,6 +3,11 @@
 config/name="异世界漫游记"
 run/main_scene="res://scenes/main.tscn"
 
+[autoload]
+
+EventBus="*res://scripts/core/event_bus.gd"
+GameState="*res://scripts/core/game_state.gd"
+
 [display]
 
 window/size/viewport_width=1280
