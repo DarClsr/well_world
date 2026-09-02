@@ -8,6 +8,7 @@ const HearthFire = preload("res://assets/audio/hearth_fire.ogg")
 const MistCurtainShader = preload("res://shaders/mist_curtain.gdshader")
 const PortalSurfaceShader = preload("res://shaders/portal_surface.gdshader")
 const MeadowGrassShader = preload("res://shaders/meadow_grass.gdshader")
+const TreeCanopyShader = preload("res://shaders/tree_canopy.gdshader")
 const MeadowGrassScene = preload("res://assets/quaternius/nature/Grass_Common_Tall.gltf")
 const MutedRoofTiles = preload("res://assets/quaternius/village/T_RoundTiles_BaseColor_Muted.png")
 const MutedBushLeaves = preload("res://assets/quaternius/nature/Leaves_TwistedTree_C_Muted.png")
@@ -22,6 +23,12 @@ const BUTTERFLY_SEED := 3131
 const FIREFLY_SEED := 6262
 const BUTTERFLY_COUNT := 7
 const FIREFLY_COUNT := 14
+const FALLING_LEAF_COUNT := 12
+const FALLING_LEAF_SEED := 20260903
+const FALLING_LEAF_CLUSTERS := [
+	Vector2(-17.0, -17.0), Vector2(18.0, 3.0),
+	Vector2(-16.0, 17.0), Vector2(8.0, 23.0),
+]
 const WEATHER_SEED := 20260902
 const WEATHER_TRANSITION_HOURS := 0.75
 const WEATHER_STATES := ["clear", "cloudy", "mist", "light_rain"]
@@ -122,8 +129,12 @@ var meadow_roads: Array = []
 var meadow_grass: MultiMeshInstance3D
 var butterflies: Node3D
 var fireflies: Node3D
+var falling_leaves: Node3D
 var butterfly_material: StandardMaterial3D
 var firefly_material: StandardMaterial3D
+var falling_leaf_materials: Array[StandardMaterial3D] = []
+var tree_canopies: Array[MeshInstance3D] = []
+var tree_canopy_materials: Array[ShaderMaterial] = []
 var fog_banks: Array[MeshInstance3D] = []
 var fog_bank_origins: Array[Vector3] = []
 var environment_settings: Environment
@@ -141,6 +152,7 @@ var weather_state := "clear"
 var weather_target_state := "clear"
 var weather_blend := 0.0
 var weather_rain_amount := 0.0
+var weather_wind_amount := 0.62
 var rain_field: Node3D
 var rain_streaks: Array[MeshInstance3D] = []
 var rain_params: Array[Dictionary] = []
@@ -197,6 +209,7 @@ func _process(delta: float) -> void:
 	_apply_time_of_day()
 	portal_time += delta
 	_animate_ecosystem()
+	_animate_tree_canopies()
 	_animate_weather()
 	portal_reaction_time = maxf(portal_reaction_time - delta * 1.5, 0.0)
 	var pulse: float = sin(portal_time * 2.2)
@@ -568,6 +581,7 @@ func _apply_time_of_day() -> void:
 	environment_settings.fog_density = (sample["fog_density"] as float) * (weather["fog_density"] as float)
 	environment_settings.background_color = (sample["bg_color"] as Color).lerp(weather["fog_tint"] as Color, weather["background_tint"] as float)
 	weather_rain_amount = weather["rain"] as float
+	weather_wind_amount = weather["wind"] as float
 
 
 func _sample_day(hour: float) -> Dictionary:
@@ -685,28 +699,28 @@ func _weather_profile(state: String) -> Dictionary:
 			return {
 				"sun_energy": 0.78, "sun_tint": 0.20, "ambient_energy": 1.02,
 				"ambient_tint": 0.16, "shadow": 0.78, "fog_density": 1.22,
-				"fog_color_mix": 0.18, "background_tint": 0.20, "rain": 0.0,
+				"fog_color_mix": 0.18, "background_tint": 0.20, "rain": 0.0, "wind": 0.86,
 				"tint": Color("b5c2c1"), "fog_tint": Color("899d9f"),
 			}
 		"mist":
 			return {
 				"sun_energy": 0.84, "sun_tint": 0.24, "ambient_energy": 1.04,
 				"ambient_tint": 0.20, "shadow": 0.66, "fog_density": 2.0,
-				"fog_color_mix": 0.34, "background_tint": 0.32, "rain": 0.0,
+				"fog_color_mix": 0.34, "background_tint": 0.32, "rain": 0.0, "wind": 0.48,
 				"tint": Color("b9c5bd"), "fog_tint": Color("94a8a3"),
 			}
 		"light_rain":
 			return {
 				"sun_energy": 0.66, "sun_tint": 0.30, "ambient_energy": 1.0,
 				"ambient_tint": 0.24, "shadow": 0.56, "fog_density": 1.48,
-				"fog_color_mix": 0.28, "background_tint": 0.30, "rain": 1.0,
+				"fog_color_mix": 0.28, "background_tint": 0.30, "rain": 1.0, "wind": 1.12,
 				"tint": Color("aab9bb"), "fog_tint": Color("778f95"),
 			}
 		_:
 			return {
 				"sun_energy": 1.0, "sun_tint": 0.0, "ambient_energy": 1.0,
 				"ambient_tint": 0.0, "shadow": 1.0, "fog_density": 1.0,
-				"fog_color_mix": 0.0, "background_tint": 0.0, "rain": 0.0,
+				"fog_color_mix": 0.0, "background_tint": 0.0, "rain": 0.0, "wind": 0.62,
 				"tint": Color.WHITE, "fog_tint": Color.WHITE,
 			}
 
@@ -722,6 +736,7 @@ func _blend_weather_profiles(from_profile: Dictionary, to_profile: Dictionary, b
 		"fog_color_mix": lerpf(from_profile["fog_color_mix"], to_profile["fog_color_mix"], blend),
 		"background_tint": lerpf(from_profile["background_tint"], to_profile["background_tint"], blend),
 		"rain": lerpf(from_profile["rain"], to_profile["rain"], blend),
+		"wind": lerpf(from_profile["wind"], to_profile["wind"], blend),
 		"tint": (from_profile["tint"] as Color).lerp(to_profile["tint"], blend),
 		"fog_tint": (from_profile["fog_tint"] as Color).lerp(to_profile["fog_tint"], blend),
 	}
@@ -797,6 +812,36 @@ func _animate_ecosystem() -> void:
 		)
 		var pulse := 0.72 + 0.24 * sin(portal_time * 2.0 + (params["phase"] as float) * 4.0)
 		fly.scale = Vector3.ONE * pulse
+	_animate_falling_leaves()
+
+
+func _animate_tree_canopies() -> void:
+	for material in tree_canopy_materials:
+		material.set_shader_parameter("motion_time", portal_time)
+		material.set_shader_parameter("wind_strength", weather_wind_amount)
+
+
+func _animate_falling_leaves() -> void:
+	if falling_leaves == null:
+		return
+	for leaf_node in falling_leaves.get_children():
+		var leaf := leaf_node as MeshInstance3D
+		var params: Dictionary = leaf.get_meta("params")
+		var cycle := fposmod(portal_time * (params["speed"] as float) + (params["offset"] as float), 1.0)
+		var phase := cycle * TAU + (params["phase"] as float)
+		var home: Vector2 = params["home"]
+		var drift := (params["drift"] as float) * weather_wind_amount
+		leaf.position = Vector3(
+			home.x + sin(phase * 1.35) * drift + cycle * weather_wind_amount * 0.32,
+			lerpf(params["height"] as float, 0.16, cycle),
+			home.y + cos(phase * 0.82) * drift * 0.55
+		)
+		leaf.rotation = Vector3(
+			0.22 + sin(phase * 1.7) * 0.42,
+			phase * (params["spin"] as float),
+			cos(phase * 1.15) * 0.32
+		)
+		leaf.transparency = 1.0 - sin(PI * cycle) * 0.90
 
 
 func _build_world() -> void:
@@ -944,6 +989,7 @@ func _build_world() -> void:
 	]
 	for tree in trees:
 		_add_nature(tree[0], tree[1], tree[2], tree[3])
+	_add_falling_leaves()
 
 	var undergrowth := [
 		["Bush_Common_Flowers", Vector3(-13, 0, -17), 0.3, 1.0],
@@ -1955,7 +2001,8 @@ func _add_boundary_scenery() -> void:
 		["Pine_2", Vector3(-14, 0, 27), 2.7, 1.1], ["CommonTree_1", Vector3(14, 0, 27), 1.2, 1.05],
 	]
 	for tree in trees:
-		_add_model("res://assets/quaternius/nature/%s.gltf" % tree[0], tree[1], tree[2], tree[3], boundary)
+		var instance := _add_model("res://assets/quaternius/nature/%s.gltf" % tree[0], tree[1], tree[2], tree[3], boundary)
+		_apply_tree_canopy_wind(instance)
 
 
 func _add_fog_banks() -> void:
@@ -2007,6 +2054,8 @@ func _add_fog_banks() -> void:
 
 func _add_nature(model: String, position: Vector3, rotation_y: float, scale: float, collision := true) -> void:
 	var instance := _add_model("res://assets/quaternius/nature/%s.gltf" % model, position, rotation_y, scale)
+	if instance != null and ("Tree" in model or model.begins_with("Pine")):
+		_apply_tree_canopy_wind(instance)
 	if instance != null and model == "Bush_Common":
 		instance.name = "SeasonalBush%d" % seasonal_bushes.size()
 		for mesh_node in instance.find_children("*", "MeshInstance3D", true, false):
@@ -2032,6 +2081,84 @@ func _add_nature(model: String, position: Vector3, rotation_y: float, scale: flo
 		trunk.use_collision = true
 		trunk.visible = false
 		add_child(trunk)
+
+
+func _apply_tree_canopy_wind(instance: Node3D) -> void:
+	if instance == null:
+		return
+	for mesh_node in instance.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := mesh_node as MeshInstance3D
+		for surface_index in mesh_instance.mesh.get_surface_count():
+			var source_material := mesh_instance.mesh.surface_get_material(surface_index) as StandardMaterial3D
+			if source_material == null or not source_material.resource_name.begins_with("Leaves_"):
+				continue
+			var arrays := mesh_instance.mesh.surface_get_arrays(surface_index)
+			var vertices := arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array
+			var canopy_min_y := INF
+			var canopy_max_y := -INF
+			for vertex in vertices:
+				canopy_min_y = minf(canopy_min_y, vertex.y)
+				canopy_max_y = maxf(canopy_max_y, vertex.y)
+			var material := ShaderMaterial.new()
+			material.resource_name = "Wind%s" % source_material.resource_name
+			material.shader = TreeCanopyShader
+			material.set_shader_parameter("albedo_tex", source_material.albedo_texture)
+			material.set_shader_parameter("canopy_min_y", canopy_min_y)
+			material.set_shader_parameter("canopy_max_y", canopy_max_y)
+			material.set_shader_parameter("wind_strength", weather_wind_amount)
+			material.set_shader_parameter("motion_time", portal_time)
+			mesh_instance.set_surface_override_material(surface_index, material)
+			tree_canopies.append(mesh_instance)
+			tree_canopy_materials.append(material)
+
+
+func _add_falling_leaves() -> void:
+	falling_leaves = Node3D.new()
+	falling_leaves.name = "FallingLeaves"
+	falling_leaves.set_meta("seed", FALLING_LEAF_SEED)
+	falling_leaves.set_meta("clusters", FALLING_LEAF_CLUSTERS)
+	add_child(falling_leaves)
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = PackedVector3Array([
+		Vector3(-0.14, 0.0, -0.01), Vector3(-0.025, 0.025, -0.075),
+		Vector3(0.16, 0.0, 0.02), Vector3(-0.03, -0.018, 0.07),
+	])
+	arrays[Mesh.ARRAY_NORMAL] = PackedVector3Array([Vector3.UP, Vector3.UP, Vector3.UP, Vector3.UP])
+	arrays[Mesh.ARRAY_INDEX] = PackedInt32Array([0, 1, 2, 0, 2, 3])
+	var leaf_mesh := ArrayMesh.new()
+	leaf_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	for color in [Color("88758e"), Color("ad925e"), Color("70948c")]:
+		var material := _material(color, 0.94)
+		material.resource_name = "OtherworldLeaf"
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.cull_mode = BaseMaterial3D.CULL_DISABLED
+		material.emission_enabled = true
+		material.emission = color.lerp(Color("6eaaa0"), 0.22)
+		material.emission_energy_multiplier = 0.08
+		falling_leaf_materials.append(material)
+	var random := RandomNumberGenerator.new()
+	random.seed = FALLING_LEAF_SEED
+	for index in FALLING_LEAF_COUNT:
+		var cluster: Vector2 = FALLING_LEAF_CLUSTERS[index % FALLING_LEAF_CLUSTERS.size()]
+		var angle := random.randf_range(0.0, TAU)
+		var radius := random.randf_range(1.8, 3.0)
+		var leaf := MeshInstance3D.new()
+		leaf.name = "OtherworldLeaf%02d" % index
+		leaf.mesh = leaf_mesh
+		leaf.material_override = falling_leaf_materials[index % falling_leaf_materials.size()]
+		leaf.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		leaf.set_meta("params", {
+			"home": cluster + Vector2(cos(angle), sin(angle)) * radius,
+			"height": random.randf_range(4.2, 6.8),
+			"speed": random.randf_range(0.075, 0.115),
+			"offset": random.randf(),
+			"phase": random.randf_range(0.0, TAU),
+			"drift": random.randf_range(0.28, 0.62),
+			"spin": random.randf_range(0.75, 1.35),
+		})
+		falling_leaves.add_child(leaf)
+	_animate_falling_leaves()
 
 
 func _add_ruin(position: Vector3) -> void:

@@ -974,6 +974,63 @@ func _initialize() -> void:
 	assert(lore != null)
 	var wind_nodes: Array = main.get("wind_nodes")
 	assert(wind_nodes.size() >= 15)
+	var tree_canopies: Array = main.get("tree_canopies")
+	var tree_canopy_materials: Array = main.get("tree_canopy_materials")
+	assert(tree_canopies.size() == 16 and tree_canopy_materials.size() == 16)
+	for canopy_index in tree_canopies.size():
+		var canopy := tree_canopies[canopy_index] as MeshInstance3D
+		var canopy_material := tree_canopy_materials[canopy_index] as ShaderMaterial
+		assert(canopy != null and canopy_material.shader.resource_path == "res://shaders/tree_canopy.gdshader")
+		assert((canopy_material.get_shader_parameter("albedo_tex") as Texture2D).resource_path.contains("nature"))
+		assert((canopy_material.get_shader_parameter("canopy_max_y") as float) > (canopy_material.get_shader_parameter("canopy_min_y") as float))
+		assert(is_equal_approx(canopy_material.get_shader_parameter("wind_strength"), 0.62))
+	var tree_shader_code := (tree_canopy_materials[0] as ShaderMaterial).shader.code
+	assert("MODEL_MATRIX[3].xyz" in tree_shader_code)
+	assert("motion_time" in tree_shader_code and "wind_strength" in tree_shader_code)
+	assert("height_ratio * height_ratio" in tree_shader_code)
+	assert("smoothstep(20.0, 42.0, camera_distance)" in tree_shader_code)
+	assert("ALPHA_SCISSOR_THRESHOLD = 0.2" in tree_shader_code)
+	var falling_leaves := main.get_node_or_null("FallingLeaves") as Node3D
+	assert(falling_leaves != null and falling_leaves.get_child_count() == 12)
+	assert(falling_leaves.get_meta("seed") == 20260903)
+	var leaf_clusters: Array = falling_leaves.get_meta("clusters")
+	assert(leaf_clusters.size() == 4)
+	for cluster in leaf_clusters:
+		assert(absf((cluster as Vector2).x) >= 8.0)
+	var falling_leaf_materials: Array = main.get("falling_leaf_materials")
+	assert(falling_leaf_materials.size() == 3)
+	for leaf_material in falling_leaf_materials:
+		assert((leaf_material as StandardMaterial3D).resource_name == "OtherworldLeaf")
+		assert((leaf_material as StandardMaterial3D).emission_energy_multiplier <= 0.08)
+	var first_leaf := falling_leaves.get_child(0) as MeshInstance3D
+	assert(first_leaf.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+	var leaf_vertices := first_leaf.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
+	assert(leaf_vertices.size() == 4)
+	assert(leaf_vertices[2].x - leaf_vertices[0].x >= 0.299)
+	assert(leaf_vertices[3].z - leaf_vertices[1].z >= 0.144)
+	assert(leaf_vertices[1].y > 0.0 and leaf_vertices[3].y < 0.0)
+	for leaf_index in falling_leaves.get_child_count():
+		var leaf_params: Dictionary = (falling_leaves.get_child(leaf_index) as MeshInstance3D).get_meta("params")
+		var cluster: Vector2 = leaf_clusters[leaf_index % leaf_clusters.size()]
+		var edge_distance := (leaf_params["home"] as Vector2).distance_to(cluster)
+		assert(edge_distance >= 1.79 and edge_distance <= 3.01)
+	var leaf_start_position := first_leaf.position
+	main.set("portal_time", 1.0)
+	main.call("_animate_falling_leaves")
+	assert(first_leaf.position.distance_to(leaf_start_position) > 0.01)
+	var clear_leaf_position := first_leaf.position
+	main.set("weather_override", "light_rain")
+	main.call("_apply_time_of_day")
+	main.call("_animate_falling_leaves")
+	assert(main.get("weather_wind_amount") > 1.0)
+	assert(first_leaf.position.distance_to(clear_leaf_position) > 0.01)
+	main.call("_animate_tree_canopies")
+	assert(is_equal_approx((tree_canopy_materials[0] as ShaderMaterial).get_shader_parameter("wind_strength"), 1.12))
+	main.set("weather_override", "clear")
+	main.set("portal_time", 0.0)
+	main.call("_apply_time_of_day")
+	main.call("_animate_tree_canopies")
+	main.call("_animate_falling_leaves")
 	var seasonal_bushes: Array = main.get("seasonal_bushes")
 	var seasonal_bush_materials: Array = main.get("seasonal_bush_materials")
 	assert(seasonal_bushes.size() == 3)

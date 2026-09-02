@@ -918,3 +918,25 @@
 - 最终门禁通过 `SMOKE TEST PASSED`、`TOREN WATCH TEST PASSED transitions=3`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED` 与 `git diff --check`。
 - 最终动态证据为 `1280x720`、30fps、1107 帧、36.9 秒；三张职责停留帧和九格联系表已归档到 `captures/phase65-toren-watch-*`。
 - 21 机位为 `21/21` 唯一哈希，美术、生活气息和动效终审全部 `PASS 0/0/0`。
+
+# 2026-09-02 Phase 66
+
+- Phase 65 已提交并推送为 `a5400bd`，远端、跟踪引用与本地完全一致；新版试玩以 PID `55288` 静默后台启动。
+- 按 `game-assets` 路由复核，3D 树冠顶点动效与粒子落叶不需要生成式媒体；选择复用现有 Quaternius 叶片贴图与 Godot 原生网格。
+- 结构化检查四类树 glTF：树皮与叶片为独立 surface，叶片名均以 `Leaves_` 开头；可只为叶片挂 Shader，树干保持原材质和完全静止。
+- 确认村内与边界树由两个调用点创建；将复用一个叶片 surface 助手覆盖全部 16 棵树，不将整树塞入现有 CPU 旋转数组。
+- 树冠动效沿用草甸已验证的世界位置错相、双波与距离衰减；落叶改为复用现有生态系统的固定种子 CPU 网格动画，不引入新随机系统或媒体资产。
+- 天气 profile 可直接增加一个可插值 `wind` 数值，与现有晴、阴、雾、小雨过渡同步，不新建天气框架。
+- 首轮完整冒烟输出 `SMOKE TEST PASSED`；树冠 Shader、天气风强、16 棵树与 12 片固定种子落叶的契约全部通过。
+- 新增 `tests/tree_motion_capture.gd`，固定昼间与晴/雨天气，从同一阔叶树簇机位连续推进 6 秒并保存三个定点帧，直接断言树节点变换稳定与全部落叶持续移动；后续用 MovieWriter 录完整运动而非仅比较静帧。
+- 首轮连续 Compatibility 录像为 `1280x720`、30fps、211 帧、7.03 秒；树冠轻摆和稳定树干成立，但联系表中落叶几乎不可读，阶段未通过。保持 12 片总量不变，只将叶片调为更清楚的非共面异界轮廓并略提反光后重测。
+- 第二轮录像仍不可读；专项遥测确认叶片在低空时不透明度足够，根因是全部位于树冠投影内。固定种子生成改为距树心 `1.8-3.0m` 的冠缘环带，总数、树簇和下落节奏不变。
+- 第三轮 Compatibility 录像为 `1280x720`、30fps、211 帧、7.03 秒；冠缘环带使每帧仅 1-2 片异界叶片可读，树冠低幅摆动与稳定树干同时成立，最终动态证据已归档为 `captures/phase66-tree-motion-*`。
+- 改后 21 机位输出 `IMAGE_COUNT=21`、`UNIQUE_HASHES=21`；村庄、炉火、药圃与四角树群抽查通过，代表性全景归档为 `captures/phase66-scene-*`。
+- 最终自动门禁通过 `SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`、`KAYKIT NPC VISUAL TEST PASSED`、`DRIFTER VISUAL TEST PASSED` 与 `git diff --check`；等待三类代理终审。
+
+## 2026-09-02 Phase 66 完成
+
+- 16 棵树只为叶片 surface 挂树冠 Shader，树干保持原材质与稳定变换；晴、阴、雾、小雨风强通过既有天气 profile 连续插值。
+- 12 片固定种子落叶分布在四个外围阔叶树簇的冠缘环带，使用非共面灰紫/旧金/冷青叶形；每帧通常只读出 1-2 片，不形成普通秋季落叶雨。
+- 最终自动门禁、7.03 秒 Compatibility 动态证据、21 机位 `21/21` 唯一哈希全部通过；美术、生活气息与动效终审均为 `PASS 0/0/0`。
