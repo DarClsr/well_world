@@ -30,6 +30,18 @@ const ROOF_FADE_EXIT_PLAYER_DISTANCE := 6.3
 const ROOF_FADE_ENTER_VIEW_DISTANCE := 3.0
 const ROOF_FADE_EXIT_VIEW_DISTANCE := 3.6
 const ROOF_FADE_EXIT_PROJECTION_MARGIN := 0.05
+const TOREN_WATCH_ROUTE := [
+	Vector3(3.0, 0.0, -15.2),
+	Vector3(2.7, 0.0, -19.2),
+	Vector3(4.6, 0.0, -13.3),
+]
+const TOREN_WATCH_TARGETS := [
+	Vector3(-1.5, 0.0, -15.0),
+	Vector3(0.4, 0.0, -25.0),
+	Vector3(0.0, 0.0, -7.0),
+]
+const TOREN_WATCH_PAUSES := [4.8, 6.1, 3.7]
+const TOREN_WATCH_SPEED := 0.52
 const NIA_HEARTH_ROUTE := [
 	Vector3(-4.0, 0.0, 5.5), Vector3(-2.0, 0.0, 2.0), Vector3(1.0, 0.0, -1.0),
 	Vector3(3.5, 0.0, -3.5), Vector3(5.6, 0.0, -4.2),
@@ -95,6 +107,7 @@ var villager_patrol_axes: Array[Vector3] = []
 var villager_patrol_directions: Array[float] = []
 var villager_patrol_pauses: Array[float] = []
 var villager_animations: Array[AnimationPlayer] = []
+var toren_watch_index := 0
 var nia_routine := "work"
 var nia_route_index := 0
 var nearby_villager: CharacterBody3D
@@ -304,6 +317,9 @@ func _process(delta: float) -> void:
 		elif index == 0 and villager_patrol_pauses[index] > 0.0 and villager_patrol_directions[index] < 0.0:
 			var look_direction := HERB_PLOT_POSITION - villagers[index].global_position
 			target_yaw = atan2(look_direction.x, look_direction.z)
+		elif index == 1 and villager_patrol_pauses[index] > 0.0:
+			var look_direction: Vector3 = TOREN_WATCH_TARGETS[toren_watch_index] - villagers[index].global_position
+			target_yaw = atan2(look_direction.x, look_direction.z)
 		elif Vector2(villagers[index].velocity.x, villagers[index].velocity.z).length_squared() > 0.001:
 			target_yaw = atan2(villagers[index].velocity.x, villagers[index].velocity.z)
 		elif index == 2 and nia_routine == "hearth":
@@ -326,6 +342,8 @@ func _physics_process(delta: float) -> void:
 				animation_player.play("Idle", 0.2)
 		elif index == 2 and _update_nia_routine(villager, animation_player):
 			pass
+		elif index == 1:
+			_update_toren_watch(villager, animation_player, delta)
 		elif villager_patrol_pauses[index] > 0.0:
 			villager_patrol_pauses[index] = maxf(villager_patrol_pauses[index] - delta, 0.0)
 			villager.velocity.x = 0.0
@@ -335,14 +353,11 @@ func _physics_process(delta: float) -> void:
 				animation_player.play(pause_animation, 0.2)
 		else:
 			var patrol_offset := (villager.position - villager_patrol_origins[index]).dot(villager_patrol_axes[index])
-			var patrol_range := 0.65 if index == 1 else 1.2
+			var patrol_range := 1.2
 			if patrol_offset * villager_patrol_directions[index] >= patrol_range:
 				villager_patrol_directions[index] *= -1.0
 				var pause_animation := "PickUp" if index == 0 and villager_patrol_directions[index] < 0.0 else "Idle"
-				if index == 1:
-					villager_patrol_pauses[index] = 6.0 if villager_patrol_directions[index] < 0.0 else 4.2
-				else:
-					villager_patrol_pauses[index] = 1.2 + float(index) * 0.3
+				villager_patrol_pauses[index] = 1.2 + float(index) * 0.3
 				if pause_animation == "PickUp":
 					villager_patrol_pauses[index] = maxf(villager_patrol_pauses[index], animation_player.get_animation("PickUp").length + 0.1)
 				villager.velocity.x = 0.0
@@ -350,14 +365,41 @@ func _physics_process(delta: float) -> void:
 				if animation_player.assigned_animation != pause_animation:
 					animation_player.play(pause_animation, 0.2)
 			else:
-				var patrol_speed := 0.45 if index == 1 else 0.65
-				var patrol_velocity := villager_patrol_axes[index] * villager_patrol_directions[index] * patrol_speed
+				var patrol_velocity := villager_patrol_axes[index] * villager_patrol_directions[index] * 0.65
 				villager.velocity.x = patrol_velocity.x
 				villager.velocity.z = patrol_velocity.z
 				if animation_player.assigned_animation != "Walk":
 					animation_player.play("Walk", 0.2)
 		villager.velocity.y = -1.0
 		villager.move_and_slide()
+
+
+func _update_toren_watch(toren: CharacterBody3D, animation_player: AnimationPlayer, delta: float) -> void:
+	if villager_patrol_pauses[1] > 0.0:
+		villager_patrol_pauses[1] = maxf(villager_patrol_pauses[1] - delta, 0.0)
+		toren.velocity.x = 0.0
+		toren.velocity.z = 0.0
+		if animation_player.assigned_animation != "Idle":
+			animation_player.play("Idle", 0.2)
+		return
+	var next_index := (toren_watch_index + 1) % TOREN_WATCH_ROUTE.size()
+	var offset: Vector3 = TOREN_WATCH_ROUTE[next_index] - toren.position
+	offset.y = 0.0
+	if offset.length() <= 0.08:
+		toren.position.x = TOREN_WATCH_ROUTE[next_index].x
+		toren.position.z = TOREN_WATCH_ROUTE[next_index].z
+		toren_watch_index = next_index
+		villager_patrol_pauses[1] = TOREN_WATCH_PAUSES[next_index]
+		toren.velocity.x = 0.0
+		toren.velocity.z = 0.0
+		if animation_player.assigned_animation != "Idle":
+			animation_player.play("Idle", 0.2)
+		return
+	var patrol_velocity: Vector3 = offset.normalized() * TOREN_WATCH_SPEED
+	toren.velocity.x = patrol_velocity.x
+	toren.velocity.z = patrol_velocity.z
+	if animation_player.assigned_animation != "Walk":
+		animation_player.play("Walk", 0.2)
 
 
 func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer) -> bool:

@@ -1091,29 +1091,64 @@ func _initialize() -> void:
 		assert(is_equal_approx((patrol_axis as Vector3).length(), 1.0))
 	assert(main.get("villager_patrol_directions").size() == 3)
 	assert(main.get("villager_patrol_pauses").size() == 3)
+	var main_constants := (main.get_script() as Script).get_script_constant_map()
+	var toren_route: Array = main_constants["TOREN_WATCH_ROUTE"]
+	var toren_targets: Array = main_constants["TOREN_WATCH_TARGETS"]
+	var toren_pauses: Array = main_constants["TOREN_WATCH_PAUSES"]
+	assert(toren_route.size() == 3 and toren_targets.size() == 3 and toren_pauses.size() == 3)
+	assert((toren_route[0] as Vector3).is_equal_approx(Vector3(3.0, 0.0, -15.2)))
+	var toren_first_leg := (toren_route[1] as Vector3) - (toren_route[0] as Vector3)
+	var toren_second_leg := (toren_route[2] as Vector3) - (toren_route[0] as Vector3)
+	assert(absf(toren_first_leg.x * toren_second_leg.z - toren_first_leg.z * toren_second_leg.x) > 0.5)
+	assert(not is_equal_approx(toren_pauses[0], toren_pauses[1]))
+	assert(not is_equal_approx(toren_pauses[1], toren_pauses[2]))
+	assert(is_equal_approx(main_constants["TOREN_WATCH_SPEED"], 0.52))
 	var toren_origin := main.get("villager_patrol_origins")[1] as Vector3
 	assert(toren_origin.is_equal_approx(Vector3(3.0, 0.0, -15.2)))
 	var toren := main.get_node("GatekeeperToren") as CharacterBody3D
 	assert(toren.position.distance_to(toren_origin) < 0.1)
 	assert(main.get("villager_animations").size() == 3)
 	player.position = Vector3(0.0, 1.0, 30.0)
-	toren.position = toren_origin
-	main.get("villager_patrol_directions")[1] = 1.0
+	toren.position = toren_route[0]
+	main.set("toren_watch_index", 0)
 	main.get("villager_patrol_pauses")[1] = 0.0
 	main.call("_physics_process", 1.0 / 60.0)
-	assert(is_equal_approx(Vector2(toren.velocity.x, toren.velocity.z).length(), 0.45))
-	var toren_axis := main.get("villager_patrol_axes")[1] as Vector3
-	toren.position = toren_origin + toren_axis * 0.66
-	main.get("villager_patrol_directions")[1] = 1.0
+	assert(is_equal_approx(Vector2(toren.velocity.x, toren.velocity.z).length(), 0.52))
+	var first_watch_direction := Vector2(toren_first_leg.x, toren_first_leg.z).normalized()
+	assert(Vector2(toren.velocity.x, toren.velocity.z).normalized().dot(first_watch_direction) > 0.999)
+	var toren_animation := main.get("villager_animations")[1] as AnimationPlayer
+	assert(toren_animation.assigned_animation == "Walk")
+	toren.position = (toren_route[1] as Vector3) - toren_first_leg.normalized() * 0.04
 	main.call("_physics_process", 1.0 / 60.0)
-	assert(main.get("villager_patrol_directions")[1] < 0.0)
-	assert(main.get("villager_patrol_pauses")[1] > 5.9)
-	toren.position = toren_origin - toren_axis * 0.66
-	main.get("villager_patrol_directions")[1] = -1.0
+	assert(main.get("toren_watch_index") == 1)
+	assert(Vector2(toren.position.x, toren.position.z).is_equal_approx(Vector2((toren_route[1] as Vector3).x, (toren_route[1] as Vector3).z)))
+	assert(is_equal_approx(main.get("villager_patrol_pauses")[1], toren_pauses[1]))
+	assert(toren_animation.assigned_animation == "Idle")
+	main.call("_process", 1.0)
+	var watch_direction := (toren_targets[1] as Vector3) - toren.global_position
+	var toren_visual := toren.get_node("Visual") as Node3D
+	var watch_angle_error := absf(angle_difference(toren_visual.rotation.y, atan2(watch_direction.x, watch_direction.z)))
+	assert(watch_angle_error < 0.001, "Toren watch angle error %.4f, current %.4f" % [watch_angle_error, toren_visual.rotation.y])
 	main.get("villager_patrol_pauses")[1] = 0.0
 	main.call("_physics_process", 1.0 / 60.0)
-	assert(main.get("villager_patrol_directions")[1] > 0.0)
-	assert(main.get("villager_patrol_pauses")[1] > 4.1 and main.get("villager_patrol_pauses")[1] < 4.3)
+	var second_route_leg := (toren_route[2] as Vector3) - (toren_route[1] as Vector3)
+	assert(Vector2(toren.velocity.x, toren.velocity.z).normalized().dot(Vector2(second_route_leg.x, second_route_leg.z).normalized()) > 0.999)
+	assert(toren_animation.assigned_animation == "Walk")
+	var toren_talk_position := Vector2(toren.position.x, toren.position.z)
+	player.position = toren.position + Vector3(0.0, 1.0, 2.0)
+	main.call("_process", 0.0)
+	assert(main.get("nearby_villager") == toren)
+	main.call("_physics_process", 1.0)
+	assert(Vector2(toren.position.x, toren.position.z).distance_to(toren_talk_position) < 0.001)
+	assert(main.get("toren_watch_index") == 1 and is_zero_approx(main.get("villager_patrol_pauses")[1]))
+	assert(toren_animation.assigned_animation == "Idle")
+	player.position = Vector3(0.0, 1.0, 30.0)
+	main.call("_process", 0.0)
+	toren.position = toren_route[0]
+	toren.velocity = Vector3.ZERO
+	main.set("toren_watch_index", 0)
+	main.get("villager_patrol_pauses")[1] = 2.8
+	toren_animation.play("Idle")
 	var patrol_npc := main.get_node("HerbalistMira") as CharacterBody3D
 	patrol_npc.position = main.get("villager_patrol_origins")[0]
 	main.get("villager_patrol_directions")[0] = 1.0
