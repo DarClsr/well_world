@@ -989,7 +989,7 @@ func _firefly_alpha(hour: float) -> float:
 func _animate_ecosystem() -> void:
 	if butterflies == null or fireflies == null:
 		return
-	var butterfly_alpha := _butterfly_alpha(time_hour)
+	var butterfly_alpha := _butterfly_alpha(time_hour) * (1.0 - clampf(weather_rain_amount, 0.0, 1.0))
 	butterflies.visible = butterfly_alpha > 0.01
 	butterfly_material.albedo_color = Color(0.95, 0.91, 0.78, butterfly_alpha)
 	for fly in butterflies.get_children():

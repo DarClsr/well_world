@@ -1129,3 +1129,20 @@
 - `SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`；晴天与正确重录的小雨扫查均为 `21/21` 唯一哈希。
 - 同机位晴雨 A/B 与雨天连续帧确认灰粉酒红不再抢占主焦点，且无透明白边、跳闪或树干漂移；美术、生活气息、场景动效终审均 `PASS 0/0/0`。
 - 最终证据归档为 `captures/phase82-pond-fork-clear.png`、`phase82-pond-close-clear.png`、`phase82-pond-fork-rain.png` 与 `phase82-pond-close-rain.png`。
+
+# 2026-09-03 Phase 83 开始
+
+- 下一处独立缺口为白昼蝴蝶不响应小雨；实现范围锁定为复用现有天气雨量平滑衰减蝴蝶 Alpha。
+- 不改生态数量、路径、扑翼、活动时段或萤火虫，不增加天气与生态框架。
+- 已确认天气控制器会连续插值 `rain`，完整小雨值为 `1.0`；生产改动可收敛为蝴蝶最终 Alpha 的单次乘法。
+- 已实现雨量乘法并扩展生态捕获；`SMOKE TEST PASSED`、`FOG VALLEY REFACTOR BASELINE PASSED`、`git diff --check` 通过。
+- 隐藏生态捕获生成 8 张不同哈希画面；晴天 A/B 保留蝴蝶游走，小雨 A/B 中蝴蝶完全淡出且其他场景动效正常。
+- 晴天与小雨 21 机位均完成并为 `21/21` 唯一哈希，文件时间全部属于本轮录制。
+
+# 2026-09-03 Phase 83 完成
+
+- 白昼蝴蝶最终 Alpha 接入 `1.0 - weather_rain_amount`；晴天保留原时段曲线，半雨量为 `0.5`，完整小雨淡出为 `0.0`。
+- 7 只蝴蝶的固定种子、路径、扑翼和活动范围未变，雨中仍更新相位；萤火虫及其他环境动效未改。
+- `SMOKE TEST PASSED`、`FOG VALLEY REFACTOR BASELINE PASSED`；晴天/小雨生态 A/B 共 8 张不同哈希，两套全景扫查均 `21/21` 唯一哈希，三类终审均 `PASS 0/0/0`。
+- 最终证据归档为 `captures/phase83-butterflies-clear-a.png`、`phase83-butterflies-clear-b.png`、`phase83-butterflies-rain-a.png` 与 `phase83-butterflies-rain-b.png`。
+- 最终树冠与落叶回归再次输出 `TREE MOTION TEST PASSED canopies=16 leaves=12`；`git diff --check` 通过，后台 Godot 进程仍正常响应。

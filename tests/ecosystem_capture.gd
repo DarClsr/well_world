@@ -5,6 +5,8 @@ const SHOTS := [
 	["day-west-a", 12.0, Vector3(-4.2, 1.0, -14.2), 10.0, 0.0],
 	["day-west-b", 12.0, Vector3(-4.2, 1.0, -14.2), 10.0, 1.0],
 	["day-east", 12.0, Vector3(4.8, 1.0, -12.8), 10.0, 0.0],
+	["day-rain-a", 12.0, Vector3(-4.2, 1.0, -14.2), 10.0, 0.0],
+	["day-rain-b", 12.0, Vector3(-4.2, 1.0, -14.2), 10.0, 1.0],
 	["night-west-a", 22.0, Vector3(-14.0, 1.0, -2.0), 10.0, 0.0],
 	["night-west-b", 22.0, Vector3(-14.0, 1.0, -2.0), 10.0, 1.0],
 	["night-east", 22.0, Vector3(14.0, 1.0, 2.5), 10.0, 0.0],
@@ -32,6 +34,7 @@ func _record() -> void:
 	var camera_rig := player.get_node("CameraRig") as Node3D
 	for shot in SHOTS:
 		main.set("time_hour", shot[1])
+		main.set("weather_override", "light_rain" if "rain" in (shot[0] as String) else "clear")
 		player.position = shot[2]
 		player.camera_yaw = PI if (shot[0] as String).begins_with("night") else 0.0
 		player.camera_target_height = shot[3]
