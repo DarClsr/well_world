@@ -31,6 +31,7 @@ const MIRA_HERB_PAUSES := [1.8, 1.0, 4.6, 3.8]
 const MIRA_HERB_SPEED := 0.46
 const MIRA_RAIN_SHELTER_APPROACH := Vector3(-11.72, 0.0, -5.86)
 const MIRA_RAIN_SHELTER := Vector3(-8.98, 0.0, -6.38)
+const MIRA_HOME_LOOK_TARGET := Vector3(-9.05, 0.0, -6.87)
 const MIRA_RAIN_SHELTER_SPEED := 0.52
 const DAY_DURATION_SECONDS := 1800.0
 const BUTTERFLY_SEED := 3131
@@ -161,6 +162,7 @@ var villager_animations: Array[AnimationPlayer] = []
 var mira_route_index := 0
 var mira_rain_shelter_active := false
 var mira_rain_shelter_leg := 0
+var mira_routine := "work"
 var toren_watch_index := 0
 var nia_routine := "work"
 var nia_route_index := 0
@@ -423,6 +425,9 @@ func _runtime_tick(delta: float) -> void:
 			var mira_target_index := clampi(mira_route_index, 0, MIRA_HERB_TARGETS.size() - 1)
 			var look_direction: Vector3 = MIRA_HERB_TARGETS[mira_target_index] - villagers[index].global_position
 			target_yaw = atan2(look_direction.x, look_direction.z)
+		elif index == 0 and mira_routine in ["rain_shelter", "evening_shelter"]:
+			var look_direction := MIRA_HOME_LOOK_TARGET - villagers[index].global_position
+			target_yaw = atan2(look_direction.x, look_direction.z)
 		elif index == 1 and villager_patrol_pauses[index] > 0.0:
 			var look_direction: Vector3 = TOREN_WATCH_TARGETS[toren_watch_index] - villagers[index].global_position
 			target_yaw = atan2(look_direction.x, look_direction.z)
@@ -488,40 +493,108 @@ func _physics_process(delta: float) -> void:
 				villager.velocity.z = patrol_velocity.z
 				if animation_player.assigned_animation != "Walk":
 					animation_player.play("Walk", 0.2)
+		if not villager.visible:
+			villager.velocity = Vector3.ZERO
+			continue
 		villager.velocity.y = -1.0
 		villager.move_and_slide()
 
 
 func _update_mira_herb_route(mira: CharacterBody3D, animation_player: AnimationPlayer, delta: float) -> void:
-	if weather_rain_amount > 0.2:
-		mira_rain_shelter_active = true
-		var shelter_target := MIRA_RAIN_SHELTER_APPROACH if mira_rain_shelter_leg == 0 else MIRA_RAIN_SHELTER
-		var shelter_offset := shelter_target - mira.position
-		shelter_offset.y = 0.0
-		if shelter_offset.length() <= 0.08:
-			mira.position.x = shelter_target.x
-			mira.position.z = shelter_target.z
+	var hour := fposmod(time_hour, 24.0)
+	var night := hour >= 22.5 or hour < 6.5
+	var evening := hour >= 18.5 and hour < 22.5
+	var raining := weather_rain_amount > 0.2
+	if evening and mira_routine == "work" and villager_patrol_pauses[0] > 0.0 and animation_player.assigned_animation == "PickUp":
+		villager_patrol_pauses[0] = maxf(villager_patrol_pauses[0] - delta, 0.0)
+		mira.velocity.x = 0.0
+		mira.velocity.z = 0.0
+		if villager_patrol_pauses[0] <= 0.0:
+			animation_player.play("Idle", 0.2)
+		return
+	if night:
+		if mira_routine == "home":
 			mira.velocity.x = 0.0
 			mira.velocity.z = 0.0
-			if mira_rain_shelter_leg == 0:
-				mira_rain_shelter_leg = 1
-				if animation_player.assigned_animation != "Walk":
-					animation_player.play("Walk", 0.2)
-				return
+			return
+		if mira_routine in ["rain_shelter", "evening_shelter"] and mira.position.distance_to(MIRA_RAIN_SHELTER) <= 0.12:
+			mira_routine = "home"
+			mira.visible = false
+			mira.collision_layer = 0
+			mira.collision_mask = 0
+			mira.velocity = Vector3.ZERO
 			if animation_player.assigned_animation != "Idle":
 				animation_player.play("Idle", 0.2)
 			return
-		var shelter_velocity := shelter_offset.normalized() * MIRA_RAIN_SHELTER_SPEED
-		mira.velocity.x = shelter_velocity.x
-		mira.velocity.z = shelter_velocity.z
-		if animation_player.assigned_animation != "Walk":
-			animation_player.play("Walk", 0.2)
-		return
-	if mira_rain_shelter_active:
-		mira_rain_shelter_active = false
-		mira_rain_shelter_leg = 0
-		mira_route_index = 0
+		if mira_routine == "returning":
+			mira_rain_shelter_leg = mini(mira_rain_shelter_leg + 1, 2)
+		elif mira_routine != "homeward":
+			mira_rain_shelter_leg = 2 if mira_routine in ["rain_shelter", "evening_shelter"] else 0
+		mira_routine = "homeward"
+		mira_rain_shelter_active = true
 		villager_patrol_pauses[0] = 0.0
+	elif evening:
+		if mira_routine == "home":
+			mira.visible = true
+			mira.collision_layer = 1
+			mira.collision_mask = 1
+			mira_routine = "evening_shelter"
+		elif mira_routine == "rain_shelter":
+			mira_routine = "evening_shelter"
+		elif mira_routine == "returning":
+			mira_routine = "homeward"
+			mira_rain_shelter_leg = mini(mira_rain_shelter_leg + 1, 2)
+		elif mira_routine not in ["homeward", "evening_shelter"]:
+			mira_routine = "homeward"
+			mira_rain_shelter_leg = 0
+		mira_rain_shelter_active = true
+		villager_patrol_pauses[0] = 0.0
+	elif raining:
+		if mira_routine == "home":
+			mira.velocity.x = 0.0
+			mira.velocity.z = 0.0
+			return
+		if mira_routine == "evening_shelter":
+			mira_routine = "rain_shelter"
+		elif mira_routine == "returning":
+			mira_routine = "homeward"
+			mira_rain_shelter_leg = mini(mira_rain_shelter_leg + 1, 2)
+		elif mira_routine not in ["homeward", "rain_shelter"]:
+			mira_routine = "homeward"
+			mira_rain_shelter_leg = 0
+		mira_rain_shelter_active = true
+		villager_patrol_pauses[0] = 0.0
+	else:
+		if mira_routine == "home":
+			mira.visible = true
+			mira.collision_layer = 1
+			mira.collision_mask = 1
+			mira_routine = "returning"
+			mira_rain_shelter_leg = 1
+		elif mira_routine in ["rain_shelter", "evening_shelter"]:
+			mira_routine = "returning"
+			mira_rain_shelter_leg = 1
+		elif mira_routine == "homeward":
+			if mira_rain_shelter_leg == 0:
+				mira_routine = "work"
+			else:
+				mira_routine = "returning"
+				mira_rain_shelter_leg -= 1
+		mira_rain_shelter_active = false
+		villager_patrol_pauses[0] = 0.0
+	if mira_routine == "home":
+		mira.velocity.x = 0.0
+		mira.velocity.z = 0.0
+		return
+	if mira_routine in ["rain_shelter", "evening_shelter"]:
+		mira.velocity.x = 0.0
+		mira.velocity.z = 0.0
+		if animation_player.assigned_animation != "Idle":
+			animation_player.play("Idle", 0.2)
+		return
+	if mira_routine in ["homeward", "returning"]:
+		_update_mira_shelter_route(mira, animation_player, hour)
+		return
 	if villager_patrol_pauses[0] > 0.0:
 		villager_patrol_pauses[0] = maxf(villager_patrol_pauses[0] - delta, 0.0)
 		mira.velocity.x = 0.0
@@ -550,6 +623,73 @@ func _update_mira_herb_route(mira: CharacterBody3D, animation_player: AnimationP
 	var route_velocity := offset.normalized() * MIRA_HERB_SPEED
 	mira.velocity.x = route_velocity.x
 	mira.velocity.z = route_velocity.z
+	if animation_player.assigned_animation != "Walk":
+		animation_player.play("Walk", 0.2)
+
+
+func _update_mira_shelter_route(mira: CharacterBody3D, animation_player: AnimationPlayer, hour: float) -> void:
+	var target := MIRA_RAIN_SHELTER_APPROACH
+	if mira_routine == "homeward":
+		if mira_rain_shelter_leg == 0:
+			target = MIRA_HERB_ROUTE[mira_route_index]
+			if mira.position.distance_to(target) <= 0.08:
+				mira.position.x = target.x
+				mira.position.z = target.z
+				if mira_route_index > 0:
+					mira_route_index -= 1
+					target = MIRA_HERB_ROUTE[mira_route_index]
+				else:
+					mira_rain_shelter_leg = 1
+					target = MIRA_RAIN_SHELTER_APPROACH
+		elif mira_rain_shelter_leg == 1:
+			target = MIRA_RAIN_SHELTER_APPROACH
+			if mira.position.distance_to(target) <= 0.08:
+				mira.position.x = target.x
+				mira.position.z = target.z
+				mira_rain_shelter_leg = 2
+				target = MIRA_RAIN_SHELTER
+		else:
+			target = MIRA_RAIN_SHELTER
+			if mira.position.distance_to(target) <= 0.08:
+				mira.position.x = target.x
+				mira.position.z = target.z
+				mira.velocity.x = 0.0
+				mira.velocity.z = 0.0
+				if hour >= 22.5 or hour < 6.5:
+					mira_routine = "home"
+					mira.visible = false
+					mira.collision_layer = 0
+					mira.collision_mask = 0
+				elif hour >= 18.5:
+					mira_routine = "evening_shelter"
+				else:
+					mira_routine = "rain_shelter"
+				if animation_player.assigned_animation != "Idle":
+					animation_player.play("Idle", 0.2)
+				return
+	else:
+		target = MIRA_RAIN_SHELTER_APPROACH if mira_rain_shelter_leg == 1 else MIRA_HERB_ROUTE[0]
+		if mira.position.distance_to(target) <= 0.08:
+			mira.position.x = target.x
+			mira.position.z = target.z
+			if mira_rain_shelter_leg == 1:
+				mira_rain_shelter_leg = 0
+				target = MIRA_HERB_ROUTE[0]
+			else:
+				mira_routine = "work"
+				mira_rain_shelter_active = false
+				mira_route_index = 0
+				villager_patrol_pauses[0] = MIRA_HERB_PAUSES[0]
+				mira.velocity.x = 0.0
+				mira.velocity.z = 0.0
+				if animation_player.assigned_animation != "Idle":
+					animation_player.play("Idle", 0.2)
+				return
+	var offset := target - mira.position
+	offset.y = 0.0
+	var shelter_velocity := offset.normalized() * MIRA_RAIN_SHELTER_SPEED
+	mira.velocity.x = shelter_velocity.x
+	mira.velocity.z = shelter_velocity.z
 	if animation_player.assigned_animation != "Walk":
 		animation_player.play("Walk", 0.2)
 

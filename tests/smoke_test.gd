@@ -1262,7 +1262,7 @@ func _initialize() -> void:
 			assert(npc_animation.has_animation("PickUp"))
 			assert(npc_animation.get_animation("PickUp").loop_mode == Animation.LOOP_NONE)
 		if npc.name == "GatekeeperToren" or npc.name == "HerbalistMira":
-			assert(npc_animation.current_animation == "Idle")
+			assert(npc_animation.current_animation == "Idle", "%s unexpectedly playing %s" % [npc.name, npc_animation.current_animation])
 		else:
 			assert(npc_animation.current_animation == "Walk")
 		assert(npc_animation.get_animation("Idle").loop_mode == Animation.LOOP_LINEAR)
@@ -1390,30 +1390,46 @@ func _initialize() -> void:
 	var mira := main.get_node("HerbalistMira") as CharacterBody3D
 	var mira_animation := main.get("villager_animations")[0] as AnimationPlayer
 	var pickup_length := mira_animation.get_animation("PickUp").length
+	main.set("time_hour", 9.5)
 	main.set("weather_override", "light_rain")
 	main.call("_process", 0.0)
 	mira.position = mira_route[2]
 	main.set("mira_route_index", 2)
+	main.set("mira_routine", "work")
 	main.set("mira_rain_shelter_active", false)
 	main.set("mira_rain_shelter_leg", 0)
 	main.get("villager_patrol_pauses")[0] = 0.0
+	var mira_rain_departure := mira.position
 	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_routine") == "homeward")
 	assert(main.get("mira_rain_shelter_active"))
+	assert(main.get("mira_route_index") == 1)
 	assert(mira_animation.assigned_animation == "Walk")
 	var rain_approach: Vector3 = main_constants["MIRA_RAIN_SHELTER_APPROACH"]
-	mira.position = rain_approach - Vector3(0.04, 0.0, 0.0)
+	var mira_rain_step := Vector2(mira.position.x, mira.position.z).distance_to(Vector2(mira_rain_departure.x, mira_rain_departure.z))
+	assert(mira_rain_step > 0.001 and mira_rain_step < 0.15)
+	var rain_route_direction: Vector3 = (mira_route[1] as Vector3) - mira_rain_departure
+	assert(Vector2(mira.velocity.x, mira.velocity.z).normalized().dot(Vector2(rain_route_direction.x, rain_route_direction.z).normalized()) > 0.999)
+	mira.position = mira_route[0]
+	main.set("mira_route_index", 0)
+	main.set("mira_rain_shelter_leg", 0)
 	main.call("_physics_process", 1.0 / 60.0)
 	assert(main.get("mira_rain_shelter_leg") == 1)
-	assert(mira.position.distance_to(rain_approach) < 0.08)
 	assert(mira_animation.assigned_animation == "Walk")
-	mira.position = (main_constants["MIRA_RAIN_SHELTER"] as Vector3) - Vector3(0.04, 0.0, 0.0)
+	mira.position = rain_approach
 	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_rain_shelter_leg") == 2)
+	assert(mira_animation.assigned_animation == "Walk")
+	mira.position = main_constants["MIRA_RAIN_SHELTER"]
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_routine") == "rain_shelter")
 	assert(mira.position.distance_to(main_constants["MIRA_RAIN_SHELTER"] as Vector3) < 0.14)
 	assert(mira.position.distance_to(mira_shelter.global_position) < 0.1)
 	assert(mira_animation.assigned_animation == "Idle")
 	main.set("weather_override", "clear")
 	main.call("_process", 0.0)
 	main.set("mira_route_index", 0)
+	main.set("mira_routine", "work")
 	main.set("mira_rain_shelter_active", false)
 	main.set("mira_rain_shelter_leg", 0)
 	mira.position = mira_route[0]
@@ -1465,6 +1481,148 @@ func _initialize() -> void:
 	main.call("_physics_process", 1.0 / 60.0)
 	assert(main.get("mira_route_index") == 0)
 	assert(mira_animation.assigned_animation == "Idle")
+	main.set("time_hour", 18.6)
+	main.set("weather_override", "clear")
+	main.call("_process", 0.0)
+	main.set("mira_routine", "work")
+	main.set("mira_route_index", 2)
+	main.set("mira_rain_shelter_leg", 0)
+	mira.position = (mira_route[2] as Vector3).lerp(mira_route[3] as Vector3, 0.45)
+	mira.velocity = Vector3.ZERO
+	mira.visible = true
+	mira.collision_layer = 1
+	mira.collision_mask = 1
+	main.get("villager_patrol_pauses")[0] = 0.5
+	mira_animation.play("PickUp")
+	var mira_pickup_position := mira.position
+	main.call("_physics_process", 0.2)
+	assert(main.get("mira_routine") == "work")
+	assert(is_equal_approx(main.get("villager_patrol_pauses")[0], 0.3))
+	assert(mira.position.distance_to(mira_pickup_position) < 0.001)
+	assert(mira_animation.assigned_animation == "PickUp")
+	main.call("_physics_process", 0.4)
+	assert(main.get("mira_routine") == "work")
+	assert(main.get("villager_patrol_pauses")[0] == 0.0)
+	assert(mira_animation.assigned_animation == "Idle")
+	var mira_homeward_start := mira.position
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_routine") == "homeward")
+	assert(main.get("mira_rain_shelter_leg") == 0)
+	var mira_homeward_step := Vector2(mira.position.x, mira.position.z).distance_to(Vector2(mira_homeward_start.x, mira_homeward_start.z))
+	assert(mira_homeward_step > 0.001 and mira_homeward_step < 0.15)
+	var mira_homeward_direction: Vector3 = (mira_route[2] as Vector3) - mira_homeward_start
+	assert(Vector2(mira.velocity.x, mira.velocity.z).normalized().dot(Vector2(mira_homeward_direction.x, mira_homeward_direction.z).normalized()) > 0.999)
+	assert(is_equal_approx(Vector2(mira.velocity.x, mira.velocity.z).length(), 0.52))
+	assert(mira_animation.assigned_animation == "Walk")
+	mira.position = mira_route[0]
+	main.set("mira_route_index", 0)
+	main.set("mira_rain_shelter_leg", 0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_rain_shelter_leg") == 1)
+	mira.position = rain_approach
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_rain_shelter_leg") == 2)
+	mira.position = main_constants["MIRA_RAIN_SHELTER"]
+	main.set("time_hour", 20.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_routine") == "evening_shelter")
+	assert(mira.visible and mira.collision_layer == 1 and mira.collision_mask == 1)
+	assert(mira_animation.assigned_animation == "Idle")
+	main.call("_process", 1.0)
+	var mira_home_look: Vector3 = main_constants["MIRA_HOME_LOOK_TARGET"] - mira.global_position
+	assert(absf(angle_difference(mira_visual.rotation.y, atan2(mira_home_look.x, mira_home_look.z))) < 0.001)
+	main.set("time_hour", 23.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_routine") == "home")
+	assert(not mira.visible and mira.collision_layer == 0 and mira.collision_mask == 0)
+	var mira_night_position := mira.position
+	main.set("time_hour", 0.0)
+	main.call("_physics_process", 1.0)
+	assert(mira.position.is_equal_approx(mira_night_position))
+	assert(mira.velocity.is_zero_approx())
+	player.position = mira.position + Vector3(0.0, 1.0, 1.0)
+	main.call("_process", 0.0)
+	assert(main.get("nearby_villager") != mira)
+	main.set("time_hour", 6.5)
+	main.set("weather_override", "light_rain")
+	main.call("_process", 0.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_routine") == "home")
+	assert(not mira.visible and mira.position.is_equal_approx(mira_night_position))
+	main.set("weather_override", "clear")
+	main.call("_process", 0.0)
+	player.position = Vector3(0.0, 1.0, 30.0)
+	main.call("_process", 0.0)
+	var mira_morning_start := mira.position
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_routine") == "returning")
+	assert(main.get("mira_rain_shelter_leg") == 1)
+	assert(mira.visible and mira.collision_layer == 1 and mira.collision_mask == 1)
+	var mira_morning_step := Vector2(mira.position.x, mira.position.z).distance_to(Vector2(mira_morning_start.x, mira_morning_start.z))
+	assert(mira_morning_step > 0.001 and mira_morning_step < 0.15)
+	assert(mira_animation.assigned_animation == "Walk")
+	var mira_return_midpoint := (main_constants["MIRA_RAIN_SHELTER"] as Vector3).lerp(rain_approach, 0.45)
+	mira.position = mira_return_midpoint
+	main.set("mira_routine", "returning")
+	main.set("mira_rain_shelter_leg", 1)
+	main.set("weather_override", "light_rain")
+	main.call("_process", 0.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_routine") == "homeward")
+	assert(main.get("mira_rain_shelter_leg") == 2)
+	var resumed_shelter_direction: Vector3 = (main_constants["MIRA_RAIN_SHELTER"] as Vector3) - mira_return_midpoint
+	assert(Vector2(mira.velocity.x, mira.velocity.z).normalized().dot(Vector2(resumed_shelter_direction.x, resumed_shelter_direction.z).normalized()) > 0.999)
+	mira.position = main_constants["MIRA_RAIN_SHELTER"]
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_routine") == "rain_shelter")
+	assert(mira.visible and mira_animation.assigned_animation == "Idle")
+	main.set("weather_override", "clear")
+	main.call("_process", 0.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_routine") == "returning")
+	assert(main.get("mira_rain_shelter_leg") == 1)
+	mira.position = rain_approach
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_rain_shelter_leg") == 0)
+	assert(mira_animation.assigned_animation == "Walk")
+	mira.position = mira_route[0]
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_routine") == "work")
+	assert(main.get("mira_route_index") == 0)
+	assert(is_equal_approx(main.get("villager_patrol_pauses")[0], mira_pauses[0]))
+	assert(mira_animation.assigned_animation == "Idle")
+	main.set("time_hour", 19.0)
+	main.set("mira_routine", "homeward")
+	main.set("mira_rain_shelter_leg", 1)
+	mira.position = (mira_route[0] as Vector3).lerp(rain_approach, 0.45)
+	mira.velocity = Vector3.ZERO
+	main.get("villager_patrol_pauses")[0] = 0.0
+	player.position = mira.position + Vector3(0.0, 1.0, 1.5)
+	main.call("_process", 0.0)
+	var mira_talk_homeward_position := mira.position
+	main.call("_physics_process", 0.5)
+	assert(main.get("nearby_villager") == mira)
+	assert(main.get("mira_routine") == "homeward" and main.get("mira_rain_shelter_leg") == 1)
+	assert(mira.position.distance_to(mira_talk_homeward_position) < 0.001)
+	assert(mira_animation.assigned_animation == "Idle")
+	player.position = Vector3(0.0, 1.0, 30.0)
+	main.call("_process", 0.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(mira.position.distance_to(mira_talk_homeward_position) > 0.001)
+	assert(mira_animation.assigned_animation == "Walk")
+	main.set("time_hour", 9.5)
+	main.set("weather_override", "clear")
+	main.call("_process", 0.0)
+	main.set("mira_routine", "work")
+	main.set("mira_route_index", 0)
+	main.set("mira_rain_shelter_active", false)
+	main.set("mira_rain_shelter_leg", 0)
+	mira.position = mira_route[0]
+	mira.velocity = Vector3.ZERO
+	mira.visible = true
+	mira.collision_layer = 1
+	mira.collision_mask = 1
+	main.get("villager_patrol_pauses")[0] = mira_pauses[0]
 	player.position = mira.position + Vector3(0.0, 1.0, 2.0)
 	main.call("_process", 0.0)
 	main.call("_physics_process", 1.0 / 60.0)
