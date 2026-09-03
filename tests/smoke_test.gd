@@ -1363,6 +1363,8 @@ func _initialize() -> void:
 	var rain_awning := drying_rack.get_node("RainAwning") as CSGBox3D
 	assert(rain_awning.size.x >= 1.85 and rain_awning.size.z >= 0.68)
 	assert(rain_awning.position.y > 1.6 and rain_awning.position.z < 0.0)
+	var cloth_rose := weaving_line.get_node("ClothRose") as Node3D
+	assert(cloth_rose != null and cloth_rose in wind_nodes)
 	var herb_bundles: Array[Node3D] = []
 	for bundle_index in 4:
 		var bundle_anchor := drying_rack.get_node("HerbBundle%d" % bundle_index) as Node3D
@@ -1664,6 +1666,13 @@ func _initialize() -> void:
 	var plant_rotation := first_plant.rotation
 	var first_herb_bundle := herb_bundles[0]
 	var first_herb_bundle_rotation := first_herb_bundle.rotation
+	var herb_left_post_transform := (drying_rack.get_node("LeftPost") as Node3D).transform
+	var herb_right_post_transform := (drying_rack.get_node("RightPost") as Node3D).transform
+	var herb_crossbar_transform := (drying_rack.get_node("Crossbar") as Node3D).transform
+	var rain_awning_transform := rain_awning.transform
+	var cloth_left_post_transform := (weaving_line.get_node("LeftPost") as Node3D).transform
+	var cloth_right_post_transform := (weaving_line.get_node("RightPost") as Node3D).transform
+	var cloth_crossbar_transform := (weaving_line.get_node("Crossbar") as Node3D).transform
 	var first_puff := smoke_puffs[0] as MeshInstance3D
 	var puff_position := first_puff.position
 	var puff_transparency := first_puff.transparency
@@ -1714,6 +1723,27 @@ func _initialize() -> void:
 	assert(not is_equal_approx(first_mistcap_light.light_energy, mistcap_light_energy))
 	assert(first_fog.position.distance_to(fog_position) > 0.001)
 	assert(not is_equal_approx(first_fog.transparency, fog_transparency))
+	main.set("portal_time", 3.25)
+	main.set("weather_override", "clear")
+	main.call("_process", 0.0)
+	var clear_cloth_sway := Vector2(cloth_rose.rotation.x, cloth_rose.rotation.z).length()
+	var clear_herb_sway := Vector2(first_herb_bundle.rotation.x, first_herb_bundle.rotation.z).length()
+	assert(clear_cloth_sway > 0.001 and clear_herb_sway > 0.001)
+	main.set("portal_time", 3.25)
+	main.set("weather_override", "light_rain")
+	main.call("_process", 0.0)
+	var rain_cloth_sway := Vector2(cloth_rose.rotation.x, cloth_rose.rotation.z).length()
+	var rain_herb_sway := Vector2(first_herb_bundle.rotation.x, first_herb_bundle.rotation.z).length()
+	assert(is_equal_approx(rain_cloth_sway, clear_cloth_sway * 1.45))
+	assert(is_equal_approx(rain_herb_sway, clear_herb_sway * 1.45))
+	assert((drying_rack.get_node("LeftPost") as Node3D).transform.is_equal_approx(herb_left_post_transform))
+	assert((drying_rack.get_node("RightPost") as Node3D).transform.is_equal_approx(herb_right_post_transform))
+	assert((drying_rack.get_node("Crossbar") as Node3D).transform.is_equal_approx(herb_crossbar_transform))
+	assert(rain_awning.transform.is_equal_approx(rain_awning_transform))
+	assert((weaving_line.get_node("LeftPost") as Node3D).transform.is_equal_approx(cloth_left_post_transform))
+	assert((weaving_line.get_node("RightPost") as Node3D).transform.is_equal_approx(cloth_right_post_transform))
+	assert((weaving_line.get_node("Crossbar") as Node3D).transform.is_equal_approx(cloth_crossbar_transform))
+	main.set("weather_override", "clear")
 	for dialogue_data in [
 		["HerbalistMira", "米拉"],
 		["GatekeeperToren", "托伦"],

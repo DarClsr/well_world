@@ -319,12 +319,13 @@ func _runtime_tick(delta: float) -> void:
 		var mote := portal_motes[index]
 		mote.position = portal_center + Vector3(cos(phase) * radius, 0.45 + rise * 2.7, sin(phase) * radius * 0.55)
 		mote.scale = Vector3.ONE * (0.8 + sin(portal_time * 1.8 + float(index)) * 0.18 + reaction * 0.5)
+	var weather_wind_scale := clampf(weather_wind_amount / 0.62, 0.75, 1.45)
 	for index in wind_nodes.size():
 		var plant := wind_nodes[index]
 		var gust_wave := (sin(portal_time * 0.42 + float(index) * 0.09) + 1.0) * 0.5
 		var gust_strength := 1.0 + pow(gust_wave, 6.0) * 0.85
-		plant.rotation.z = sin(portal_time * 0.85 + float(index) * 0.73) * 0.027 * gust_strength
-		plant.rotation.x = cos(portal_time * 0.7 + float(index) * 0.51) * 0.013 * gust_strength
+		plant.rotation.z = sin(portal_time * 0.85 + float(index) * 0.73) * 0.027 * gust_strength * weather_wind_scale
+		plant.rotation.x = cos(portal_time * 0.7 + float(index) * 0.51) * 0.013 * gust_strength * weather_wind_scale
 	for index in smoke_puffs.size():
 		var phase := fmod(portal_time * 0.12 + float(index % 3) * 0.34 + float(index / 3) * 0.13, 1.0)
 		var puff := smoke_puffs[index]

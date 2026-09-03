@@ -1146,3 +1146,26 @@
 - `SMOKE TEST PASSED`、`FOG VALLEY REFACTOR BASELINE PASSED`；晴天/小雨生态 A/B 共 8 张不同哈希，两套全景扫查均 `21/21` 唯一哈希，三类终审均 `PASS 0/0/0`。
 - 最终证据归档为 `captures/phase83-butterflies-clear-a.png`、`phase83-butterflies-clear-b.png`、`phase83-butterflies-rain-a.png` 与 `phase83-butterflies-rain-b.png`。
 - 最终树冠与落叶回归再次输出 `TREE MOTION TEST PASSED canopies=16 leaves=12`；`git diff --check` 通过，后台 Godot 进程仍正常响应。
+
+# 2026-09-03 Phase 84 基线审计
+
+- 最新晴天/小雨 21 机位已生成统一联系表；整体场景未发现明显阻断级回归，已派发三类代理各提名一个下一处最高优先级缺口。
+- 已收到两个非阻断 P2：Nia 白天下雨仍露天作业，以及挂布/晾药束固定摆幅不响应天气风强；等待美术提名后只选择一项进入实现。
+- 美术审核建议当前范围不再新增视觉内容；Phase 84 选择更小的既有物件风场联动，Nia 白天避雨保持为后续独立候选。
+- 恢复检查确认工作树仅有 Phase 84 三份规划记录；后台 Godot PID `51768` 仍正常响应。
+- 检索天气配置时一次正则括号转义失败，随后改用简单模式；另一次引用了不存在的旧控制器路径，已确认天气 profile 由当前 `main.gd` 入口代理，不影响实现。
+- 已在既有 CPU 风摆循环增加 `clampf(weather_wind_amount / 0.62, 0.75, 1.45)`，并为挂布、药束的晴雨 `1.45` 倍摆幅及架柱/横杆/雨棚静止补充冒烟契约。
+- `SMOKE TEST PASSED`；树冠/落叶回归输出 `TREE MOTION TEST PASSED canopies=16 leaves=12`；`git diff --check` 通过。既有 glTF UID fallback 与 Dummy 退出资源告警不影响退出码。
+- 一次按 Windows 路径向 `rg` 传入 `tests/*.gd`、`temp/*.gd` 通配符失败，已改为目录参数配合 `-g '*.gd'` 并确认全部相关捕获显式固定 `time_hour`。
+- 新增 Git 忽略的 `temp/phase84_life_wind_capture.gd`，固定 `time_hour=9.5`、天气种子及 `portal_time=2.0/3.25`，用于织物与药束晴雨 A/B 证据。
+- 第一轮专项图中织物过远、药架被屋顶遮挡，证据作废；捕获脚本改为独立固定相机从职责区外侧看向物件中心，避免玩家相机以屋顶为前景。
+- 第二轮隐藏 Movie Writer 捕获正常退出：织工挂布与晾药束晴雨 A/B 共 8 张、`8/8` 唯一哈希，物件轮廓、支架与职责空间均可读。
+- 晴天与用 `-- --rain` 正确传参的小雨 21 机位并行静默重录，两个进程退出码均为 0，分别 `21/21` 唯一哈希且文件时间全部属于本轮。
+- 最终证据已归档到 `captures/phase84-weaver-*.png`、`phase84-herb-*.png`、`phase84-overview-clear.png` 和 `phase84-overview-rain.png`，待三类专项终审。
+
+# 2026-09-03 Phase 84 完成
+
+- 既有 `wind_nodes` 以晴天风强 `0.62` 为基准接入受限天气倍率 `0.75..1.45`；晴天幅度不变，小雨增强但不会按原始风强比例放大到约 `1.81` 倍。
+- 挂布、晾药束和低矮植物仍沿用原节点、相位与频率；冒烟锁定两类生活物件小雨摆幅为晴天 `1.45` 倍，并确认两组立柱、横杆及药架雨棚 Transform 不变。
+- 最终门禁：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`、专项晴雨 A/B `8/8` 唯一哈希、晴天/小雨扫查各 `21/21` 唯一哈希、`git diff --check`。
+- 美术、生活气息、场景动效三类终审均 `PASS 0/0/0`；没有新增视觉内容、道路占用、NPC 行为或高饱和焦点。
