@@ -2359,7 +2359,10 @@ func _add_fog_banks() -> void:
 func _add_nature(model: String, position: Vector3, rotation_y: float, scale: float, collision := true) -> void:
 	var instance := _add_model("res://assets/quaternius/nature/%s.gltf" % model, position, rotation_y, scale)
 	if instance != null and ("Tree" in model or model.begins_with("Pine")):
-		_apply_tree_canopy_wind(instance)
+		var canopy_texture_override: Texture2D
+		if model == "TwistedTree_1":
+			canopy_texture_override = MutedBushLeaves
+		_apply_tree_canopy_wind(instance, canopy_texture_override)
 	if instance != null and model == "Bush_Common":
 		instance.name = "SeasonalBush%d" % seasonal_bushes.size()
 		for mesh_node in instance.find_children("*", "MeshInstance3D", true, false):
@@ -2387,7 +2390,7 @@ func _add_nature(model: String, position: Vector3, rotation_y: float, scale: flo
 		add_child(trunk)
 
 
-func _apply_tree_canopy_wind(instance: Node3D) -> void:
+func _apply_tree_canopy_wind(instance: Node3D, albedo_texture_override: Texture2D = null) -> void:
 	if instance == null:
 		return
 	for mesh_node in instance.find_children("*", "MeshInstance3D", true, false):
@@ -2406,7 +2409,10 @@ func _apply_tree_canopy_wind(instance: Node3D) -> void:
 			var material := ShaderMaterial.new()
 			material.resource_name = "Wind%s" % source_material.resource_name
 			material.shader = TreeCanopyShader
-			material.set_shader_parameter("albedo_tex", source_material.albedo_texture)
+			material.set_shader_parameter(
+				"albedo_tex",
+				albedo_texture_override if albedo_texture_override != null else source_material.albedo_texture
+			)
 			material.set_shader_parameter("canopy_min_y", canopy_min_y)
 			material.set_shader_parameter("canopy_max_y", canopy_max_y)
 			material.set_shader_parameter("wind_strength", weather_wind_amount)

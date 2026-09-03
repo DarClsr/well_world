@@ -1028,26 +1028,35 @@ func _initialize() -> void:
 	assert(tree_canopies.size() == 16 and tree_canopy_materials.size() == 16)
 	var northwest_tree_canopy: MeshInstance3D
 	var northwest_pine_canopy: MeshInstance3D
+	var pond_twisted_tree_canopy: MeshInstance3D
 	for canopy_node in tree_canopies:
 		var candidate := canopy_node as MeshInstance3D
 		if Vector2(candidate.global_position.x, candidate.global_position.z).is_equal_approx(Vector2(-21.0, -24.8)):
 			northwest_tree_canopy = candidate
 		elif Vector2(candidate.global_position.x, candidate.global_position.z).is_equal_approx(Vector2(-24.8, -12.5)):
 			northwest_pine_canopy = candidate
-	assert(northwest_tree_canopy != null and northwest_pine_canopy != null)
+		elif Vector2(candidate.global_position.x, candidate.global_position.z).is_equal_approx(Vector2(-16.0, 17.0)):
+			pond_twisted_tree_canopy = candidate
+	assert(northwest_tree_canopy != null and northwest_pine_canopy != null and pond_twisted_tree_canopy != null)
 	var northwest_tree_collision: CSGCylinder3D
 	for child in main.get_children():
 		if child is CSGCylinder3D and (child as CSGCylinder3D).position.is_equal_approx(Vector3(-21.0, 1.8375, -24.8)):
 			northwest_tree_collision = child as CSGCylinder3D
 			break
 	assert(northwest_tree_collision != null and northwest_tree_collision.position.z < -24.5)
+	var muted_tree_canopy_count := 0
 	for canopy_index in tree_canopies.size():
 		var canopy := tree_canopies[canopy_index] as MeshInstance3D
 		var canopy_material := tree_canopy_materials[canopy_index] as ShaderMaterial
+		var canopy_texture := canopy_material.get_shader_parameter("albedo_tex") as Texture2D
 		assert(canopy != null and canopy_material.shader.resource_path == "res://shaders/tree_canopy.gdshader")
-		assert((canopy_material.get_shader_parameter("albedo_tex") as Texture2D).resource_path.contains("nature"))
+		assert(canopy_texture.resource_path.contains("nature"))
+		if canopy_texture.resource_path == "res://assets/quaternius/nature/Leaves_TwistedTree_C_Muted.png":
+			muted_tree_canopy_count += 1
+			assert(canopy == pond_twisted_tree_canopy)
 		assert((canopy_material.get_shader_parameter("canopy_max_y") as float) > (canopy_material.get_shader_parameter("canopy_min_y") as float))
 		assert(is_equal_approx(canopy_material.get_shader_parameter("wind_strength"), 0.62))
+	assert(muted_tree_canopy_count == 1)
 	var tree_shader_code := (tree_canopy_materials[0] as ShaderMaterial).shader.code
 	assert("MODEL_MATRIX[3].xyz" in tree_shader_code)
 	assert("motion_time" in tree_shader_code and "wind_strength" in tree_shader_code)
