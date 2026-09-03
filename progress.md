@@ -1040,3 +1040,12 @@
 - `SMOKE TEST PASSED`；`TREE MOTION TEST PASSED canopies=16 leaves=12`；晴天与小雨扫查均为 `21/21` 唯一哈希；`git diff --check` 通过。
 - 晴天/小雨 `14-herb-yard` 代表图确认药束没有越出架体、遮挡道路或抢占炉火焦点。
 - 美术、生活气息、场景动效专项均 `PASS 0/0/0`。
+
+# 2026-09-03 Phase 77 完成
+
+- Nia 新增白天公共事务路线：从织工工作点沿主路经过异世界余痕，前往板车卸货侧；到达后保持 `Idle` 并面向卸货目标，晚间炉火/雨天避雨与交谈优先级保留。
+- 完整冒烟测试输出 `SMOKE TEST PASSED`；树冠、落叶与草甸动态回归输出 `TREE MOTION TEST PASSED canopies=16 leaves=12`。
+- 晴天扫查输出 `IMAGE_COUNT=21`、`UNIQUE_HASHES=21`；固定小雨扫查输出 `RAIN_IMAGE_COUNT=21`、`RAIN_UNIQUE_HASHES=21`。
+- `tests/nia_routine_capture.gd` 固定 `time_hour=11.0`，生成 `temp/nia-routine/day-errand.png`；日志确认 `routine=errand`、`animation=Walk`，并保留黄昏/夜间/雨天三张回归图。
+- 代表图人工复核：主路、板车、炉火、晾晒线和角色轮廓清楚，无堵路、遮挡或焦点层级回归；事务捕获机位已收近，Nia 完整可读。
+- 三类专项终审均 `PASS 0/0/0`；Phase 77 完成，准备提交推送。

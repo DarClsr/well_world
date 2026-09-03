@@ -75,6 +75,12 @@ const NIA_HOME_ROUTE := [
 	Vector3(3.5, 0.0, -3.5), Vector3(1.0, 0.0, -1.0), Vector3(-2.0, 0.0, 2.0),
 	Vector3(-4.0, 0.0, 5.5), Vector3(-6.5, 0.0, 6.4),
 ]
+const NIA_PUBLIC_ROUTE := [
+	Vector3(-5.5, 0.0, 6.5), Vector3(-4.7, 0.0, 5.25), Vector3(-3.4, 0.0, 4.2),
+	Vector3(-1.1, 0.0, 2.8), Vector3(-0.35, 0.0, 2.0), Vector3(-1.1, 0.0, 0.2),
+	Vector3(-3.35, 0.0, -0.9), Vector3(-5.0, 0.0, -0.75), Vector3(-7.25, 0.0, -0.75),
+]
+const NIA_PUBLIC_LOOK_TARGET := Vector3(-7.4, 0.0, -2.1)
 
 var ground_material := _material(Color("6f8f65"), 0.95)
 var path_material := _material(Color("9a8466"), 1.0)
@@ -402,6 +408,9 @@ func _runtime_tick(delta: float) -> void:
 		elif index == 2 and nia_routine == "rain_shelter":
 			var look_direction := Vector3(9.0, 0.0, -8.0) - villagers[index].global_position
 			target_yaw = atan2(look_direction.x, look_direction.z)
+		elif index == 2 and nia_routine == "errand":
+			var look_direction := NIA_PUBLIC_LOOK_TARGET - villagers[index].global_position
+			target_yaw = atan2(look_direction.x, look_direction.z)
 		villager.rotation.y = lerp_angle(villager.rotation.y, target_yaw, minf(delta * 6.0, 1.0))
 
 
@@ -544,7 +553,10 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 	var hour := fposmod(time_hour, 24.0)
 	var next_routine := "work"
 	var route: Array = []
-	if hour >= 18.5 and hour < 22.5:
+	if hour >= 10.5 and hour < 12.25:
+		next_routine = "errand"
+		route = NIA_PUBLIC_ROUTE
+	elif hour >= 18.5 and hour < 22.5:
 		next_routine = "rain_shelter" if weather_rain_amount > 0.2 else "hearth"
 		route = NIA_RAIN_ROUTE if next_routine == "rain_shelter" else NIA_HEARTH_ROUTE
 	elif hour >= 22.5 or hour < 6.5:

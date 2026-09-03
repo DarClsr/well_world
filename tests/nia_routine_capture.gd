@@ -22,10 +22,10 @@ func _record() -> void:
 	player.set_physics_process(false)
 	var nia := main.get_node("WeaverNia") as CharacterBody3D
 	var nia_animation := main.get("villager_animations")[2] as AnimationPlayer
-	main.set("time_hour", 12.0)
+	main.set("time_hour", 11.0)
 	main.set("nia_routine", "home")
 	main.call("_update_nia_routine", nia, nia_animation)
-	await _capture(main, player, output_dir, "day-work", Vector3(-3.0, 1.0, 2.5))
+	await _capture(main, player, output_dir, "day-errand", Vector3(-4.5, 1.0, 4.5))
 
 	main.set("time_hour", 18.8)
 	main.set("nia_routine", "work")

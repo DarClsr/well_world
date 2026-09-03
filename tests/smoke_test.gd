@@ -1244,7 +1244,12 @@ func _initialize() -> void:
 	var toren_route: Array = main_constants["TOREN_WATCH_ROUTE"]
 	var toren_targets: Array = main_constants["TOREN_WATCH_TARGETS"]
 	var toren_pauses: Array = main_constants["TOREN_WATCH_PAUSES"]
+	var nia_public_route: Array = main_constants["NIA_PUBLIC_ROUTE"]
 	assert(toren_route.size() == 3 and toren_targets.size() == 3 and toren_pauses.size() == 3)
+	assert(nia_public_route.size() == 9)
+	assert((nia_public_route[0] as Vector3).is_equal_approx(Vector3(-5.5, 0.0, 6.5)))
+	assert((nia_public_route[4] as Vector3).is_equal_approx(Vector3(-0.35, 0.0, 2.0)))
+	assert((nia_public_route[-1] as Vector3).x < -7.0)
 	assert((toren_route[0] as Vector3).is_equal_approx(Vector3(3.0, 0.0, -15.2)))
 	var toren_first_leg := (toren_route[1] as Vector3) - (toren_route[0] as Vector3)
 	var toren_second_leg := (toren_route[2] as Vector3) - (toren_route[0] as Vector3)
@@ -1420,6 +1425,36 @@ func _initialize() -> void:
 	main.call("_process", 1.0)
 	assert(not identity_label.visible)
 	var nia_animation := main.get("villager_animations")[2] as AnimationPlayer
+	var nia_public_origin: Vector3 = nia_public_route[0]
+	var nia_public_destination: Vector3 = nia_public_route[-1]
+	main.set("time_hour", 11.0)
+	main.set("weather_override", "clear")
+	main.set("nia_routine", "work")
+	main.set("nia_route_index", 0)
+	identity_npc.position = nia_public_origin
+	identity_npc.velocity = Vector3.ZERO
+	main.get("villager_patrol_pauses")[2] = 0.0
+	main.call("_process", 0.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("nia_routine") == "errand")
+	assert(main.get("nia_route_index") >= 1)
+	assert(identity_npc.position.distance_to(nia_public_origin) > 0.001)
+	assert(is_equal_approx(Vector2(identity_npc.velocity.x, identity_npc.velocity.z).length(), 0.72))
+	identity_npc.position = nia_public_destination
+	main.set("nia_route_index", nia_public_route.size() - 1)
+	main.get("villager_patrol_pauses")[2] = 0.0
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("nia_route_index") == nia_public_route.size() - 1)
+	assert(nia_animation.assigned_animation == "Idle")
+	main.call("_process", 1.0)
+	var nia_public_visual := identity_npc.get_node("Visual") as Node3D
+	var nia_public_direction: Vector3 = main_constants["NIA_PUBLIC_LOOK_TARGET"] - identity_npc.global_position
+	assert(absf(angle_difference(nia_public_visual.rotation.y, atan2(nia_public_direction.x, nia_public_direction.z))) < 0.001)
+	main.set("time_hour", 12.5)
+	main.call("_update_nia_routine", identity_npc, nia_animation)
+	var nia_work_reset: Vector3 = main.get("villager_patrol_origins")[2]
+	assert(main.get("nia_routine") == "work")
+	assert(identity_npc.position.is_equal_approx(nia_work_reset))
 	main.set("time_hour", 19.0)
 	main.set("weather_override", "clear")
 	main.set("nia_routine", "work")
@@ -1484,6 +1519,8 @@ func _initialize() -> void:
 	assert(hearth.get_node_or_null("HearthBenchSouth/Seat") is CSGCylinder3D)
 	assert(hearth.get_node_or_null("HearthWoodCrate") is Node3D)
 	assert(main.get("hearth_flames").size() == 3)
+	main.set("portal_time", 0.0)
+	main.call("_process", 0.0)
 	var first_mote: MeshInstance3D = main.get("portal_motes")[0]
 	var mote_position := first_mote.position
 	var first_plant := wind_nodes[0] as Node3D
