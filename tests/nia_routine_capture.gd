@@ -35,6 +35,34 @@ func _record() -> void:
 	main.set_physics_process(false)
 	await _capture(main, player, output_dir, "day-work", Vector3(-3.0, 1.0, 2.5))
 
+	var nia_day_rain_route: Array = main_constants["NIA_DAY_RAIN_ROUTE"]
+	main.set("time_hour", 9.5)
+	main.set("weather_override", "light_rain")
+	main.call("_process", 0.0)
+	main.set("nia_routine", "work")
+	nia.position = nia_work_route[2]
+	nia.velocity = Vector3.ZERO
+	main.get("villager_patrol_pauses")[2] = 0.0
+	main.set_physics_process(true)
+	await create_timer(0.55).timeout
+	main.set_physics_process(false)
+	await _capture(main, player, output_dir, "day-rain-depart", Vector3(-3.0, 1.0, 2.5))
+	nia.position = nia_day_rain_route[-1]
+	main.set("nia_routine", "day_rain_shelter")
+	main.set("nia_route_index", nia_day_rain_route.size() - 1)
+	main.call("_physics_process", 1.0 / 60.0)
+	await _capture(main, player, output_dir, "day-rain-shelter", Vector3(-3.0, 1.0, 5.0), 90.0)
+
+	main.set("weather_override", "clear")
+	main.call("_process", 0.0)
+	nia.position = nia_day_rain_route[-1]
+	main.set("nia_routine", "day_rain_shelter")
+	main.set("nia_route_index", nia_day_rain_route.size() - 1)
+	main.set_physics_process(true)
+	await create_timer(0.55).timeout
+	main.set_physics_process(false)
+	await _capture(main, player, output_dir, "day-rain-return", Vector3(-3.0, 1.0, 2.5))
+
 	main.set("time_hour", 11.0)
 	main.set("nia_routine", "home")
 	main.call("_update_nia_routine", nia, nia_animation)

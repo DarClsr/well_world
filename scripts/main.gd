@@ -93,6 +93,11 @@ const NIA_WORK_TARGETS := [
 ]
 const NIA_WORK_PAUSES := [2.4, 1.2, 2.8]
 const NIA_WORK_SPEED := 0.46
+const NIA_DAY_RAIN_ROUTE := [
+	Vector3(-5.5, 0.0, 6.5),
+	Vector3(-6.5, 0.0, 6.4),
+]
+const NIA_DAY_RAIN_LOOK_TARGET := Vector3(-10.0, 0.0, 5.0)
 const WAGON_CARGO_POSITIONS := [
 	Vector3(-0.25, 0.62, -1.35),
 	Vector3(0.28, 0.60, -1.95),
@@ -427,6 +432,9 @@ func _runtime_tick(delta: float) -> void:
 			var work_target_index := clampi(nia_work_index, 0, NIA_WORK_TARGETS.size() - 1)
 			var look_direction: Vector3 = NIA_WORK_TARGETS[work_target_index] - villagers[index].global_position
 			target_yaw = atan2(look_direction.x, look_direction.z)
+		elif index == 2 and nia_routine == "day_rain_shelter":
+			var look_direction := NIA_DAY_RAIN_LOOK_TARGET - villagers[index].global_position
+			target_yaw = atan2(look_direction.x, look_direction.z)
 		elif index == 2 and nia_routine == "hearth":
 			var look_direction := Vector3(4.3, 0.0, -5.5) - villagers[index].global_position
 			target_yaw = atan2(look_direction.x, look_direction.z)
@@ -578,19 +586,29 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 	var hour := fposmod(time_hour, 24.0)
 	var next_routine := "work"
 	var route: Array = []
-	if (nia_routine == "errand" or nia_routine == "returning") and hour >= 12.25:
+	if hour >= 22.5 or hour < 6.5:
+		next_routine = "home"
+		route = NIA_HOME_ROUTE
+	elif nia_routine == "errand" and not nia_errand_action_done:
+		next_routine = "errand"
+		route = NIA_PUBLIC_ROUTE
+	elif nia_routine == "returning" or (nia_routine == "errand" and (hour >= 12.25 or weather_rain_amount > 0.2)):
 		next_routine = "returning"
 		route = NIA_PUBLIC_ROUTE.duplicate()
+		route.reverse()
+	elif hour >= 18.5 and hour < 22.5:
+		next_routine = "rain_shelter" if weather_rain_amount > 0.2 else "hearth"
+		route = NIA_RAIN_ROUTE if next_routine == "rain_shelter" else NIA_HEARTH_ROUTE
+	elif weather_rain_amount > 0.2:
+		next_routine = "day_rain_shelter"
+		route = NIA_DAY_RAIN_ROUTE
+	elif nia_routine == "day_rain_shelter" or nia_routine == "day_rain_returning":
+		next_routine = "day_rain_returning"
+		route = NIA_DAY_RAIN_ROUTE.duplicate()
 		route.reverse()
 	elif hour >= 10.5 and hour < 12.25:
 		next_routine = "errand"
 		route = NIA_PUBLIC_ROUTE
-	elif hour >= 18.5 and hour < 22.5:
-		next_routine = "rain_shelter" if weather_rain_amount > 0.2 else "hearth"
-		route = NIA_RAIN_ROUTE if next_routine == "rain_shelter" else NIA_HEARTH_ROUTE
-	elif hour >= 22.5 or hour < 6.5:
-		next_routine = "home"
-		route = NIA_HOME_ROUTE
 	if next_routine == "work":
 		if nia_routine != "work":
 			nia.visible = true
@@ -617,9 +635,11 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 		nia.collision_mask = 1
 		nia_route_index = 0
 		nia_errand_action_done = next_routine != "errand"
-		if next_routine == "errand":
+		if next_routine in ["errand", "day_rain_shelter", "day_rain_returning"]:
 			villager_patrol_pauses[2] = 0.0
-		if previous_routine in ["hearth", "rain_shelter"] and next_routine in ["hearth", "rain_shelter"]:
+		if next_routine in ["day_rain_shelter", "day_rain_returning"]:
+			nia_route_index = route.size() - 1
+		elif previous_routine in ["hearth", "rain_shelter"] and next_routine in ["hearth", "rain_shelter"]:
 			nia_route_index = route.size() - 1
 		else:
 			var nearest_distance := INF
@@ -657,7 +677,7 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 			else:
 				if animation_player.assigned_animation != "Idle":
 					animation_player.play("Idle", 0.2)
-			if nia_routine == "returning":
+			if nia_routine == "returning" or nia_routine == "day_rain_returning":
 				nia_routine = "work"
 				nia_route_index = 0
 				nia_work_index = 0
