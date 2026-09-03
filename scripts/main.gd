@@ -1988,15 +1988,20 @@ func _add_village_props() -> void:
 	herb_awning.rotation.x = -0.06
 	_add_box("DryingLine", Vector3(1.42, 0.035, 0.035), Vector3(0.0, 1.2, 0.0), _material(Color("4f3b2c"), 1.0), false, herb_rack)
 	for bundle_index in 4:
+		var bundle_anchor := Node3D.new()
+		bundle_anchor.name = "HerbBundle%d" % bundle_index
+		bundle_anchor.position = Vector3(-0.54 + float(bundle_index) * 0.36, 1.08 - float(bundle_index % 2) * 0.08, 0.0)
+		herb_rack.add_child(bundle_anchor)
 		var bundle := _add_model(
 			"res://assets/quaternius/nature/Grass_Common_Tall.gltf",
-			Vector3(-0.54 + float(bundle_index) * 0.36, 1.08 - float(bundle_index % 2) * 0.08, 0.0),
+			Vector3.ZERO,
 			0.0,
 			0.22 + float(bundle_index % 3) * 0.025,
-			herb_rack
+			bundle_anchor
 		)
-		bundle.name = "HerbBundle%d" % bundle_index
+		bundle.name = "Mesh"
 		bundle.rotation.z = PI + (-0.1 + float(bundle_index) * 0.065)
+		wind_nodes.append(bundle_anchor)
 	var herb_crate := _add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(-14.35, 0.0, -12.55), 0.2, 0.48, props)
 	herb_crate.name = "HerbHarvestCrate"
 	var weaving_line := Node3D.new()

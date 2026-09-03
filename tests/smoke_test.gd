@@ -1309,6 +1309,14 @@ func _initialize() -> void:
 	var rain_awning := drying_rack.get_node("RainAwning") as CSGBox3D
 	assert(rain_awning.size.x >= 1.85 and rain_awning.size.z >= 0.68)
 	assert(rain_awning.position.y > 1.6 and rain_awning.position.z < 0.0)
+	var herb_bundles: Array[Node3D] = []
+	for bundle_index in 4:
+		var bundle_anchor := drying_rack.get_node("HerbBundle%d" % bundle_index) as Node3D
+		assert(bundle_anchor != null and bundle_anchor in wind_nodes)
+		var bundle_mesh := bundle_anchor.get_node("Mesh") as Node3D
+		assert(bundle_mesh != null)
+		assert(bundle_mesh.rotation.z > 3.0)
+		herb_bundles.append(bundle_anchor)
 	assert(is_equal_approx(main_constants["MIRA_HERB_SPEED"], 0.46))
 	var mira_shelter := main.get_node("VillageHouse1/MiraRainShelter") as Node3D
 	assert(mira_shelter != null)
@@ -1480,6 +1488,8 @@ func _initialize() -> void:
 	var mote_position := first_mote.position
 	var first_plant := wind_nodes[0] as Node3D
 	var plant_rotation := first_plant.rotation
+	var first_herb_bundle := herb_bundles[0]
+	var first_herb_bundle_rotation := first_herb_bundle.rotation
 	var first_puff := smoke_puffs[0] as MeshInstance3D
 	var puff_position := first_puff.position
 	var puff_transparency := first_puff.transparency
@@ -1503,6 +1513,7 @@ func _initialize() -> void:
 	main.call("_process", 0.5)
 	assert(first_mote.position.distance_to(mote_position) > 0.01)
 	assert(first_plant.rotation.distance_to(plant_rotation) > 0.001)
+	assert(first_herb_bundle.rotation.distance_to(first_herb_bundle_rotation) > 0.001)
 	assert(first_puff.position.distance_to(puff_position) > 0.01)
 	assert(not is_equal_approx(first_puff.transparency, puff_transparency))
 	assert(first_flame.position.distance_to(flame_position) > 0.01)

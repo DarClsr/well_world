@@ -906,3 +906,12 @@
 - 修复 `WorldState.from_dictionary()` 对 `flags`、`quests`、`relationships` 和 `collected_ids` 的强制类型转换；坏结构现在返回 `null`，交由 `SaveService` 尝试 `.bak`。
 - 接通 `DialogueRunner.line_started` 与雾谷提示框；运行时对话显示资源文本，独立 `main.tscn` 测试仍保留硬编码兜底。
 - 回归覆盖：世界状态坏结构、序章重置、传送门/托伦资源文本；完整冒烟和启动检查通过。
+
+### Phase 76：晾药束风场联动
+
+**Status:** complete
+
+- 将四束晾药草接入现有 `wind_nodes` 风场
+- 保留药草束倒挂姿态，由外层节点承载风摆
+- 保持晾药架、檐下雨线遮蔽、药圃布局和米拉路线不变
+- 同步更新冒烟契约、固定天气动态验证和三类专项审核
