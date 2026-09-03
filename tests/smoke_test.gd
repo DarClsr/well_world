@@ -1452,9 +1452,19 @@ func _initialize() -> void:
 	assert(absf(angle_difference(nia_public_visual.rotation.y, atan2(nia_public_direction.x, nia_public_direction.z))) < 0.001)
 	main.set("time_hour", 12.5)
 	main.call("_update_nia_routine", identity_npc, nia_animation)
+	assert(main.get("nia_routine") == "returning")
+	assert(nia_animation.assigned_animation == "Walk")
+	var nia_return_start := identity_npc.position
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(identity_npc.position.distance_to(nia_return_start) > 0.001)
 	var nia_work_reset: Vector3 = main.get("villager_patrol_origins")[2]
+	identity_npc.position = nia_work_reset
+	main.set("nia_route_index", nia_public_route.size() - 1)
+	main.get("villager_patrol_pauses")[2] = 0.0
+	main.call("_physics_process", 1.0 / 60.0)
 	assert(main.get("nia_routine") == "work")
 	assert(identity_npc.position.is_equal_approx(nia_work_reset))
+	assert(nia_animation.assigned_animation == "Idle")
 	main.set("time_hour", 19.0)
 	main.set("weather_override", "clear")
 	main.set("nia_routine", "work")

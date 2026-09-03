@@ -553,7 +553,11 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 	var hour := fposmod(time_hour, 24.0)
 	var next_routine := "work"
 	var route: Array = []
-	if hour >= 10.5 and hour < 12.25:
+	if (nia_routine == "errand" or nia_routine == "returning") and hour >= 12.25:
+		next_routine = "returning"
+		route = NIA_PUBLIC_ROUTE.duplicate()
+		route.reverse()
+	elif hour >= 10.5 and hour < 12.25:
 		next_routine = "errand"
 		route = NIA_PUBLIC_ROUTE
 	elif hour >= 18.5 and hour < 22.5:
@@ -602,6 +606,11 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 			nia.velocity.z = 0.0
 			if animation_player.assigned_animation != "Idle":
 				animation_player.play("Idle", 0.2)
+			if nia_routine == "returning":
+				nia_routine = "work"
+				nia_route_index = 0
+				villager_patrol_directions[2] = 1.0
+				villager_patrol_pauses[2] = 0.0
 			if nia_routine == "home":
 				nia.visible = false
 				nia.collision_layer = 0

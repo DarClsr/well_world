@@ -1049,3 +1049,15 @@
 - `tests/nia_routine_capture.gd` 固定 `time_hour=11.0`，生成 `temp/nia-routine/day-errand.png`；日志确认 `routine=errand`、`animation=Walk`，并保留黄昏/夜间/雨天三张回归图。
 - 代表图人工复核：主路、板车、炉火、晾晒线和角色轮廓清楚，无堵路、遮挡或焦点层级回归；事务捕获机位已收近，Nia 完整可读。
 - 三类专项终审均 `PASS 0/0/0`；Phase 77 完成，准备提交推送。
+
+# 2026-09-03 Phase 78 开始
+
+- 三类专项复审共同指出 Nia 在 12:25 事务结束时直接回到织工点，存在可见瞬移；将其定为本轮唯一修正项。
+- 复用 `NIA_PUBLIC_ROUTE` 生成反向回程，新增 `returning` 状态；仅在抵达工作点后切回 `work`/`Idle`。
+- 冒烟新增回程状态、实际位移、Walk 与抵达复位断言；固定捕获新增 `day-return.png`，日志确认 `routine=returning`、`animation=Walk`。
+
+# 2026-09-03 Phase 78 完成
+
+- 回程捕获最初因玩家进入交谈范围误显示 `Idle`，已将捕获玩家移到交互范围外；最终日志确认 `routine=returning`、`animation=Walk`。
+- 最终验证：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`；晴天 `IMAGE_COUNT=21/UNIQUE_HASHES=21`，小雨 `RAIN_IMAGE_COUNT=21/RAIN_UNIQUE_HASHES=21`。
+- 三类专项终审均 `PASS 0/0/0`；回程不堵路、不穿模，角色、板车、炉火、晾晒线、草甸、树冠、落叶和雨幕无回归。

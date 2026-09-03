@@ -27,6 +27,16 @@ func _record() -> void:
 	main.call("_update_nia_routine", nia, nia_animation)
 	await _capture(main, player, output_dir, "day-errand", Vector3(-4.5, 1.0, 4.5))
 
+	main.set("time_hour", 12.3)
+	main.set("nia_routine", "errand")
+	nia.position = Vector3(-7.25, 0.0, -0.75)
+	main.set("nia_route_index", 8)
+	main.get("villager_patrol_pauses")[2] = 0.0
+	main.set_physics_process(true)
+	await create_timer(2.0).timeout
+	await _capture(main, player, output_dir, "day-return", Vector3(-3.5, 1.0, 3.5))
+	main.set_physics_process(false)
+
 	main.set("time_hour", 18.8)
 	main.set("nia_routine", "work")
 	nia.position = main.get("villager_patrol_origins")[2]

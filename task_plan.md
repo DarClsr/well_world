@@ -926,3 +926,13 @@
 - 同步更新 smoke 契约、固定时间捕获和三类专项审核
 - 验证完成：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`，晴雨扫查均为 `21/21` 唯一哈希；Nia 11:00 事务捕获、晚间炉火和雨天避雨回归通过。
 - 美术、生活气息、场景动效三类专项终审均 `PASS 0/0/0`。
+
+### Phase 78：织工事务回程连续性
+
+**Status:** complete
+
+- Nia 在 12:25 事务窗口结束后沿 `NIA_PUBLIC_ROUTE` 反向返回织工工作点，消除单帧回位。
+- 到达工作点后再恢复 `work`/`Idle`，保留交谈优先级、晚间作息与雨天避雨。
+- 增加固定回程捕获和连续性冒烟契约，不改场景布局、道路、角色资产或天气系统。
+- 验证完成：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`，晴雨扫查均为 `21/21` 唯一哈希；`day-return.png` 确认回程 Walk。
+- 美术、生活气息、场景动效三类终审均 `PASS 0/0/0`。
