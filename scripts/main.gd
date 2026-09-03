@@ -1940,6 +1940,39 @@ func _add_village_props() -> void:
 	var village_wedge := _add_box("VillageWedge", Vector3(0.12, 0.11, 0.32), Vector3(0.03, 0.52, -0.2), work_wood_material, false, village_marker)
 	village_wedge.rotation.y = -0.12
 	village_wedge.rotation.x = -0.05
+	var village_entry := Node3D.new()
+	village_entry.name = "VillageEntryBoundary"
+	village_entry.set_meta("open_side", "east")
+	village_entry.set_meta("entry_positions", PackedVector3Array([
+		Vector3(-2.5, 0.0, -6.25), Vector3(-2.35, 0.0, -5.1), Vector3(1.25, 0.0, -5.35)
+	]))
+	props.add_child(village_entry)
+	var entry_left_post := _add_box(
+		"LeftPost", Vector3(0.16, 0.9, 0.16), Vector3(-2.5, 0.45, -6.25), work_wood_material, false, village_entry
+	)
+	entry_left_post.rotation.y = -0.08
+	var entry_left_post_inner := _add_box(
+		"LeftPostInner", Vector3(0.15, 0.84, 0.15), Vector3(-2.35, 0.42, -5.1), work_wood_material, false, village_entry
+	)
+	entry_left_post_inner.rotation.y = 0.06
+	var entry_left_rail := _add_box(
+		"LeftRail", Vector3(0.1, 0.1, 1.16), Vector3(-2.43, 0.34, -5.68), work_wood_material, false, village_entry
+	)
+	entry_left_rail.rotation.y = -0.08
+	var entry_right_post := _add_box(
+		"RightPost", Vector3(0.16, 0.82, 0.16), Vector3(1.25, 0.41, -5.35), work_wood_material, false, village_entry
+	)
+	entry_right_post.rotation.y = 0.1
+	var entry_left_stone := _add_model(
+		"res://assets/quaternius/nature/Rock_Medium_1.gltf",
+		Vector3(-2.5, 0.0, -6.25), 0.28, 0.12, village_entry
+	)
+	entry_left_stone.name = "LeftStone"
+	var entry_right_stone := _add_model(
+		"res://assets/quaternius/nature/Rock_Medium_2.gltf",
+		Vector3(1.38, 0.0, -5.4), 1.1, 0.1, village_entry
+	)
+	entry_right_stone.name = "RightStone"
 	var herb_rack := Node3D.new()
 	herb_rack.name = "HerbDryingRack"
 	herb_rack.position = Vector3(-15.6, 0.0, -12.6)

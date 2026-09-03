@@ -628,6 +628,19 @@ func _initialize() -> void:
 	assert(boundary_stone.polygon[3].y <= 0.75)
 	assert(village_wedge != null and not village_wedge.use_collision and village_wedge.size.z < 0.4)
 	assert(village_marker.find_children("*", "Light3D", true, false).is_empty())
+	var village_entry := village_props.get_node_or_null("VillageEntryBoundary") as Node3D
+	assert(village_entry != null and village_entry.get_meta("open_side") == "east")
+	var entry_positions := village_entry.get_meta("entry_positions") as PackedVector3Array
+	assert(entry_positions.size() == 3)
+	for entry_position in entry_positions:
+		assert((main.call("_meadow_road_edge_distance", Vector2(entry_position.x, entry_position.z), "VillagePath") as float) > 0.1)
+	for entry_name in ["LeftPost", "LeftPostInner", "LeftRail", "RightPost"]:
+		var entry_piece := village_entry.get_node_or_null(entry_name) as CSGBox3D
+		assert(entry_piece != null and not entry_piece.use_collision)
+	var entry_left_stone := village_entry.get_node_or_null("LeftStone") as Node3D
+	var entry_right_stone := village_entry.get_node_or_null("RightStone") as Node3D
+	assert(entry_left_stone != null and entry_right_stone != null)
+	assert(village_entry.find_children("*", "Light3D", true, false).is_empty())
 	var village_wagon := village_props.get_node_or_null("VillageWagon") as Node3D
 	assert(village_wagon != null and village_wagon.position.is_equal_approx(Vector3(-5.8, 0.0, -2.7)))
 	assert(is_equal_approx(village_wagon.rotation.y, 1.37))

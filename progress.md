@@ -1025,3 +1025,10 @@
 - 验证通过：`SMOKE TEST PASSED`；`TREE MOTION TEST PASSED canopies=16 leaves=12`；`git diff --check`。
 - 小雨扫查完成 `21/21` 唯一哈希；代表机位 `08-village-north`、`12-village-far`、`13-hearth-close`、`14-herb-yard` 复核通过。
 - 美术、生活气息、场景动效终审均 `PASS 0/0/0`。Phase 74 已完成，等待用户确认是否结束本轮序章场景开发。
+
+# 2026-09-03 Phase 75 完成
+
+- 住宅核心北端新增 `VillageEntryBoundary`：左侧短木栏/两根桩，右侧单桩/石基，东侧留缺口，形成低矮不对称村口阈值。
+- 入口构件复用现有木材与石材语义，全部非碰撞、无灯光、不改主路宽度、草量、天气、炉火、NPC 和异世界痕迹。
+- 验证通过：`SMOKE TEST PASSED`；晴天、小雨扫查均为 `21/21` 唯一哈希；`git diff --check` 待提交前复核。
+- 三类终审均 `PASS 0/0/0`；实机确认玩家从外路进入后能读到住宅与炉火目的地，未形成门楼或新广场感。

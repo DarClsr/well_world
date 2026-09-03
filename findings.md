@@ -814,3 +814,10 @@
 - 自动门禁通过：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`、`git diff --check`。
 - 小雨 21 机位扫查输出 `RAIN_IMAGE_COUNT=21`、`RAIN_UNIQUE_HASHES=21`；村庄总览、药圃、炉火和四角机位确认道路、NPC、房屋与职责空间无回归。
 - 美术、生活气息、场景动效三类终审均为 `PASS 0/0/0`；未发现草地过密、风摆同步抖动、遮挡或透明排序问题。
+
+## 2026-09-03 Phase 75 验证
+
+- 在 `VillageProps/VillageEntryBoundary` 增加低矮不对称村口框景：左侧短木栏与两根桩，右侧单桩和石基，东侧保留通行缺口；全部非碰撞、无灯光、无新发光材质。
+- 入口位置固定在住宅核心北端主路边缘，三处基准点通过 `VillagePath` 边缘净空断言；主路最窄宽度、板车支路、房门和 NPC 路线均未改变。
+- 晴天与小雨 Compatibility 扫查均输出 `IMAGE_COUNT=21`、`UNIQUE_HASHES=21`；`08-village-north`、`12-village-far`、`13-hearth-close` 中住宅和炉火自然成为入口后的目的地。
+- 三类审核均通过：美术 `P0/P1/P2=0/0/0`，生活气息无阻断问题，场景动效无闪烁/排序/阴影回归。后续保持右侧单桩不向路心内移。
