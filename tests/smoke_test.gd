@@ -1293,10 +1293,43 @@ func _initialize() -> void:
 	assert(rain_awning.size.x >= 1.85 and rain_awning.size.z >= 0.68)
 	assert(rain_awning.position.y > 1.6 and rain_awning.position.z < 0.0)
 	assert(is_equal_approx(main_constants["MIRA_HERB_SPEED"], 0.46))
+	var mira_shelter := main.get_node("VillageHouse1/MiraRainShelter") as Node3D
+	assert(mira_shelter != null)
+	assert(mira_shelter.position.is_equal_approx(Vector3(-0.52, 0.0, 3.58)))
+	assert(mira_shelter.get_node("Canopy") is CSGBox3D)
+	assert(mira_shelter.get_node("CanopyPostLeft") is CSGBox3D)
+	assert(mira_shelter.get_node("CanopyPostRight") is CSGBox3D)
+	assert(not (mira_shelter.get_node("Canopy") as CSGBox3D).use_collision)
+	assert((main_constants["MIRA_RAIN_SHELTER"] as Vector3).distance_to(Vector3(-8.98, 0.0, -6.38)) < 0.08)
 	var mira := main.get_node("HerbalistMira") as CharacterBody3D
 	var mira_animation := main.get("villager_animations")[0] as AnimationPlayer
 	var pickup_length := mira_animation.get_animation("PickUp").length
+	main.set("weather_override", "light_rain")
+	main.call("_process", 0.0)
+	mira.position = mira_route[2]
+	main.set("mira_route_index", 2)
+	main.set("mira_rain_shelter_active", false)
+	main.set("mira_rain_shelter_leg", 0)
+	main.get("villager_patrol_pauses")[0] = 0.0
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_rain_shelter_active"))
+	assert(mira_animation.assigned_animation == "Walk")
+	var rain_approach: Vector3 = main_constants["MIRA_RAIN_SHELTER_APPROACH"]
+	mira.position = rain_approach - Vector3(0.04, 0.0, 0.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_rain_shelter_leg") == 1)
+	assert(mira.position.distance_to(rain_approach) < 0.08)
+	assert(mira_animation.assigned_animation == "Walk")
+	mira.position = (main_constants["MIRA_RAIN_SHELTER"] as Vector3) - Vector3(0.04, 0.0, 0.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(mira.position.distance_to(main_constants["MIRA_RAIN_SHELTER"] as Vector3) < 0.14)
+	assert(mira.position.distance_to(mira_shelter.global_position) < 0.1)
+	assert(mira_animation.assigned_animation == "Idle")
+	main.set("weather_override", "clear")
+	main.call("_process", 0.0)
 	main.set("mira_route_index", 0)
+	main.set("mira_rain_shelter_active", false)
+	main.set("mira_rain_shelter_leg", 0)
 	mira.position = mira_route[0]
 	mira.velocity = Vector3.ZERO
 	main.get("villager_patrol_pauses")[0] = 0.0

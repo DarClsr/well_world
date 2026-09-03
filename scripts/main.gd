@@ -29,6 +29,9 @@ const MIRA_HERB_TARGETS := [
 ]
 const MIRA_HERB_PAUSES := [1.8, 1.0, 4.6, 3.8]
 const MIRA_HERB_SPEED := 0.46
+const MIRA_RAIN_SHELTER_APPROACH := Vector3(-11.72, 0.0, -5.86)
+const MIRA_RAIN_SHELTER := Vector3(-8.98, 0.0, -6.38)
+const MIRA_RAIN_SHELTER_SPEED := 0.52
 const DAY_DURATION_SECONDS := 1800.0
 const BUTTERFLY_SEED := 3131
 const FIREFLY_SEED := 6262
@@ -128,6 +131,8 @@ var villager_patrol_directions: Array[float] = []
 var villager_patrol_pauses: Array[float] = []
 var villager_animations: Array[AnimationPlayer] = []
 var mira_route_index := 0
+var mira_rain_shelter_active := false
+var mira_rain_shelter_leg := 0
 var toren_watch_index := 0
 var nia_routine := "work"
 var nia_route_index := 0
@@ -446,6 +451,35 @@ func _physics_process(delta: float) -> void:
 
 
 func _update_mira_herb_route(mira: CharacterBody3D, animation_player: AnimationPlayer, delta: float) -> void:
+	if weather_rain_amount > 0.2:
+		mira_rain_shelter_active = true
+		var shelter_target := MIRA_RAIN_SHELTER_APPROACH if mira_rain_shelter_leg == 0 else MIRA_RAIN_SHELTER
+		var shelter_offset := shelter_target - mira.position
+		shelter_offset.y = 0.0
+		if shelter_offset.length() <= 0.08:
+			mira.position.x = shelter_target.x
+			mira.position.z = shelter_target.z
+			mira.velocity.x = 0.0
+			mira.velocity.z = 0.0
+			if mira_rain_shelter_leg == 0:
+				mira_rain_shelter_leg = 1
+				if animation_player.assigned_animation != "Walk":
+					animation_player.play("Walk", 0.2)
+				return
+			if animation_player.assigned_animation != "Idle":
+				animation_player.play("Idle", 0.2)
+			return
+		var shelter_velocity := shelter_offset.normalized() * MIRA_RAIN_SHELTER_SPEED
+		mira.velocity.x = shelter_velocity.x
+		mira.velocity.z = shelter_velocity.z
+		if animation_player.assigned_animation != "Walk":
+			animation_player.play("Walk", 0.2)
+		return
+	if mira_rain_shelter_active:
+		mira_rain_shelter_active = false
+		mira_rain_shelter_leg = 0
+		mira_route_index = 0
+		villager_patrol_pauses[0] = 0.0
 	if villager_patrol_pauses[0] > 0.0:
 		villager_patrol_pauses[0] = maxf(villager_patrol_pauses[0] - delta, 0.0)
 		mira.velocity.x = 0.0
@@ -794,6 +828,7 @@ func _animate_weather() -> void:
 	var rain_color := Color(0.55, 0.68, 0.71, weather_rain_amount * 0.30)
 	rain_material.albedo_color = rain_color
 	var herb_rack := get_node_or_null("VillageProps/HerbDryingRack") as Node3D
+	var mira_shelter := get_node_or_null("VillageHouse1/MiraRainShelter") as Node3D
 	for index in rain_streaks.size():
 		var params := rain_params[index]
 		var fall := fposmod((params["start_y"] as float) - portal_time * (params["speed"] as float), 9.0)
@@ -814,6 +849,13 @@ func _animate_weather() -> void:
 			var rack_local := herb_rack.to_local(rain_world_position)
 			var under_awning := absf(rack_local.x) < 0.95 and absf(rack_local.z + 0.08) < 0.36 and rack_local.y > 0.0 and rack_local.y < 1.76
 			if under_awning:
+				shelter_alpha = 1.0
+		if mira_shelter != null:
+			var shelter_local := mira_shelter.to_local(rain_world_position)
+			var shelter_extents: Vector3 = mira_shelter.get_meta("rain_half_extents")
+			var under_mira_canopy := absf(shelter_local.x) < shelter_extents.x and absf(shelter_local.z) < shelter_extents.z
+			under_mira_canopy = under_mira_canopy and shelter_local.y > (mira_shelter.get_meta("rain_min_y") as float) and shelter_local.y < (mira_shelter.get_meta("rain_max_y") as float)
+			if under_mira_canopy:
 				shelter_alpha = 1.0
 		streak.transparency = shelter_alpha
 
@@ -1460,6 +1502,18 @@ func _add_house(position: Vector3, rotation_y: float) -> void:
 	door.name = "Door"
 	var window := _add_model("res://assets/quaternius/village/Window_Wide_Round1.gltf", Vector3(2.0, 0.0, 2.875), 0.0, 1.0, house)
 	window.name = "Window"
+	if interior_index == 0:
+		var mira_shelter := Node3D.new()
+		mira_shelter.name = "MiraRainShelter"
+		mira_shelter.position = Vector3(-0.52, 0.0, 3.58)
+		house.add_child(mira_shelter)
+		mira_shelter.set_meta("rain_min_y", 1.05)
+		mira_shelter.set_meta("rain_max_y", 2.85)
+		mira_shelter.set_meta("rain_half_extents", Vector3(1.2, 0.0, 0.82))
+		var shelter_canopy := _add_box("Canopy", Vector3(2.2, 0.12, 0.88), Vector3(0.0, 2.42, 0.0), trim_material, false, mira_shelter)
+		shelter_canopy.rotation.x = -0.1
+		_add_box("CanopyPostLeft", Vector3(0.1, 1.22, 0.1), Vector3(-0.88, 1.28, 0.16), trim_material, false, mira_shelter)
+		_add_box("CanopyPostRight", Vector3(0.1, 1.22, 0.1), Vector3(0.88, 1.28, 0.16), trim_material, false, mira_shelter)
 	_add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(-2.2, 0.0, 3.8), 0.25, 0.85, house)
 	_add_model("res://assets/quaternius/village/Prop_Vine1.gltf", Vector3(-1.55, 0.35, 3.2), 0.0, 0.78, house)
 	var chimney := _add_model("res://assets/quaternius/village/Prop_Chimney.gltf", Vector3(-2.45, 3.1, 0.8), 0.0, 1.0, house)
