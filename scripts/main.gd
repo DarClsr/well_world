@@ -82,6 +82,7 @@ var portal_material: StandardMaterial3D
 var portal_surface_material: ShaderMaterial
 var portal_ground_rune_material: StandardMaterial3D
 var portal_mote_material: StandardMaterial3D
+var otherworld_trace_material: StandardMaterial3D
 var portal_ring: CSGTorus3D
 var portal_light: OmniLight3D
 var portal_hum: AudioStreamPlayer3D
@@ -275,6 +276,8 @@ func _runtime_tick(delta: float) -> void:
 	portal_surface_material.set_shader_parameter("time_glow", lerpf(0.82, 1.38, night_focus))
 	portal_ground_rune_material.emission_energy_multiplier = 0.48 * lerpf(0.72, 1.35, night_focus)
 	portal_mote_material.emission_energy_multiplier = 1.8 * lerpf(0.72, 1.28, night_focus)
+	if otherworld_trace_material != null:
+		otherworld_trace_material.emission_energy_multiplier = (0.14 + sin(portal_time * 0.85) * 0.025) * lerpf(0.9, 1.2, night_focus)
 	portal_light.light_energy = (0.65 + pulse * 0.15 + proximity * 0.45 + reaction * 0.75) * lerpf(0.82, 1.55, night_focus)
 	portal_hum.volume_db = lerpf(-24.0, -11.0, proximity)
 	var mote_count := portal_motes.size()
@@ -1832,6 +1835,30 @@ func _add_village_props() -> void:
 	_add_model("res://assets/quaternius/village/Prop_WoodenFence_Extension1.gltf", Vector3(8.4, 0.0, -1.95), -0.18, 1.0, props)
 	_add_model("res://assets/quaternius/village/Prop_WoodenFence_Extension1.gltf", Vector3(10.4, 0.0, -2.3), -0.18, 1.0, props)
 	var work_wood_material := _material(Color("6f4c32"), 0.95)
+	otherworld_trace_material = _material(Color("547d76"), 0.68)
+	otherworld_trace_material.emission_enabled = true
+	otherworld_trace_material.emission = Color("6ab8a8")
+	otherworld_trace_material.emission_energy_multiplier = 0.14
+	var otherworld_trace := Node3D.new()
+	otherworld_trace.name = "OtherworldTrace"
+	otherworld_trace.position = Vector3(-3.35, 0.0, -1.22)
+	otherworld_trace.rotation.y = -0.18
+	props.add_child(otherworld_trace)
+	var trace_stone := CSGCylinder3D.new()
+	trace_stone.name = "TraceStone"
+	trace_stone.radius = 0.22
+	trace_stone.height = 0.12
+	trace_stone.sides = 8
+	trace_stone.position.y = 0.06
+	trace_stone.material = stone_material
+	trace_stone.use_collision = false
+	otherworld_trace.add_child(trace_stone)
+	var trace_a := _add_box("TraceSegmentA", Vector3(0.34, 0.025, 0.055), Vector3(-0.17, 0.14, 0.06), otherworld_trace_material, false, otherworld_trace)
+	trace_a.rotation.y = -0.5
+	var trace_b := _add_box("TraceSegmentB", Vector3(0.28, 0.025, 0.055), Vector3(0.0, 0.14, -0.12), otherworld_trace_material, false, otherworld_trace)
+	trace_b.rotation.y = 0.1
+	var trace_c := _add_box("TraceSegmentC", Vector3(0.32, 0.025, 0.055), Vector3(0.2, 0.14, 0.04), otherworld_trace_material, false, otherworld_trace)
+	trace_c.rotation.y = 0.55
 	var village_marker := Node3D.new()
 	village_marker.name = "VillageBoundaryMarker"
 	village_marker.position = Vector3(3.35, 0.0, 5.1)

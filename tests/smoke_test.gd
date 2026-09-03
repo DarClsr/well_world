@@ -602,9 +602,17 @@ func _initialize() -> void:
 	assert(is_zero_approx(portal_surface_material.get_shader_parameter("reaction_strength")))
 	assert(main.get_node_or_null("VillageProps") != null)
 	var village_props := main.get_node("VillageProps") as Node3D
-	assert(village_props.get_child_count() >= 11)
+	assert(village_props.get_child_count() >= 12)
 	assert(village_props.get_node_or_null("HerbDryingRack") is Node3D)
 	assert(village_props.get_node_or_null("HerbHarvestCrate") is Node3D)
+	var otherworld_trace := village_props.get_node_or_null("OtherworldTrace") as Node3D
+	assert(otherworld_trace != null and otherworld_trace.position.is_equal_approx(Vector3(-3.35, 0.0, -1.22)))
+	assert(otherworld_trace.get_node_or_null("TraceStone") is CSGCylinder3D)
+	for trace_name in ["TraceSegmentA", "TraceSegmentB", "TraceSegmentC"]:
+		var trace_segment := otherworld_trace.get_node_or_null(trace_name) as CSGBox3D
+		assert(trace_segment != null and not trace_segment.use_collision)
+	var trace_material := main.get("otherworld_trace_material") as StandardMaterial3D
+	assert(trace_material.emission_enabled and trace_material.emission_energy_multiplier <= 0.2)
 	var weaving_line := village_props.get_node_or_null("WeaverDryingLine") as Node3D
 	assert(weaving_line != null and weaving_line.get_child_count() == 6)
 	var village_marker := village_props.get_node_or_null("VillageBoundaryMarker") as Node3D

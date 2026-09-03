@@ -718,6 +718,17 @@
 
 **验证结果：** 夜雨环境底光/雾色回提后房屋、板车、NPC 与支路轮廓恢复可读，炉火仍为唯一强暖色焦点；`HerbDryingRack` 增加 `RainAwning` 并接入局部雨线遮蔽。`SMOKE TEST PASSED`；核心 12 项回归通过；最终天气捕获与小雨扫查输出 `RAIN_IMAGE_COUNT=21`、`RAIN_UNIQUE_HASHES=21`；美术、生活气息与动效终审均 `PASS`。
 
+### Phase 72：补回村庄中的异世界记忆点
+
+**Status:** complete
+
+- 在板车支路旁的既有生活痕迹边缘增加一个小型 `OtherworldTrace`，用石基和三段断裂冷青痕连接传送门叙事
+- footprint 控制在角色直径以内，低强度脉动且明显低于传送门，不新增第二传送门、粒子系统或高饱和装饰
+- 保持道路、草地、房屋、炉火、NPC 路线和天气逻辑不变
+- 同步冒烟契约、固定天气捕获、21 机位扫查和三类审核
+- 验证通过：`SMOKE TEST PASSED`；小雨 21 机位 `RAIN_IMAGE_COUNT=21`、`RAIN_UNIQUE_HASHES=21`；晴天、药圃小雨、夜雨固定捕获完成；三类专项终审 `PASS 0/0/0`
+- 下一候选保持为两个独立 P2：米拉雨天进入门廊/檐下停留；草甸风摆接入 `weather_wind_amount`
+
 
 
 ## 当前范围
