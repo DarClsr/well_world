@@ -1445,6 +1445,16 @@ func _initialize() -> void:
 	main.get("villager_patrol_pauses")[2] = 0.0
 	main.call("_physics_process", 1.0 / 60.0)
 	assert(main.get("nia_route_index") == nia_public_route.size() - 1)
+	var nia_pickup_length := nia_animation.get_animation("PickUp").length
+	assert(main.get("nia_errand_action_done") == false)
+	assert(main.get("villager_patrol_pauses")[2] >= nia_pickup_length)
+	assert(nia_animation.assigned_animation == "PickUp")
+	main.call("_physics_process", nia_pickup_length + 0.2)
+	assert(main.get("nia_errand_action_done"))
+	assert(main.get("villager_patrol_pauses")[2] == 0.0)
+	assert(nia_animation.assigned_animation == "Idle")
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("nia_errand_action_done"))
 	assert(nia_animation.assigned_animation == "Idle")
 	main.call("_process", 1.0)
 	var nia_public_visual := identity_npc.get_node("Visual") as Node3D

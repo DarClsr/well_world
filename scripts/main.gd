@@ -142,6 +142,7 @@ var mira_rain_shelter_leg := 0
 var toren_watch_index := 0
 var nia_routine := "work"
 var nia_route_index := 0
+var nia_errand_action_done := false
 var nearby_villager: CharacterBody3D
 var mistcap_material: StandardMaterial3D
 var mistcap_caps: Array[MeshInstance3D] = []
@@ -423,7 +424,7 @@ func _physics_process(delta: float) -> void:
 			villager.velocity.z = 0.0
 			if animation_player.assigned_animation != "Idle":
 				animation_player.play("Idle", 0.2)
-		elif index == 2 and _update_nia_routine(villager, animation_player):
+		elif index == 2 and _update_nia_routine(villager, animation_player, delta):
 			pass
 		elif index == 1:
 			_update_toren_watch(villager, animation_player, delta)
@@ -549,7 +550,7 @@ func _update_toren_watch(toren: CharacterBody3D, animation_player: AnimationPlay
 		animation_player.play("Walk", 0.2)
 
 
-func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer) -> bool:
+func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer, delta: float = 0.0) -> bool:
 	var hour := fposmod(time_hour, 24.0)
 	var next_routine := "work"
 	var route: Array = []
@@ -576,6 +577,7 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 			villager_patrol_pauses[2] = 0.0
 		nia_routine = "work"
 		nia_route_index = 0
+		nia_errand_action_done = false
 		return false
 	if nia_routine != next_routine:
 		var previous_routine := nia_routine
@@ -584,6 +586,9 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 		nia.collision_layer = 1
 		nia.collision_mask = 1
 		nia_route_index = 0
+		nia_errand_action_done = next_routine != "errand"
+		if next_routine == "errand":
+			villager_patrol_pauses[2] = 0.0
 		if previous_routine in ["hearth", "rain_shelter"] and next_routine in ["hearth", "rain_shelter"]:
 			nia_route_index = route.size() - 1
 		else:
@@ -604,8 +609,24 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 		else:
 			nia.velocity.x = 0.0
 			nia.velocity.z = 0.0
-			if animation_player.assigned_animation != "Idle":
-				animation_player.play("Idle", 0.2)
+			if nia_routine == "errand":
+				if not nia_errand_action_done:
+					if villager_patrol_pauses[2] <= 0.0:
+						villager_patrol_pauses[2] = animation_player.get_animation("PickUp").length + 0.15
+						animation_player.play("PickUp", 0.2)
+					else:
+						villager_patrol_pauses[2] = maxf(villager_patrol_pauses[2] - delta, 0.0)
+						if villager_patrol_pauses[2] <= 0.0:
+							nia_errand_action_done = true
+							animation_player.play("Idle", 0.2)
+						elif animation_player.assigned_animation != "PickUp":
+							animation_player.play("PickUp", 0.2)
+				else:
+					if animation_player.assigned_animation != "Idle":
+						animation_player.play("Idle", 0.2)
+			else:
+				if animation_player.assigned_animation != "Idle":
+					animation_player.play("Idle", 0.2)
 			if nia_routine == "returning":
 				nia_routine = "work"
 				nia_route_index = 0

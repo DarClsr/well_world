@@ -936,3 +936,12 @@
 - 增加固定回程捕获和连续性冒烟契约，不改场景布局、道路、角色资产或天气系统。
 - 验证完成：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`，晴雨扫查均为 `21/21` 唯一哈希；`day-return.png` 确认回程 Walk。
 - 美术、生活气息、场景动效三类终审均 `PASS 0/0/0`。
+
+### Phase 79：板车卸货动作
+
+**Status: complete**
+
+- Nia 抵达板车卸货点后播放一次 `PickUp`，停留覆盖完整动画时长，再保持 `Idle`。
+- 复用现有板车、卸货箱、角色动画与路线，不增加资产、碰撞或新框架。
+- 同步更新冒烟契约、固定捕获和三份审核记录；事务结束后继续沿 Phase 78 反向路线回程。
+- 验证完成：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`，晴天/小雨扫查均为 `21/21` 唯一哈希；三类专项终审均 `PASS 0/0/0`。

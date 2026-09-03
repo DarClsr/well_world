@@ -1061,3 +1061,11 @@
 - 回程捕获最初因玩家进入交谈范围误显示 `Idle`，已将捕获玩家移到交互范围外；最终日志确认 `routine=returning`、`animation=Walk`。
 - 最终验证：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`；晴天 `IMAGE_COUNT=21/UNIQUE_HASHES=21`，小雨 `RAIN_IMAGE_COUNT=21/RAIN_UNIQUE_HASHES=21`。
 - 三类专项终审均 `PASS 0/0/0`；回程不堵路、不穿模，角色、板车、炉火、晾晒线、草甸、树冠、落叶和雨幕无回归。
+
+# 2026-09-03 Phase 79 板车卸货动作
+
+- Nia 抵达板车卸货点后只触发一次 `PickUp`，暂停覆盖完整动画时长并在完成后保持 `Idle`；新增 `nia_errand_action_done` 防止每帧重播。
+- 事务结束仍沿 `NIA_PUBLIC_ROUTE` 反向进入 `returning`，没有改变道路、板车、碰撞或其他 NPC 行为。
+- `SMOKE TEST PASSED`；`TREE MOTION TEST PASSED canopies=16 leaves=12`；晴天与小雨扫查均为 21 张且 SHA-256 唯一数为 21。
+- 固定捕获新增 `temp/nia-routine/day-unload.png`，东侧机位确认角色动作和板车卸货关系可读；`day-return.png` 继续确认 `returning`、`Walk`。
+- 三类专项终审均 `PASS 0/0/0`；Phase 79 完成。

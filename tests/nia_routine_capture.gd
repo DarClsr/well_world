@@ -27,6 +27,16 @@ func _record() -> void:
 	main.call("_update_nia_routine", nia, nia_animation)
 	await _capture(main, player, output_dir, "day-errand", Vector3(-4.5, 1.0, 4.5))
 
+	main.set("time_hour", 12.0)
+	main.set("nia_routine", "errand")
+	nia.position = Vector3(-7.25, 0.0, -0.75)
+	main.set("nia_route_index", 8)
+	main.set("nia_errand_action_done", false)
+	main.get("villager_patrol_pauses")[2] = 0.0
+	main.call("_physics_process", 1.0 / 60.0)
+	main.set_physics_process(false)
+	await _capture(main, player, output_dir, "day-unload", Vector3(-5.0, 1.0, -0.75), 90.0)
+
 	main.set("time_hour", 12.3)
 	main.set("nia_routine", "errand")
 	nia.position = Vector3(-7.25, 0.0, -0.75)
@@ -54,11 +64,11 @@ func _record() -> void:
 	quit()
 
 
-func _capture(main: Node3D, player: CharacterBody3D, output_dir: String, shot_name: String, player_position: Vector3) -> void:
+func _capture(main: Node3D, player: CharacterBody3D, output_dir: String, shot_name: String, player_position: Vector3, yaw_degrees: float = 0.0) -> void:
 	player.position = player_position
-	player.camera_yaw = 0.0
+	player.camera_yaw = deg_to_rad(yaw_degrees)
 	player.camera_target_height = 10.0
-	(player.get_node("CameraRig") as Node3D).rotation.y = 0.0
+	(player.get_node("CameraRig") as Node3D).rotation.y = player.camera_yaw
 	player.call("_update_camera_zoom", 1.0)
 	main.call("_process", 1.0)
 	await create_timer(0.8).timeout
