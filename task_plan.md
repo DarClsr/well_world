@@ -739,6 +739,15 @@
 - 验证通过：`SMOKE TEST PASSED`；10 秒行为捕获到达误差约 `0.00015m`；小雨 21 机位 `RAIN_IMAGE_COUNT=21`、`RAIN_UNIQUE_HASHES=21`；三类专项终审 `PASS 0/0/0`
 - 下一候选为草甸风摆接入 `weather_wind_amount`，继续保持固定种子和现有草量
 
+### Phase 74：草甸风摆接入天气风强
+
+**Status:** complete
+
+- 草甸 Shader 使用 `wind_strength` 与 `motion_time`，沿用树冠、落叶的天气风强和场景时钟
+- 晴天 `0.62`、阴天 `0.86`、薄雾 `0.48`、小雨 `1.12`，只改变摆动幅度和相位，不改变草量、布局、颜色或排除带
+- 验证通过：`SMOKE TEST PASSED`；`TREE MOTION TEST PASSED canopies=16 leaves=12`；小雨扫查 `RAIN_IMAGE_COUNT=21`、`RAIN_UNIQUE_HASHES=21`；三类专项终审 `PASS 0/0/0`
+- 动态捕获与代表机位确认草甸、树冠和落叶风强层级一致，村庄道路、药圃、炉火、NPC 和建筑构图无回归
+
 
 
 ## 当前范围

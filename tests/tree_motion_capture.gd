@@ -34,6 +34,7 @@ func _record() -> void:
 
 	var canopies: Array = main.get("tree_canopies")
 	var canopy_materials: Array = main.get("tree_canopy_materials")
+	var meadow_material := (main.get_node("MeadowGrass") as MultiMeshInstance3D).material_override as ShaderMaterial
 	var falling_leaves := main.get("falling_leaves") as Node3D
 	assert(canopies.size() == 16 and canopy_materials.size() == 16)
 	assert(falling_leaves.get_child_count() == 12)
@@ -60,6 +61,8 @@ func _record() -> void:
 	for index in canopies.size():
 		assert((canopies[index] as MeshInstance3D).global_transform.is_equal_approx(tree_transforms[index]))
 	assert(is_equal_approx((canopy_materials[0] as ShaderMaterial).get_shader_parameter("wind_strength"), 1.12))
+	assert(is_equal_approx(meadow_material.get_shader_parameter("wind_strength"), 1.12))
+	assert(is_equal_approx(meadow_material.get_shader_parameter("motion_time"), 6.9666665), "Meadow motion time should track deterministic capture time")
 	var moved_leaves := 0
 	for index in falling_leaves.get_child_count():
 		if not (falling_leaves.get_child(index) as MeshInstance3D).position.is_equal_approx(leaf_start[index]):

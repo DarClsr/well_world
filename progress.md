@@ -1017,3 +1017,11 @@
 - 小雨时米拉沿接近点和门廊两段路线移动，实际到达后保持 `Idle`；雨停会清除避雨状态并从门前回到原四点药草路线。
 - 捕获 `captures/phase73-mira-rain-shelter.png`；10 秒行为脚本确认目标距离 `0.00015m`；小雨扫查保持 `21/21` 唯一哈希。
 - `SMOKE TEST PASSED`，三类专项终审 `PASS 0/0/0`。下一阶段候选为草甸风摆接入天气风强。
+
+# 2026-09-03 Phase 74 完成
+
+- 草甸风摆已接入既有天气风强：Shader 使用 `wind_strength` 与 `motion_time`，初始化和每帧更新分别读取 `weather_wind_amount`、`portal_time`。
+- 保持原有固定种子、草量、疏密节奏、道路/药圃/炉火排除带和低饱和鼠尾草绿；仅按天气改变摆幅与相位。
+- 验证通过：`SMOKE TEST PASSED`；`TREE MOTION TEST PASSED canopies=16 leaves=12`；`git diff --check`。
+- 小雨扫查完成 `21/21` 唯一哈希；代表机位 `08-village-north`、`12-village-far`、`13-hearth-close`、`14-herb-yard` 复核通过。
+- 美术、生活气息、场景动效终审均 `PASS 0/0/0`。Phase 74 已完成，等待用户确认是否结束本轮序章场景开发。

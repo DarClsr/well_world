@@ -801,3 +801,16 @@
 - `_animate_weather()` 只对檐下局部坐标内雨线设置遮蔽；药圃、道路、炉火、NPC 和房屋其余区域没有天气层级回归。
 - 固定小雨 21 机位与 `phase73-mira-rain-shelter.png` 复核通过；美术、生活气息和动效终审均 `PASS 0/0/0`。
 - 下一候选保留为 P2：草甸 Shader 接入 `weather_wind_amount`，解决树冠/落叶增强而草甸摆幅固定的动效层级差异。
+
+## 2026-09-03 Phase 74 决策
+
+- 当前天气 profile 已有稳定风强：晴 `0.62`、阴 `0.86`、薄雾 `0.48`、小雨 `1.12`；树冠和落叶读取该值，草甸 Shader 仍固定 `sway_strength=0.11` 并使用内置 `TIME`。
+- 最小修正是给草甸增加 `wind_strength` 与 `motion_time` uniform，在现有 `_animate_tree_canopies()` 统一写入 `weather_wind_amount` 和 `portal_time`；不改变实例数量、排除带、道路或材质色板。
+
+## 2026-09-03 Phase 74 验证
+
+- `shaders/meadow_grass.gdshader` 新增 `wind_strength` 与 `motion_time`；草叶弯曲仍受高度平方和镜头距离衰减约束，实例分布、道路排除带与鼠尾草绿材质不变。
+- `scripts/main.gd` 在初始化和 `_animate_tree_canopies()` 同步写入 `weather_wind_amount` 与 `portal_time`，晴/阴/雾/小雨风强连续且固定种子可复现。
+- 自动门禁通过：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`、`git diff --check`。
+- 小雨 21 机位扫查输出 `RAIN_IMAGE_COUNT=21`、`RAIN_UNIQUE_HASHES=21`；村庄总览、药圃、炉火和四角机位确认道路、NPC、房屋与职责空间无回归。
+- 美术、生活气息、场景动效三类终审均为 `PASS 0/0/0`；未发现草地过密、风摆同步抖动、遮挡或透明排序问题。

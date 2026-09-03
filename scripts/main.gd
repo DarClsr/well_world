@@ -907,6 +907,11 @@ func _animate_tree_canopies() -> void:
 	for material in tree_canopy_materials:
 		material.set_shader_parameter("motion_time", portal_time)
 		material.set_shader_parameter("wind_strength", weather_wind_amount)
+	if meadow_grass != null:
+		var meadow_material := meadow_grass.material_override as ShaderMaterial
+		if meadow_material != null:
+			meadow_material.set_shader_parameter("motion_time", portal_time)
+			meadow_material.set_shader_parameter("wind_strength", weather_wind_amount)
 
 
 func _animate_falling_leaves() -> void:
@@ -2669,6 +2674,8 @@ func _add_meadow_grass() -> void:
 	var material := ShaderMaterial.new()
 	material.shader = MeadowGrassShader
 	material.set_shader_parameter("albedo_tex", source_material.albedo_texture)
+	material.set_shader_parameter("wind_strength", weather_wind_amount)
+	material.set_shader_parameter("motion_time", portal_time)
 	meadow_grass = MultiMeshInstance3D.new()
 	meadow_grass.name = "MeadowGrass"
 	meadow_grass.multimesh = multimesh

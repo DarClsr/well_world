@@ -535,8 +535,11 @@ func _initialize() -> void:
 	assert("INSTANCE_CUSTOM.r" in meadow_shader_code)
 	assert("vec3(0.72, 0.95, 0.70)" in meadow_shader_code)
 	assert("if (!FRONT_FACING)" in meadow_shader_code)
+	assert("wind_strength" in meadow_shader_code and "motion_time" in meadow_shader_code)
 	assert("1.0 - smoothstep(26.0, 42.0, camera_distance)" in meadow_shader_code)
 	assert("EMISSION = grass_color * 0.03" in meadow_shader_code)
+	assert(is_equal_approx(meadow_material.get_shader_parameter("wind_strength"), 0.62))
+	assert(is_zero_approx(meadow_material.get_shader_parameter("motion_time")))
 	var meadow_positions: PackedVector3Array = meadow.get_meta("positions")
 	var meadow_brightness: PackedFloat32Array = meadow.get_meta("brightness_values")
 	assert(meadow_positions.size() == meadow.multimesh.instance_count)
@@ -1066,6 +1069,7 @@ func _initialize() -> void:
 	assert(first_leaf.position.distance_to(clear_leaf_position) > 0.01)
 	main.call("_animate_tree_canopies")
 	assert(is_equal_approx((tree_canopy_materials[0] as ShaderMaterial).get_shader_parameter("wind_strength"), 1.12))
+	assert(is_equal_approx(meadow_material.get_shader_parameter("wind_strength"), 1.12))
 	var rack_for_rain := main.get_node("VillageProps/HerbDryingRack") as Node3D
 	var rain_params_for_test: Array = main.get("rain_params")
 	var first_rain_param: Dictionary = rain_params_for_test[0]
