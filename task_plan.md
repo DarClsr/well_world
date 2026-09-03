@@ -945,3 +945,12 @@
 - 复用现有板车、卸货箱、角色动画与路线，不增加资产、碰撞或新框架。
 - 同步更新冒烟契约、固定捕获和三份审核记录；事务结束后继续沿 Phase 78 反向路线回程。
 - 验证完成：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`，晴天/小雨扫查均为 `21/21` 唯一哈希；三类专项终审均 `PASS 0/0/0`。
+
+### Phase 80：板车货物锚点
+
+**Status: complete**
+
+- 在板车车斗卸货侧增加 1～2 个低矮 `Prop_Crate` 货物，让 Nia 的 `PickUp` 与职责物件形成直接联系。
+- 复用现有木材材质，货物低于车帮、不发光、不改车位、道路、碰撞或 NPC 路线。
+- 增加尺寸/净空契约，跑完整冒烟、固定卸货捕获和晴雨 21 机位，再交三类专项复审。
+- 验证完成：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`；晴天/小雨扫查均为 `21/21` 唯一哈希，三类专项终审均 `PASS 0/0/0`。

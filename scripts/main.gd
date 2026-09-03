@@ -81,6 +81,11 @@ const NIA_PUBLIC_ROUTE := [
 	Vector3(-3.35, 0.0, -0.9), Vector3(-5.0, 0.0, -0.75), Vector3(-7.25, 0.0, -0.75),
 ]
 const NIA_PUBLIC_LOOK_TARGET := Vector3(-7.4, 0.0, -2.1)
+const WAGON_CARGO_POSITIONS := [
+	Vector3(-0.25, 0.62, -1.35),
+	Vector3(0.28, 0.60, -1.95),
+]
+const WAGON_CARGO_SCALES := [0.34, 0.28]
 
 var ground_material := _material(Color("6f8f65"), 0.95)
 var path_material := _material(Color("9a8466"), 1.0)
@@ -1928,6 +1933,15 @@ func _add_village_props() -> void:
 	add_child(props)
 	var wagon := _add_model("res://assets/quaternius/village/Prop_Wagon.gltf", Vector3(-5.8, 0.0, -2.7), 1.37, 0.9, props)
 	wagon.name = "VillageWagon"
+	for cargo_index in WAGON_CARGO_POSITIONS.size():
+		var cargo := _add_model(
+			"res://assets/quaternius/village/Prop_Crate.gltf",
+			WAGON_CARGO_POSITIONS[cargo_index],
+			0.12 + float(cargo_index) * 0.24,
+			WAGON_CARGO_SCALES[cargo_index],
+			wagon
+		)
+		cargo.name = "WagonCargoCrate%d" % cargo_index
 	var wagon_crate_large := _add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(-7.4, 0.0, -2.1), 0.16, 0.75, props)
 	wagon_crate_large.name = "WagonUnloadCrateLarge"
 	var wagon_crate_small := _add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3(-7.45, 0.0, -3.0), 0.42, 0.55, props)

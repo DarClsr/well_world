@@ -603,6 +603,7 @@ func _initialize() -> void:
 	assert(portal_surface_material != null)
 	assert((portal_surface_material.shader as Shader).resource_path == "res://shaders/portal_surface.gdshader")
 	assert(is_zero_approx(portal_surface_material.get_shader_parameter("reaction_strength")))
+	var main_constants := (main.get_script() as Script).get_script_constant_map()
 	assert(main.get_node_or_null("VillageProps") != null)
 	var village_props := main.get_node("VillageProps") as Node3D
 	assert(village_props.get_child_count() >= 12)
@@ -644,6 +645,15 @@ func _initialize() -> void:
 	var village_wagon := village_props.get_node_or_null("VillageWagon") as Node3D
 	assert(village_wagon != null and village_wagon.position.is_equal_approx(Vector3(-5.8, 0.0, -2.7)))
 	assert(is_equal_approx(village_wagon.rotation.y, 1.37))
+	var wagon_cargo_positions: Array = main_constants["WAGON_CARGO_POSITIONS"]
+	var wagon_cargo_scales: Array = main_constants["WAGON_CARGO_SCALES"]
+	assert(wagon_cargo_positions.size() == 2 and wagon_cargo_scales.size() == 2)
+	for cargo_index in wagon_cargo_positions.size():
+		var wagon_cargo := village_wagon.get_node_or_null("WagonCargoCrate%d" % cargo_index) as Node3D
+		assert(wagon_cargo != null and wagon_cargo.get_parent() == village_wagon)
+		assert(wagon_cargo.position.is_equal_approx(wagon_cargo_positions[cargo_index]))
+		assert(is_equal_approx(wagon_cargo.scale.x, wagon_cargo_scales[cargo_index]))
+		assert(wagon_cargo.position.y < 0.8 and wagon_cargo.find_children("*", "CollisionShape3D", true, false).is_empty())
 	var wagon_shaft_direction := village_wagon.basis.z.normalized()
 	var wagon_lane_exit := Vector3(2.0, 0.0, 0.4).normalized()
 	assert(wagon_shaft_direction.dot(wagon_lane_exit) > 0.99)
@@ -1240,7 +1250,6 @@ func _initialize() -> void:
 		assert(is_equal_approx((patrol_axis as Vector3).length(), 1.0))
 	assert(main.get("villager_patrol_directions").size() == 3)
 	assert(main.get("villager_patrol_pauses").size() == 3)
-	var main_constants := (main.get_script() as Script).get_script_constant_map()
 	var toren_route: Array = main_constants["TOREN_WATCH_ROUTE"]
 	var toren_targets: Array = main_constants["TOREN_WATCH_TARGETS"]
 	var toren_pauses: Array = main_constants["TOREN_WATCH_PAUSES"]

@@ -1069,3 +1069,11 @@
 - `SMOKE TEST PASSED`；`TREE MOTION TEST PASSED canopies=16 leaves=12`；晴天与小雨扫查均为 21 张且 SHA-256 唯一数为 21。
 - 固定捕获新增 `temp/nia-routine/day-unload.png`，东侧机位确认角色动作和板车卸货关系可读；`day-return.png` 继续确认 `returning`、`Walk`。
 - 三类专项终审均 `PASS 0/0/0`；Phase 79 完成。
+
+# 2026-09-03 Phase 80 板车货物锚点
+
+- 在 `VillageWagon` 车斗内增加两个低矮 `Prop_Crate`，使用固定局部坐标和 `0.34/0.28` 缩放；不新增资产、碰撞、发光或动态状态。
+- 冒烟新增父节点、局部坐标、缩放、低于车帮和无碰撞契约，输出 `SMOKE TEST PASSED`。
+- `TREE MOTION TEST PASSED canopies=16 leaves=12`；晴天 `IMAGE_COUNT=21/UNIQUE_HASHES=21`，小雨 `RAIN_IMAGE_COUNT=21/RAIN_UNIQUE_HASHES=21`。
+- 证据归档为 `captures/phase80-wagon-cargo-unload.png`、`phase80-wagon-cargo-village-east.png` 和 `phase80-wagon-cargo-village-east-rain.png`。
+- 三类专项终审均 `PASS 0/0/0`；货物增强卸货职责语义，未遮挡 Nia、侵占道路或抢占炉火/传送门焦点。
