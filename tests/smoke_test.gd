@@ -2,6 +2,7 @@ extends SceneTree
 
 
 func _initialize() -> void:
+	assert(WorldState.from_dictionary({"version": 1, "flags": null}) == null)
 	var scene := load("res://scenes/main.tscn") as PackedScene
 	assert(scene != null)
 	var main := scene.instantiate()

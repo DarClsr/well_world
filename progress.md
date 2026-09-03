@@ -965,3 +965,9 @@
 - 新增持久 `GameRoot`、`SceneRouter`、雾谷区域包装及 `portal_arrival` / `mist_pass_return` 命名出生点。
 - 把昼夜/天气纯计算、NPC 名称职责、生态显隐和运行时编排迁入独立控制器，旧 `main.gd` 接口继续供既有测试和捕获脚本使用。
 - 核心自动回归共 12 项通过：8 项新基础/集成测试，加雾谷基线、完整冒烟、KayKit NPC 和漂泊者视觉测试。
+
+# 2026-09-03 基础重构回归修复
+
+- 修复状态替换后的序章任务未启动、坏存档字段触发无效强转、数据对话信号未更新 UI 三个问题。
+- 新增回归断言覆盖新游戏重置、四种错误字段类型和资源化对话文本。
+- 验证通过：`WORLD STATE TEST PASSED`、`PROLOGUE FOUNDATION INTEGRATION TEST PASSED`、`DIALOGUE RUNNER TEST PASSED`、`SAVE SERVICE TEST PASSED`、`SMOKE TEST PASSED`、`git diff --check`；`godot --headless --path . --quit` 退出码 0。

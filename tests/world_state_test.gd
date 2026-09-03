@@ -24,6 +24,10 @@ func _initialize() -> void:
 	restored.flags[&"portal_seen"] = false
 	assert(state.flags[&"portal_seen"] == true)
 	assert(WorldStateScript.from_dictionary({}) == null)
+	assert(WorldStateScript.from_dictionary({"version": 1, "flags": null}) == null)
+	assert(WorldStateScript.from_dictionary({"version": 1, "quests": "invalid"}) == null)
+	assert(WorldStateScript.from_dictionary({"version": 1, "relationships": 12}) == null)
+	assert(WorldStateScript.from_dictionary({"version": 1, "collected_ids": {}}) == null)
 	var bus = EventBusScript.new()
 	root.add_child(bus)
 	var manager = GameStateScript.new()

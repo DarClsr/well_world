@@ -194,6 +194,9 @@ func _ready() -> void:
 	story_player = get_node_or_null("Player") as CharacterBody3D
 	story_hearth = get_node_or_null("VillageHearth") as Node3D
 	prologue_quest_runtime = get_tree().get_first_node_in_group("quest_runtime") as QuestRuntime
+	var dialogue_runner := get_tree().get_first_node_in_group("dialogue_runner") as DialogueRunner
+	if dialogue_runner != null:
+		dialogue_runner.line_started.connect(_on_dialogue_line_started)
 
 
 func _setup_runtime_controllers() -> void:
@@ -575,28 +578,35 @@ func _villager_name(npc_name: String) -> String:
 
 func _show_villager_dialogue() -> void:
 	var message := "尼娅：雾里的丝线，总会织出陌生的花纹。"
+	var migrated := false
 	match nearby_villager.name:
 		"HerbalistMira":
 			message = "米拉：雾起前采下的药草，效力最好。"
-			_start_migrated_dialogue(&"mira")
+			migrated = _start_migrated_dialogue(&"mira")
 		"GatekeeperToren":
 			message = "托伦：沿石路走，别踏进谷边的浓雾。"
-			_start_migrated_dialogue(&"toren")
+			migrated = _start_migrated_dialogue(&"toren")
 		_:
-			_start_migrated_dialogue(&"nia")
+			migrated = _start_migrated_dialogue(&"nia")
 	var model := nearby_villager.get_node("Visual/CharacterModel") as Node3D
 	var model_y := model.position.y
 	var nod := create_tween()
 	nod.tween_property(model, "position:y", model_y - 0.06, 0.12)
 	nod.tween_property(model, "position:y", model_y, 0.18)
-	_show_interaction_text(message)
+	if not migrated:
+		_show_interaction_text(message)
 
 
 func _show_portal_lore() -> void:
-	_start_migrated_dialogue(&"portal")
+	var migrated := _start_migrated_dialogue(&"portal")
 	portal_reaction_time = 1.0
 	portal_react_player.play()
-	_show_interaction_text("石环残留着与你相似的异界气息。")
+	if not migrated:
+		_show_interaction_text("石环残留着与你相似的异界气息。")
+
+
+func _on_dialogue_line_started(_speaker_id: StringName, text_key: StringName) -> void:
+	_show_interaction_text(String(text_key))
 
 
 func _show_interaction_text(message: String) -> void:

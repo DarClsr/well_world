@@ -27,4 +27,4 @@ func _on_dialogue_event(event_id: StringName) -> void:
 
 func _on_state_replaced(state: WorldState) -> void:
 	quest_runtime.configure(state, EventBus)
-	quest_runtime.register_quest(PrologueArrival)
+	quest_runtime.start_quest(PrologueArrival)

@@ -17,9 +17,11 @@ func _initialize() -> void:
 	var main := game_root.get_node("RegionContainer/FogValley/Main")
 	assert(quest_runtime.get_status(&"arrival") == &"active")
 	main.call("_show_portal_lore")
+	assert((main.get("portal_lore") as Label).text == "异界气息仍在石环深处回响。")
 	assert(game_state.active.quests[&"arrival"]["step_index"] == 1)
 	main.set("nearby_villager", main.get_node("GatekeeperToren"))
 	main.call("_show_villager_dialogue")
+	assert((main.get("portal_lore") as Label).text == "托伦：沿石路走，别踏进谷边的浓雾。")
 	assert(game_state.active.quests[&"arrival"]["step_index"] == 2)
 	var player := main.get_node("Player") as CharacterBody3D
 	player.global_position = (main.get_node("VillageHearth") as Node3D).global_position
@@ -30,6 +32,8 @@ func _initialize() -> void:
 	assert(restored != null and restored.quests[&"arrival"]["status"] == "completed")
 	game_state.replace_state(restored)
 	assert(quest_runtime.state == restored)
+	game_state.start_new_game()
+	assert(quest_runtime.get_status(&"arrival") == &"active")
 	assert(router.travel_to(&"fog_valley", &"portal_arrival") == OK)
 	await process_frame
 	var reloaded := router.current_region.get_node("Main")

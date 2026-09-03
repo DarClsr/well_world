@@ -37,10 +37,16 @@ static func from_dictionary(data: Dictionary) -> WorldState:
 	state.version = parsed_version
 	state.current_region = StringName(str(data.get("current_region", "fog_valley")))
 	state.spawn_id = StringName(str(data.get("spawn_id", "portal_arrival")))
-	state.flags = _name_keys(data.get("flags", {}) as Dictionary)
-	state.quests = _name_keys(data.get("quests", {}) as Dictionary)
-	state.relationships = _name_keys(data.get("relationships", {}) as Dictionary)
-	for value: Variant in data.get("collected_ids", []) as Array:
+	var raw_flags: Variant = data.get("flags", {})
+	var raw_quests: Variant = data.get("quests", {})
+	var raw_relationships: Variant = data.get("relationships", {})
+	var raw_collected_ids: Variant = data.get("collected_ids", [])
+	if not raw_flags is Dictionary or not raw_quests is Dictionary or not raw_relationships is Dictionary or not raw_collected_ids is Array:
+		return null
+	state.flags = _name_keys(raw_flags as Dictionary)
+	state.quests = _name_keys(raw_quests as Dictionary)
+	state.relationships = _name_keys(raw_relationships as Dictionary)
+	for value: Variant in raw_collected_ids as Array:
 		state.collected_ids.append(StringName(str(value)))
 	return state
 
