@@ -81,6 +81,18 @@ const NIA_PUBLIC_ROUTE := [
 	Vector3(-3.35, 0.0, -0.9), Vector3(-5.0, 0.0, -0.75), Vector3(-7.25, 0.0, -0.75),
 ]
 const NIA_PUBLIC_LOOK_TARGET := Vector3(-7.4, 0.0, -2.1)
+const NIA_WORK_ROUTE := [
+	Vector3(-5.5, 0.0, 6.5),
+	Vector3(-6.15, 0.0, 6.95),
+	Vector3(-4.7, 0.0, 6.35),
+]
+const NIA_WORK_TARGETS := [
+	Vector3(-7.0, 0.0, 6.4),
+	Vector3(-6.05, 0.0, 5.25),
+	Vector3(-4.7, 0.0, 5.25),
+]
+const NIA_WORK_PAUSES := [2.4, 1.2, 2.8]
+const NIA_WORK_SPEED := 0.46
 const WAGON_CARGO_POSITIONS := [
 	Vector3(-0.25, 0.62, -1.35),
 	Vector3(0.28, 0.60, -1.95),
@@ -148,6 +160,8 @@ var toren_watch_index := 0
 var nia_routine := "work"
 var nia_route_index := 0
 var nia_errand_action_done := false
+var nia_work_index := 0
+var nia_work_action_done := false
 var nearby_villager: CharacterBody3D
 var mistcap_material: StandardMaterial3D
 var mistcap_caps: Array[MeshInstance3D] = []
@@ -408,6 +422,10 @@ func _runtime_tick(delta: float) -> void:
 			target_yaw = atan2(look_direction.x, look_direction.z)
 		elif Vector2(villagers[index].velocity.x, villagers[index].velocity.z).length_squared() > 0.001:
 			target_yaw = atan2(villagers[index].velocity.x, villagers[index].velocity.z)
+		elif index == 2 and nia_routine == "work" and villager_patrol_pauses[index] > 0.0:
+			var work_target_index := clampi(nia_work_index, 0, NIA_WORK_TARGETS.size() - 1)
+			var look_direction: Vector3 = NIA_WORK_TARGETS[work_target_index] - villagers[index].global_position
+			target_yaw = atan2(look_direction.x, look_direction.z)
 		elif index == 2 and nia_routine == "hearth":
 			var look_direction := Vector3(4.3, 0.0, -5.5) - villagers[index].global_position
 			target_yaw = atan2(look_direction.x, look_direction.z)
@@ -574,16 +592,22 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 		route = NIA_HOME_ROUTE
 	if next_routine == "work":
 		if nia_routine != "work":
-			nia.position = villager_patrol_origins[2]
 			nia.visible = true
 			nia.collision_layer = 1
 			nia.collision_mask = 1
-			villager_patrol_directions[2] = 1.0
 			villager_patrol_pauses[2] = 0.0
-		nia_routine = "work"
-		nia_route_index = 0
-		nia_errand_action_done = false
-		return false
+			nia_routine = "work"
+			nia_route_index = 0
+			nia_errand_action_done = false
+			nia_work_action_done = false
+			var nearest_distance := INF
+			for work_index in NIA_WORK_ROUTE.size():
+				var route_distance := nia.position.distance_squared_to(NIA_WORK_ROUTE[work_index])
+				if route_distance < nearest_distance:
+					nearest_distance = route_distance
+					nia_work_index = work_index
+		_update_nia_work_route(nia, animation_player, delta)
+		return true
 	if nia_routine != next_routine:
 		var previous_routine := nia_routine
 		nia_routine = next_routine
@@ -635,7 +659,8 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 			if nia_routine == "returning":
 				nia_routine = "work"
 				nia_route_index = 0
-				villager_patrol_directions[2] = 1.0
+				nia_work_index = 0
+				nia_work_action_done = false
 				villager_patrol_pauses[2] = 0.0
 			if nia_routine == "home":
 				nia.visible = false
@@ -651,6 +676,52 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 	if animation_player.assigned_animation != "Walk":
 		animation_player.play("Walk", 0.2)
 	return true
+
+
+func _update_nia_work_route(nia: CharacterBody3D, animation_player: AnimationPlayer, delta: float) -> void:
+	if villager_patrol_pauses[2] > 0.0:
+		villager_patrol_pauses[2] = maxf(villager_patrol_pauses[2] - delta, 0.0)
+		nia.velocity.x = 0.0
+		nia.velocity.z = 0.0
+		var pause_animation := "Interact" if nia_work_index == 2 and not nia_work_action_done else "Idle"
+		if villager_patrol_pauses[2] <= 0.0:
+			if nia_work_index == 2:
+				nia_work_action_done = true
+			pause_animation = "Idle"
+		if animation_player.assigned_animation != pause_animation:
+			if pause_animation == "Interact":
+				villager_patrol_pauses[2] = maxf(
+					villager_patrol_pauses[2],
+					animation_player.get_animation("Interact").length + 0.15
+				)
+			animation_player.play(pause_animation, 0.2)
+		return
+	var next_index := (nia_work_index + 1) % NIA_WORK_ROUTE.size()
+	var target: Vector3 = NIA_WORK_ROUTE[next_index]
+	var offset := target - nia.position
+	offset.y = 0.0
+	if offset.length() <= 0.08:
+		nia.position.x = target.x
+		nia.position.z = target.z
+		nia_work_index = next_index
+		villager_patrol_pauses[2] = NIA_WORK_PAUSES[next_index]
+		nia.velocity.x = 0.0
+		nia.velocity.z = 0.0
+		var pause_animation := "Idle"
+		if nia_work_index == 2:
+			nia_work_action_done = false
+			villager_patrol_pauses[2] = maxf(villager_patrol_pauses[2], animation_player.get_animation("Interact").length + 0.15)
+			pause_animation = "Interact"
+		else:
+			nia_work_action_done = false
+		if animation_player.assigned_animation != pause_animation:
+			animation_player.play(pause_animation, 0.2)
+		return
+	var work_velocity := offset.normalized() * NIA_WORK_SPEED
+	nia.velocity.x = work_velocity.x
+	nia.velocity.z = work_velocity.z
+	if animation_player.assigned_animation != "Walk":
+		animation_player.play("Walk", 0.2)
 
 
 func _portal_proximity() -> float:

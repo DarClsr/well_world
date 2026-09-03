@@ -1254,11 +1254,28 @@ func _initialize() -> void:
 	var toren_targets: Array = main_constants["TOREN_WATCH_TARGETS"]
 	var toren_pauses: Array = main_constants["TOREN_WATCH_PAUSES"]
 	var nia_public_route: Array = main_constants["NIA_PUBLIC_ROUTE"]
+	var nia_work_route: Array = main_constants["NIA_WORK_ROUTE"]
+	var nia_work_targets: Array = main_constants["NIA_WORK_TARGETS"]
+	var nia_work_pauses: Array = main_constants["NIA_WORK_PAUSES"]
 	assert(toren_route.size() == 3 and toren_targets.size() == 3 and toren_pauses.size() == 3)
 	assert(nia_public_route.size() == 9)
 	assert((nia_public_route[0] as Vector3).is_equal_approx(Vector3(-5.5, 0.0, 6.5)))
 	assert((nia_public_route[4] as Vector3).is_equal_approx(Vector3(-0.35, 0.0, 2.0)))
 	assert((nia_public_route[-1] as Vector3).x < -7.0)
+	assert(nia_work_route.size() == 3 and nia_work_targets.size() == 3 and nia_work_pauses.size() == 3)
+	var nia_work_first_leg: Vector3 = (nia_work_route[1] as Vector3) - (nia_work_route[0] as Vector3)
+	var nia_work_second_leg: Vector3 = (nia_work_route[2] as Vector3) - (nia_work_route[0] as Vector3)
+	assert(absf(nia_work_first_leg.x * nia_work_second_leg.z - nia_work_first_leg.z * nia_work_second_leg.x) > 0.2)
+	assert(is_equal_approx(main_constants["NIA_WORK_SPEED"], 0.46))
+	assert((nia_work_targets[2] as Vector3).is_equal_approx(weaving_line.global_position))
+	assert((nia_work_route[2] as Vector3).distance_to(weaving_line.global_position) > 1.0)
+	assert((nia_work_route[2] as Vector3).distance_to(weaving_line.global_position) < 1.2)
+	for work_point_value in nia_work_route:
+		var work_point := work_point_value as Vector3
+		assert(work_point.x >= -6.2 and work_point.x <= -4.65)
+		assert(work_point.z >= 6.3 and work_point.z <= 7.0)
+		assert(work_point.distance_to((weaving_line.get_node("LeftPost") as Node3D).global_position) > 0.65)
+		assert(work_point.distance_to((weaving_line.get_node("RightPost") as Node3D).global_position) > 0.65)
 	assert((toren_route[0] as Vector3).is_equal_approx(Vector3(3.0, 0.0, -15.2)))
 	var toren_first_leg := (toren_route[1] as Vector3) - (toren_route[0] as Vector3)
 	var toren_second_leg := (toren_route[2] as Vector3) - (toren_route[0] as Vector3)
@@ -1436,18 +1453,81 @@ func _initialize() -> void:
 	var nia_animation := main.get("villager_animations")[2] as AnimationPlayer
 	var nia_public_origin: Vector3 = nia_public_route[0]
 	var nia_public_destination: Vector3 = nia_public_route[-1]
-	main.set("time_hour", 11.0)
+	var nia_visual := identity_npc.get_node("Visual") as Node3D
+	var nia_interact_length := nia_animation.get_animation("Interact").length
+	assert(nia_animation.get_animation("Interact").loop_mode == Animation.LOOP_NONE)
+	main.set("time_hour", 9.0)
 	main.set("weather_override", "clear")
 	main.set("nia_routine", "work")
-	main.set("nia_route_index", 0)
-	identity_npc.position = nia_public_origin
+	main.set("nia_work_index", 1)
+	main.set("nia_work_action_done", false)
+	identity_npc.position = nia_work_route[2]
 	identity_npc.velocity = Vector3.ZERO
 	main.get("villager_patrol_pauses")[2] = 0.0
 	main.call("_process", 0.0)
 	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("nia_routine") == "work")
+	assert(main.get("nia_work_index") == 2)
+	assert(not main.get("nia_work_action_done"))
+	var nia_work_action_pause: float = main.get("villager_patrol_pauses")[2]
+	assert(nia_work_action_pause >= nia_interact_length)
+	assert(nia_animation.assigned_animation == "Interact")
+	main.call("_process", 1.0)
+	var nia_work_direction: Vector3 = (nia_work_targets[2] as Vector3) - identity_npc.global_position
+	assert(absf(angle_difference(nia_visual.rotation.y, atan2(nia_work_direction.x, nia_work_direction.z))) < 0.001)
+	var nia_work_action_position := Vector2(identity_npc.position.x, identity_npc.position.z)
+	main.call("_physics_process", nia_work_action_pause + 0.05)
+	assert(main.get("nia_work_action_done"))
+	assert(main.get("villager_patrol_pauses")[2] == 0.0)
+	assert(nia_animation.assigned_animation == "Idle")
+	assert(Vector2(identity_npc.position.x, identity_npc.position.z).distance_to(nia_work_action_position) < 0.001)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(nia_animation.assigned_animation == "Walk")
+	assert(Vector2(identity_npc.position.x, identity_npc.position.z).distance_to(nia_work_action_position) > 0.001)
+	identity_npc.position = nia_work_route[2]
+	identity_npc.velocity = Vector3.ZERO
+	main.set("nia_work_index", 2)
+	main.set("nia_work_action_done", false)
+	main.get("villager_patrol_pauses")[2] = 1.0
+	nia_animation.play("Interact")
+	player.position = identity_npc.position + Vector3(0.0, 1.0, 1.5)
+	main.call("_process", 0.0)
+	var nia_talk_position := Vector2(identity_npc.position.x, identity_npc.position.z)
+	main.call("_physics_process", 0.5)
+	assert(main.get("nearby_villager") == identity_npc)
+	assert(nia_animation.assigned_animation == "Idle")
+	assert(is_equal_approx(main.get("villager_patrol_pauses")[2], 1.0))
+	assert(Vector2(identity_npc.position.x, identity_npc.position.z).distance_to(nia_talk_position) < 0.001)
+	player.position = Vector3(0.0, 1.0, 30.0)
+	main.call("_process", 0.0)
+	main.call("_physics_process", 0.1)
+	assert(nia_animation.assigned_animation == "Interact")
+	var nia_resumed_action_pause: float = main.get("villager_patrol_pauses")[2]
+	assert(nia_resumed_action_pause >= nia_interact_length + 0.15)
+	main.call("_physics_process", nia_resumed_action_pause + 0.05)
+	assert(main.get("nia_work_action_done"))
+	assert(main.get("villager_patrol_pauses")[2] == 0.0)
+	assert(nia_animation.assigned_animation == "Idle")
+	assert(Vector2(identity_npc.position.x, identity_npc.position.z).distance_to(nia_talk_position) < 0.001)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(nia_animation.assigned_animation == "Walk")
+	assert(Vector2(identity_npc.position.x, identity_npc.position.z).distance_to(nia_talk_position) > 0.001)
+	main.set("time_hour", 11.0)
+	main.set("weather_override", "clear")
+	main.set("nia_routine", "work")
+	main.set("nia_work_index", 1)
+	main.set("nia_work_action_done", false)
+	identity_npc.position = nia_work_route[1]
+	identity_npc.velocity = Vector3.ZERO
+	main.get("villager_patrol_pauses")[2] = 0.0
+	var nia_errand_start := identity_npc.position
+	main.call("_process", 0.0)
+	main.call("_physics_process", 1.0 / 60.0)
 	assert(main.get("nia_routine") == "errand")
-	assert(main.get("nia_route_index") >= 1)
-	assert(identity_npc.position.distance_to(nia_public_origin) > 0.001)
+	assert(main.get("nia_route_index") == 0)
+	var nia_errand_step := Vector2(identity_npc.position.x, identity_npc.position.z).distance_to(Vector2(nia_errand_start.x, nia_errand_start.z))
+	assert(nia_errand_step > 0.001)
+	assert(nia_errand_step < 0.15, "Nia errand first XZ step %.4f from %s to %s" % [nia_errand_step, nia_errand_start, identity_npc.position])
 	assert(is_equal_approx(Vector2(identity_npc.velocity.x, identity_npc.velocity.z).length(), 0.72))
 	identity_npc.position = nia_public_destination
 	main.set("nia_route_index", nia_public_route.size() - 1)
@@ -1483,6 +1563,7 @@ func _initialize() -> void:
 	main.call("_physics_process", 1.0 / 60.0)
 	assert(main.get("nia_routine") == "work")
 	assert(identity_npc.position.is_equal_approx(nia_work_reset))
+	assert(main.get("nia_work_index") == 0)
 	assert(nia_animation.assigned_animation == "Idle")
 	main.set("time_hour", 19.0)
 	main.set("weather_override", "clear")
@@ -1496,7 +1577,6 @@ func _initialize() -> void:
 	assert(nia_animation.assigned_animation == "Idle")
 	main.call("_process", 1.0)
 	var nia_hearth_direction := Vector3(4.3, 0.0, -5.5) - identity_npc.global_position
-	var nia_visual := identity_npc.get_node("Visual") as Node3D
 	assert(absf(angle_difference(nia_visual.rotation.y, atan2(nia_hearth_direction.x, nia_hearth_direction.z))) < 0.001)
 	main.set("weather_override", "light_rain")
 	main.call("_process", 0.0)
@@ -1521,13 +1601,18 @@ func _initialize() -> void:
 	main.set("weather_override", "clear")
 	player.position = Vector3(0.0, 1.0, 30.0)
 	main.call("_process", 0.0)
-	assert(not (main.call("_update_nia_routine", identity_npc, nia_animation) as bool))
+	var nia_home_exit := identity_npc.position
+	assert(main.call("_update_nia_routine", identity_npc, nia_animation) as bool)
 	assert(main.get("nia_routine") == "work")
 	assert(identity_npc.visible and identity_npc.collision_layer == 1 and identity_npc.collision_mask == 1)
-	var nia_work_origin := main.get("villager_patrol_origins")[2] as Vector3
-	var nia_work_distance := Vector2(identity_npc.position.x, identity_npc.position.z).distance_to(Vector2(nia_work_origin.x, nia_work_origin.z))
-	assert(nia_work_distance < 0.001)
+	assert(identity_npc.position.is_equal_approx(nia_home_exit))
+	assert(nia_animation.assigned_animation == "Walk")
+	var nia_resume_position := identity_npc.position
 	main.call("_physics_process", 1.0 / 60.0)
+	var nia_resume_step := Vector2(identity_npc.position.x, identity_npc.position.z).distance_to(Vector2(nia_resume_position.x, nia_resume_position.z))
+	assert(nia_resume_step > 0.001)
+	assert(nia_resume_step < 0.1)
+	assert(is_equal_approx(Vector2(identity_npc.velocity.x, identity_npc.velocity.z).length(), 0.46))
 	assert(nia_animation.assigned_animation == "Walk")
 	var smoke_puffs: Array = main.get("smoke_puffs")
 	assert(smoke_puffs.size() == 12)

@@ -22,6 +22,19 @@ func _record() -> void:
 	player.set_physics_process(false)
 	var nia := main.get_node("WeaverNia") as CharacterBody3D
 	var nia_animation := main.get("villager_animations")[2] as AnimationPlayer
+	var main_constants: Dictionary = main.get_script().get_script_constant_map()
+	var nia_work_route: Array = main_constants["NIA_WORK_ROUTE"]
+	main.set("time_hour", 9.0)
+	main.set("nia_routine", "work")
+	main.set("nia_work_index", 1)
+	main.set("nia_work_action_done", false)
+	nia.position = nia_work_route[2]
+	nia.velocity = Vector3.ZERO
+	main.get("villager_patrol_pauses")[2] = 0.0
+	main.call("_physics_process", 1.0 / 60.0)
+	main.set_physics_process(false)
+	await _capture(main, player, output_dir, "day-work", Vector3(-3.0, 1.0, 2.5))
+
 	main.set("time_hour", 11.0)
 	main.set("nia_routine", "home")
 	main.call("_update_nia_routine", nia, nia_animation)

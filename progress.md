@@ -1077,3 +1077,34 @@
 - `TREE MOTION TEST PASSED canopies=16 leaves=12`；晴天 `IMAGE_COUNT=21/UNIQUE_HASHES=21`，小雨 `RAIN_IMAGE_COUNT=21/RAIN_UNIQUE_HASHES=21`。
 - 证据归档为 `captures/phase80-wagon-cargo-unload.png`、`phase80-wagon-cargo-village-east.png` 和 `phase80-wagon-cargo-village-east-rain.png`。
 - 三类专项终审均 `PASS 0/0/0`；货物增强卸货职责语义，未遮挡 Nia、侵占道路或抢占炉火/传送门焦点。
+
+# 2026-09-03 Phase 81 决策
+
+- 三类审查分别提出红树焦点、Nia 职责循环和雨天蝴蝶响应问题。
+- 优先处理覆盖白天最长时段的 Nia 织工职责；红树与蝴蝶保留为独立后续阶段，避免一次混改多个视觉变量。
+- Phase 81 不新增道具或框架，只复用院内晾织架、现有角色动画和既有作息切换。
+- `main.gd` 已新增三点非直线 `NIA_WORK_ROUTE`、职责朝向和一次性 `Interact` 状态；`work` 不再进入通用单轴巡游。
+- 从回屋代理点、事务回程或晚间状态进入工作时按当前位置选择最近工作节点，不再写入固定位置。
+- 冒烟契约已覆盖三点路线/职责朝向、晾织架净空、一次性 `Interact`、交谈打断恢复以及离岗/复工连续性；专项捕获新增固定 09:00 `day-work`。
+- 首轮冒烟在动作完成断言失败：节点停留 `2.8s` 长于动画长度；保留生产停留，测试改为推进实际暂停值并继续锁定完整动画覆盖。
+- 第二轮冒烟在离岗步长上限失败，原因是三维距离计入接地 Y 修正；连续性断言改用 XZ 平面，状态、速度和位移上下界保持不变。
+- 第三轮确认 XZ 步长仍超上限；先加入起点、终点和实际步长诊断，不以放宽连续性契约绕过潜在碰撞问题。
+- 诊断得到 XZ 步长 `0.108m`，位移方向与公共路线目标一致且速度为 `0.72m/s`，排除碰撞恢复；手工物理调用使用引擎内部步长，契约改为小于 `0.15m`，仍明确排除旧数米级瞬移。
+- 第四轮完整冒烟通过并输出 `SMOKE TEST PASSED`；工作动作、职责朝向、交谈打断恢复、公共事务、回程、晚间、雨天与回屋/复工契约全部成立。
+- 首轮 Nia Compatibility 捕获在解析阶段因常量表缺少显式类型退出；场景未运行，只补 `Dictionary` 类型标注后重录。
+- Nia 专项重录成功：`day-work=work/Interact`、`day-errand=errand/Walk`、`day-unload=errand/PickUp`、`day-return=returning/Walk`，黄昏、夜间和雨棚状态也保持正确。
+- 人工复核确认晾织架动作、角色轮廓、住宅框景和主路净空清楚；职责语义不再依赖职业标签。
+- 首轮 21 机位中小雨为 `21/21` 唯一哈希，晴天为 `21/1`；晴天隐藏窗口冻结，证据无效，将改用非激活底层窗口重录，不重复小雨。
+- 晴天改用隐藏 Movie Writer 固定 5 FPS 重录后得到 `IMAGE_COUNT=21/UNIQUE_HASHES=21`；小雨保持 `RAIN_IMAGE_COUNT=21/RAIN_UNIQUE_HASHES=21`。
+- 抽查织工住宅、主路交叉口和村庄远景，未见屋顶闪烁、路线占路、角色穿模或天气表现回归。
+- 生活气息终审 `PASS 0/0/0`：不看职业标签也能读出织物整理，三点路线、交谈恢复和全天作息衔接均成立，未侵入其他职责区。
+- 动效终审首轮报告 `P1=1`：交谈后 `Interact` 会从头重播，但旧剩余停留可能提前结束动作；已在恢复重播时补足完整动作时长，并将冒烟契约延伸到完整播放、回到 `Idle`、随后离点。
+- 修复后完整冒烟再次输出 `SMOKE TEST PASSED`；既有 glTF UID fallback 与 Dummy 退出清理告警仍不影响退出码，已交动效代理复审。
+- 树木/落叶动态回归再次输出 `TREE MOTION TEST PASSED canopies=16 leaves=12`；后台 Godot `PID 51768` 仍为 `Responding=True`。
+- 动效复核最终 `PASS 0/0/0`，原交谈恢复截断 P1 已关闭。
+
+# 2026-09-03 Phase 81 完成
+
+- Nia 在织工院内沿三点非直线路线完成取料、移位与晾织架作业；晾织节点面向布料并单次播放 `Interact`。
+- 交谈、公共事务、回程、炉火/雨棚、回屋和次晨复工均连续；交谈后的动作重播会补足完整时长，不再提前截断。
+- 最终门禁通过：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`、晴天与小雨扫查均 `21/21` 唯一哈希、`git diff --check`；美术、生活气息、场景动效终审均 `PASS 0/0/0`。
