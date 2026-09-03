@@ -32,7 +32,8 @@ func _initialize() -> void:
 
 
 func _record() -> void:
-	var output_dir := "res://temp/grass-sweep"
+	var rain_capture := "--rain" in OS.get_cmdline_user_args()
+	var output_dir := "res://temp/grass-sweep-rain" if rain_capture else "res://temp/grass-sweep"
 	DirAccess.make_dir_recursive_absolute(output_dir)
 	var scene := load("res://scenes/main.tscn") as PackedScene
 	var main := scene.instantiate()
@@ -40,7 +41,7 @@ func _record() -> void:
 	main.set("time_running", false)
 	main.set("weather_seed", 20260902)
 	main.set("weather_running", false)
-	main.set("weather_override", "clear")
+	main.set("weather_override", "light_rain" if rain_capture else "clear")
 	root.add_child(main)
 	await create_timer(1.5).timeout
 	var player := main.get_node("Player") as CharacterBody3D

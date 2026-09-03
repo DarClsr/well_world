@@ -971,3 +971,30 @@
 - 修复状态替换后的序章任务未启动、坏存档字段触发无效强转、数据对话信号未更新 UI 三个问题。
 - 新增回归断言覆盖新游戏重置、四种错误字段类型和资源化对话文本。
 - 验证通过：`WORLD STATE TEST PASSED`、`PROLOGUE FOUNDATION INTEGRATION TEST PASSED`、`DIALOGUE RUNNER TEST PASSED`、`SAVE SERVICE TEST PASSED`、`SMOKE TEST PASSED`、`git diff --check`；`godot --headless --path . --quit` 退出码 0。
+
+# 2026-09-03 Phase 69 米拉职责路线
+
+- 米拉新增房门、侧院入口、药圃边缘、晾药架四点固定路线；采集点播放 `PickUp`，房门和入口停留播放 `Idle`，交谈仍优先打断。
+- 药圃扩大为 `5.2 x 3.2m`，同步边缘、侧院小径和草甸硬排除带；21 机位抽查确认没有压迫主路或遮挡房屋活动区。
+- 首轮冒烟暴露旧测试仍要求米拉首帧 `Walk`；按新路线语义将契约改为米拉 `Idle`、妮娅 `Walk`，没有放宽路线和动画断言。
+- `SMOKE TEST PASSED`；米拉采集专项通过，`Gather drift: 0.0`；基础回归 11 项全部通过；Compatibility 扫查 `IMAGE_COUNT=21`、`UNIQUE_HASHES=21`。
+- 本阶段暂不提交推送，等待用户验收后再决定下一步；下一候选优先是雨天地表/雾池反馈，山口继续暂缓。
+
+# 2026-09-03 Phase 70 天气地表反馈
+
+- 在 `TimeWeatherController` 的四种天气 profile 增加 `surface_wetness`：晴天 `0.0`、阴天 `0.08`、薄雾 `0.22`、小雨 `0.78`，并沿已有天气过渡连续插值。
+- `main.gd` 让湿润度驱动草地/道路材质颜色与粗糙度，雾池水面材质和两道涟漪同步响应；没有新增依赖、粒子系统或天气状态。
+- 冒烟新增湿润度、材质方向和晴天复原断言；天气 profile 回归新增连续顺序断言。
+- 固定时刻 Compatibility 捕获完成：`day-clear`、`day-rain`、`day-rain-herb-yard`、`night-rain`；小雨 21 机位扫查为 `RAIN_IMAGE_COUNT=21`、`RAIN_UNIQUE_HASHES=21`。小雨下地表层次可读，炉火仍是夜间暖色焦点。
+- 验证通过：12 项核心测试全部通过，`SMOKE TEST PASSED`，`git diff --check` 通过；本阶段仍未提交推送，等待用户验收。
+
+# 2026-09-03 Phase 71 开始
+
+- 收到三类审核结果：小雨晾药架缺少避雨语义；夜雨下房屋、板车、NPC 与支路轮廓过暗。
+- 采用最小范围修正：现有木材几何增加晾药架窄檐，夜雨组合回提底光/雾色对比，保持炉火暖色焦点和所有布局不变。
+
+# 2026-09-03 Phase 71 完成
+
+- 夜雨环境底光与雾色对比小幅回提，房屋、板车、NPC 和支路轮廓恢复可读；炉火继续保持唯一强暖色焦点。
+- `HerbDryingRack` 增加 `RainAwning`，并在雨线动画中加入檐下局部遮蔽；药草束、药圃和米拉职责空间成立。
+- `SMOKE TEST PASSED`；核心 12 项回归通过；最终固定天气捕获与小雨 21 机位扫查通过，`RAIN_IMAGE_COUNT=21`、`RAIN_UNIQUE_HASHES=21`；三类审核全部 `PASS`。

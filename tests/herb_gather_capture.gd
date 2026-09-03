@@ -18,16 +18,17 @@ func _record() -> void:
 	var player := main.get_node("Player") as CharacterBody3D
 	var mira := main.get_node("HerbalistMira") as CharacterBody3D
 	var animation_player := main.get("villager_animations")[0] as AnimationPlayer
+	var route: Array = (main.get_script() as Script).get_script_constant_map()["MIRA_HERB_ROUTE"]
 	player.position = Vector3(-3.7, 1.0, -5.2)
 	player.set("camera_target_height", 10.0)
 	player.call("_update_camera_zoom", 1.0)
 	main.call("_process", 1.0)
 
-	mira.position = (main.get("villager_patrol_origins")[0] as Vector3) + (main.get("villager_patrol_axes")[0] as Vector3) * 1.21
-	main.get("villager_patrol_directions")[0] = 1.0
-	main.get("villager_patrol_pauses")[0] = 0.0
-	await physics_frame
 	var pickup_length := animation_player.get_animation("PickUp").length
+	mira.position = route[2]
+	main.set("mira_route_index", 2)
+	main.get("villager_patrol_pauses")[0] = pickup_length
+	await physics_frame
 	var gather_position := mira.position
 	print("PickUp length: ", pickup_length)
 	await create_timer(pickup_length * 0.55).timeout

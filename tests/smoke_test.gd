@@ -102,6 +102,11 @@ func _initialize() -> void:
 		assert((streak as MeshInstance3D).cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
 	var clear_sun_energy := sun.light_energy
 	var clear_fog_density := environment_settings.fog_density
+	var clear_ground_color := (main.get("ground_material") as StandardMaterial3D).albedo_color
+	var clear_ground_roughness := (main.get("ground_material") as StandardMaterial3D).roughness
+	var clear_path_color := (main.get("path_material") as StandardMaterial3D).albedo_color
+	var clear_path_roughness := (main.get("path_material") as StandardMaterial3D).roughness
+	var clear_pond_roughness := (main.get("pond_water_material") as StandardMaterial3D).roughness
 	main.set("portal_time", 2.75)
 	main.call("_process", 0.0)
 	var clear_hearth_energy := (main.get("hearth_light") as OmniLight3D).light_energy
@@ -134,6 +139,15 @@ func _initialize() -> void:
 	assert(environment_settings.fog_density > clear_fog_density)
 	assert(environment_settings.ambient_light_energy >= 0.35)
 	assert(rain_field.visible and rain_material.albedo_color.a > 0.25)
+	assert(is_equal_approx(main.get("weather_surface_wetness"), 0.78))
+	var rain_ground_material := main.get("ground_material") as StandardMaterial3D
+	var rain_path_material := main.get("path_material") as StandardMaterial3D
+	var rain_pond_material := main.get("pond_water_material") as StandardMaterial3D
+	assert(rain_ground_material.albedo_color.get_luminance() < clear_ground_color.get_luminance())
+	assert(rain_ground_material.roughness < clear_ground_roughness)
+	assert(rain_path_material.albedo_color.get_luminance() < clear_path_color.get_luminance())
+	assert(rain_path_material.roughness < clear_path_roughness)
+	assert(rain_pond_material.roughness > clear_pond_roughness)
 	var rain_hearth_energy := (main.get("hearth_light") as OmniLight3D).light_energy
 	var rain_hearth_flame_emission := (main.get("hearth_flame_material") as StandardMaterial3D).emission_energy_multiplier
 	var rain_hearth_ember_emission := (main.get("hearth_ember_material") as StandardMaterial3D).emission_energy_multiplier
@@ -648,8 +662,8 @@ func _initialize() -> void:
 		var bed_part := herb_plot.get_node_or_null(bed_part_name) as CSGBox3D
 		assert(bed_part != null)
 		assert(not bed_part.use_collision)
-	assert((herb_plot.get_node("Soil") as CSGBox3D).size.is_equal_approx(Vector3(4.6, 0.08, 2.8)))
-	assert((herb_plot.get_node("Soil") as CSGBox3D).size.x * (herb_plot.get_node("Soil") as CSGBox3D).size.z >= 12.0)
+	assert((herb_plot.get_node("Soil") as CSGBox3D).size.is_equal_approx(Vector3(5.2, 0.08, 3.2)))
+	assert((herb_plot.get_node("Soil") as CSGBox3D).size.x * (herb_plot.get_node("Soil") as CSGBox3D).size.z >= 16.0)
 	assert(main.get_node_or_null("HerbYardGrass") is MeshInstance3D)
 	var herb_yard_path := main.get_node_or_null("HerbYardPath") as MeshInstance3D
 	assert(herb_yard_path != null and herb_yard_path.mesh is ArrayMesh)
@@ -1044,9 +1058,44 @@ func _initialize() -> void:
 	assert(first_leaf.position.distance_to(clear_leaf_position) > 0.01)
 	main.call("_animate_tree_canopies")
 	assert(is_equal_approx((tree_canopy_materials[0] as ShaderMaterial).get_shader_parameter("wind_strength"), 1.12))
+	var rack_for_rain := main.get_node("VillageProps/HerbDryingRack") as Node3D
+	var rain_params_for_test: Array = main.get("rain_params")
+	var first_rain_param: Dictionary = rain_params_for_test[0]
+	var saved_rain_x: float = first_rain_param["x"]
+	var saved_rain_z: float = first_rain_param["z"]
+	var saved_rain_start_y: float = first_rain_param["start_y"]
+	var saved_player_position := player.position
+	var saved_portal_time: float = main.get("portal_time")
+	first_rain_param["x"] = 0.0
+	first_rain_param["z"] = 0.0
+	first_rain_param["start_y"] = 0.45
+	main.set("portal_time", 0.0)
+	player.position = rack_for_rain.position + Vector3(0.0, 1.0, 0.0)
+	main.call("_animate_weather")
+	var first_rain_streak := (main.get("rain_streaks") as Array)[0] as MeshInstance3D
+	assert(is_equal_approx(first_rain_streak.transparency, 1.0))
+	first_rain_param["x"] = saved_rain_x
+	first_rain_param["z"] = saved_rain_z
+	first_rain_param["start_y"] = saved_rain_start_y
+	main.set("portal_time", saved_portal_time)
+	player.position = saved_player_position
 	main.set("weather_override", "clear")
+	main.set("time_hour", 22.0)
+	main.call("_apply_time_of_day")
+	var night_clear_ambient := (main.get("environment_settings") as Environment).ambient_light_energy
+	main.set("weather_override", "light_rain")
+	main.call("_apply_time_of_day")
+	var night_rain_environment := main.get("environment_settings") as Environment
+	assert(night_rain_environment.ambient_light_energy > night_clear_ambient + 0.04)
+	var night_rain_base_fog := (main.call("_sample_day", 22.0)["fog_density"] as float) * 1.48
+	assert(night_rain_environment.fog_density < night_rain_base_fog)
+	main.set("weather_override", "clear")
+	main.set("time_hour", 9.5)
 	main.set("portal_time", 0.0)
 	main.call("_apply_time_of_day")
+	assert(is_equal_approx(main.get("weather_surface_wetness"), 0.0))
+	assert((main.get("ground_material") as StandardMaterial3D).albedo_color.is_equal_approx(clear_ground_color))
+	assert(is_equal_approx((main.get("ground_material") as StandardMaterial3D).roughness, clear_ground_roughness))
 	main.call("_animate_tree_canopies")
 	main.call("_animate_falling_leaves")
 	var seasonal_bushes: Array = main.get("seasonal_bushes")
@@ -1154,7 +1203,7 @@ func _initialize() -> void:
 		if npc.name == "HerbalistMira":
 			assert(npc_animation.has_animation("PickUp"))
 			assert(npc_animation.get_animation("PickUp").loop_mode == Animation.LOOP_NONE)
-		if npc.name == "GatekeeperToren":
+		if npc.name == "GatekeeperToren" or npc.name == "HerbalistMira":
 			assert(npc_animation.current_animation == "Idle")
 		else:
 			assert(npc_animation.current_animation == "Walk")
@@ -1224,48 +1273,75 @@ func _initialize() -> void:
 	main.set("toren_watch_index", 0)
 	main.get("villager_patrol_pauses")[1] = 2.8
 	toren_animation.play("Idle")
-	var patrol_npc := main.get_node("HerbalistMira") as CharacterBody3D
-	patrol_npc.position = main.get("villager_patrol_origins")[0]
-	main.get("villager_patrol_directions")[0] = 1.0
+	var mira_route: Array = main_constants["MIRA_HERB_ROUTE"]
+	var mira_targets: Array = main_constants["MIRA_HERB_TARGETS"]
+	var mira_pauses: Array = main_constants["MIRA_HERB_PAUSES"]
+	assert(mira_route.size() == 4 and mira_targets.size() == 4 and mira_pauses.size() == 4)
+	assert((mira_route[0] as Vector3).is_equal_approx(Vector3(-12.0, 0.0, -7.0)))
+	assert((mira_route[2] as Vector3).distance_to(herb_plot.position) < 1.0)
+	var drying_rack := village_props.get_node("HerbDryingRack") as Node3D
+	assert((mira_route[3] as Vector3).distance_to(drying_rack.position) < 1.0)
+	var rain_awning := drying_rack.get_node("RainAwning") as CSGBox3D
+	assert(rain_awning.size.x >= 1.85 and rain_awning.size.z >= 0.68)
+	assert(rain_awning.position.y > 1.6 and rain_awning.position.z < 0.0)
+	assert(is_equal_approx(main_constants["MIRA_HERB_SPEED"], 0.46))
+	var mira := main.get_node("HerbalistMira") as CharacterBody3D
+	var mira_animation := main.get("villager_animations")[0] as AnimationPlayer
+	var pickup_length := mira_animation.get_animation("PickUp").length
+	main.set("mira_route_index", 0)
+	mira.position = mira_route[0]
+	mira.velocity = Vector3.ZERO
 	main.get("villager_patrol_pauses")[0] = 0.0
-	var patrol_start := patrol_npc.position
 	player.position = Vector3(0.0, 1.0, 30.0)
 	main.call("_process", 0.0)
 	main.call("_physics_process", 1.0 / 60.0)
-	assert(patrol_npc.position.distance_to(patrol_start) > 0.001)
-	assert(Vector2(patrol_npc.velocity.x, patrol_npc.velocity.z).length() > 0.6)
-	assert((main.get("villager_animations")[0] as AnimationPlayer).assigned_animation == "Walk")
-	patrol_npc.position = (main.get("villager_patrol_origins")[0] as Vector3) + (main.get("villager_patrol_axes")[0] as Vector3) * 1.21
-	main.call("_physics_process", 1.0 / 60.0)
-	var mira_animation := main.get("villager_animations")[0] as AnimationPlayer
-	var pickup_length := mira_animation.get_animation("PickUp").length
-	var gathering_pause: float = main.get("villager_patrol_pauses")[0]
-	assert(gathering_pause >= pickup_length)
-	assert(Vector2(patrol_npc.velocity.x, patrol_npc.velocity.z).is_zero_approx())
-	assert(mira_animation.assigned_animation == "PickUp")
-	var mira_visual := patrol_npc.get_node("Visual") as Node3D
-	main.call("_process", 1.0)
-	var plot_direction := herb_plot.global_position - patrol_npc.global_position
-	assert(absf(angle_difference(mira_visual.rotation.y, atan2(plot_direction.x, plot_direction.z))) < 0.001)
-	var pause_position := patrol_npc.position
-	main.call("_physics_process", 0.5)
-	assert(patrol_npc.position.distance_to(pause_position) < 0.01)
-	assert(main.get("villager_patrol_pauses")[0] < gathering_pause)
-	main.call("_physics_process", gathering_pause + 0.1)
-	main.call("_physics_process", 1.0 / 60.0)
+	assert(mira.position.distance_to(mira_route[0]) > 0.001)
+	assert(is_equal_approx(Vector2(mira.velocity.x, mira.velocity.z).length(), 0.46))
 	assert(mira_animation.assigned_animation == "Walk")
-	assert(main.get("villager_patrol_directions")[0] < 0.0)
-	patrol_npc.position = (main.get("villager_patrol_origins")[0] as Vector3) - (main.get("villager_patrol_axes")[0] as Vector3) * 1.21
+	var first_mira_leg: Vector3 = (mira_route[1] as Vector3) - (mira_route[0] as Vector3)
+	mira.position = (mira_route[1] as Vector3) - first_mira_leg.normalized() * 0.04
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_route_index") == 1)
+	assert(is_equal_approx(main.get("villager_patrol_pauses")[0], mira_pauses[1]))
+	assert(mira_animation.assigned_animation == "Idle")
+	var mira_visual := mira.get_node("Visual") as Node3D
+	main.call("_process", 1.0)
+	var entry_direction: Vector3 = (mira_targets[1] as Vector3) - mira.global_position
+	assert(absf(angle_difference(mira_visual.rotation.y, atan2(entry_direction.x, entry_direction.z))) < 0.001)
 	main.get("villager_patrol_pauses")[0] = 0.0
 	main.call("_physics_process", 1.0 / 60.0)
-	assert(main.get("villager_patrol_directions")[0] > 0.0)
+	assert(mira_animation.assigned_animation == "Walk")
+	var second_mira_leg: Vector3 = (mira_route[2] as Vector3) - (mira_route[1] as Vector3)
+	mira.position = (mira_route[2] as Vector3) - second_mira_leg.normalized() * 0.04
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_route_index") == 2)
+	assert(main.get("villager_patrol_pauses")[0] >= pickup_length)
+	assert(mira_animation.assigned_animation == "PickUp")
+	main.call("_process", 1.0)
+	var plot_direction := herb_plot.global_position - mira.global_position
+	assert(absf(angle_difference(mira_visual.rotation.y, atan2(plot_direction.x, plot_direction.z))) < 0.001)
+	main.get("villager_patrol_pauses")[0] = 0.0
+	main.call("_physics_process", 1.0 / 60.0)
+	var third_mira_leg: Vector3 = (mira_route[3] as Vector3) - (mira_route[2] as Vector3)
+	mira.position = (mira_route[3] as Vector3) - third_mira_leg.normalized() * 0.04
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_route_index") == 3)
+	assert(main.get("villager_patrol_pauses")[0] >= pickup_length)
+	assert(mira_animation.assigned_animation == "PickUp")
+	main.call("_process", 1.0)
+	var rack_direction: Vector3 = (mira_targets[3] as Vector3) - mira.global_position
+	assert(absf(angle_difference(mira_visual.rotation.y, atan2(rack_direction.x, rack_direction.z))) < 0.001)
+	main.get("villager_patrol_pauses")[0] = 0.0
+	main.call("_physics_process", 1.0 / 60.0)
+	var final_mira_leg: Vector3 = (mira_route[0] as Vector3) - (mira_route[3] as Vector3)
+	mira.position = (mira_route[0] as Vector3) - final_mira_leg.normalized() * 0.04
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("mira_route_index") == 0)
 	assert(mira_animation.assigned_animation == "Idle")
-	main.get("villager_patrol_directions")[0] = -1.0
-	main.get("villager_patrol_pauses")[0] = pickup_length
-	player.position = patrol_npc.position + Vector3(0.0, 1.0, 2.0)
+	player.position = mira.position + Vector3(0.0, 1.0, 2.0)
 	main.call("_process", 0.0)
 	main.call("_physics_process", 1.0 / 60.0)
-	assert(main.get("nearby_villager") == patrol_npc)
+	assert(main.get("nearby_villager") == mira)
 	assert(mira_animation.assigned_animation == "Idle")
 	var identity_npc := main.get_node("WeaverNia") as CharacterBody3D
 	var identity_label := identity_npc.get_node("IdentityLabel") as Label3D

@@ -19,6 +19,16 @@ const NiaCharacter = preload("res://scenes/npc/nia_visual.tscn")
 const ValleyBoundaryScene = preload("res://scenes/world/valley_boundary.tscn")
 const FogValleyDialogue = preload("res://data/dialogue/fog_valley_intro.tres")
 const HERB_PLOT_POSITION := Vector3(-14.8, 0.0, -10.0)
+const MIRA_HERB_ROUTE := [
+	Vector3(-12.0, 0.0, -7.0), Vector3(-13.2, 0.0, -7.7),
+	Vector3(-14.8, 0.0, -9.2), Vector3(-15.6, 0.0, -12.0),
+]
+const MIRA_HERB_TARGETS := [
+	Vector3(-10.4, 0.0, -7.3), HERB_PLOT_POSITION,
+	HERB_PLOT_POSITION, Vector3(-15.6, 0.0, -10.2),
+]
+const MIRA_HERB_PAUSES := [1.8, 1.0, 4.6, 3.8]
+const MIRA_HERB_SPEED := 0.46
 const DAY_DURATION_SECONDS := 1800.0
 const BUTTERFLY_SEED := 3131
 const FIREFLY_SEED := 6262
@@ -106,6 +116,7 @@ var hearth_light: OmniLight3D
 var hearth_ember_material: StandardMaterial3D
 var hearth_flame_material: StandardMaterial3D
 var pond_ripples: Array[MeshInstance3D] = []
+var pond_water_material: StandardMaterial3D
 var villager_visuals: Array[Node3D] = []
 var villager_rotations: Array[float] = []
 var villagers: Array[CharacterBody3D] = []
@@ -115,6 +126,7 @@ var villager_patrol_axes: Array[Vector3] = []
 var villager_patrol_directions: Array[float] = []
 var villager_patrol_pauses: Array[float] = []
 var villager_animations: Array[AnimationPlayer] = []
+var mira_route_index := 0
 var toren_watch_index := 0
 var nia_routine := "work"
 var nia_route_index := 0
@@ -154,6 +166,7 @@ var weather_target_state := "clear"
 var weather_blend := 0.0
 var weather_rain_amount := 0.0
 var weather_wind_amount := 0.62
+var weather_surface_wetness := 0.0
 var time_weather_controller: TimeWeatherController
 var villager_controller: VillagerController
 var ecosystem_controller: EcosystemController
@@ -313,11 +326,11 @@ func _runtime_tick(delta: float) -> void:
 	if player_fill_light != null:
 		player_fill_light.light_energy = lerpf(0.0, 4.0, night_focus)
 	for index in pond_ripples.size():
-		var phase := fmod(portal_time * 0.2 + float(index) * 0.5, 1.0)
+		var phase := fmod(portal_time * lerpf(0.2, 0.3, weather_surface_wetness) + float(index) * 0.5, 1.0)
 		var ripple_visibility := sin(PI * phase)
 		var ripple := pond_ripples[index]
 		ripple.scale = Vector3(0.45 + phase * 1.65, 1.0, 0.32 + phase * 1.1)
-		ripple.transparency = 1.0 - ripple_visibility * 0.62
+		ripple.transparency = 1.0 - ripple_visibility * lerpf(0.62, 0.9, weather_surface_wetness)
 	if mistcap_material != null:
 		mistcap_material.emission_energy_multiplier = (0.42 + sin(portal_time * 1.35) * 0.1) * lerpf(0.66, 1.55, night_focus)
 	for index in mistcap_lights.size():
@@ -366,8 +379,9 @@ func _runtime_tick(delta: float) -> void:
 			var look_direction := player.global_position - villagers[index].global_position
 			if Vector2(look_direction.x, look_direction.z).length_squared() > 0.001:
 				target_yaw = atan2(look_direction.x, look_direction.z)
-		elif index == 0 and villager_patrol_pauses[index] > 0.0 and villager_patrol_directions[index] < 0.0:
-			var look_direction := HERB_PLOT_POSITION - villagers[index].global_position
+		elif index == 0 and villager_patrol_pauses[index] > 0.0:
+			var mira_target_index := clampi(mira_route_index, 0, MIRA_HERB_TARGETS.size() - 1)
+			var look_direction: Vector3 = MIRA_HERB_TARGETS[mira_target_index] - villagers[index].global_position
 			target_yaw = atan2(look_direction.x, look_direction.z)
 		elif index == 1 and villager_patrol_pauses[index] > 0.0:
 			var look_direction: Vector3 = TOREN_WATCH_TARGETS[toren_watch_index] - villagers[index].global_position
@@ -396,6 +410,8 @@ func _physics_process(delta: float) -> void:
 			pass
 		elif index == 1:
 			_update_toren_watch(villager, animation_player, delta)
+		elif index == 0:
+			_update_mira_herb_route(villager, animation_player, delta)
 		elif villager_patrol_pauses[index] > 0.0:
 			villager_patrol_pauses[index] = maxf(villager_patrol_pauses[index] - delta, 0.0)
 			villager.velocity.x = 0.0
@@ -424,6 +440,39 @@ func _physics_process(delta: float) -> void:
 					animation_player.play("Walk", 0.2)
 		villager.velocity.y = -1.0
 		villager.move_and_slide()
+
+
+func _update_mira_herb_route(mira: CharacterBody3D, animation_player: AnimationPlayer, delta: float) -> void:
+	if villager_patrol_pauses[0] > 0.0:
+		villager_patrol_pauses[0] = maxf(villager_patrol_pauses[0] - delta, 0.0)
+		mira.velocity.x = 0.0
+		mira.velocity.z = 0.0
+		var pause_animation := "PickUp" if mira_route_index in [2, 3] else "Idle"
+		if animation_player.assigned_animation != pause_animation:
+			animation_player.play(pause_animation, 0.2)
+		return
+	var next_index := (mira_route_index + 1) % MIRA_HERB_ROUTE.size()
+	var target: Vector3 = MIRA_HERB_ROUTE[next_index]
+	var offset := target - mira.position
+	offset.y = 0.0
+	if offset.length() <= 0.08:
+		mira.position.x = target.x
+		mira.position.z = target.z
+		mira_route_index = next_index
+		villager_patrol_pauses[0] = MIRA_HERB_PAUSES[mira_route_index]
+		mira.velocity.x = 0.0
+		mira.velocity.z = 0.0
+		var pause_animation := "PickUp" if mira_route_index in [2, 3] else "Idle"
+		if pause_animation == "PickUp":
+			villager_patrol_pauses[0] = maxf(villager_patrol_pauses[0], animation_player.get_animation("PickUp").length + 0.1)
+		if animation_player.assigned_animation != pause_animation:
+			animation_player.play(pause_animation, 0.2)
+		return
+	var route_velocity := offset.normalized() * MIRA_HERB_SPEED
+	mira.velocity.x = route_velocity.x
+	mira.velocity.z = route_velocity.z
+	if animation_player.assigned_animation != "Walk":
+		animation_player.play("Walk", 0.2)
 
 
 func _update_toren_watch(toren: CharacterBody3D, animation_player: AnimationPlayer, delta: float) -> void:
@@ -643,17 +692,32 @@ func _apply_time_of_day() -> void:
 		return
 	var sample := _sample_day(time_hour)
 	var weather := _sample_weather()
+	var night_rain_lift := _night_focus(time_hour) * (weather["rain"] as float)
 	sun.rotation_degrees = Vector3(-sample["elev"], sample["azim"], 0.0)
 	sun.light_color = (sample["sun_color"] as Color).lerp(weather["tint"] as Color, weather["sun_tint"] as float)
 	sun.light_energy = (sample["sun_energy"] as float) * (weather["sun_energy"] as float)
 	sun.shadow_opacity = (sample["shadow_opacity"] as float) * (weather["shadow"] as float)
-	environment_settings.ambient_light_color = (sample["amb_color"] as Color).lerp(weather["tint"] as Color, weather["ambient_tint"] as float)
-	environment_settings.ambient_light_energy = maxf((sample["amb_energy"] as float) * (weather["ambient_energy"] as float), 0.35)
+	environment_settings.ambient_light_color = (sample["amb_color"] as Color).lerp(weather["tint"] as Color, weather["ambient_tint"] as float).lerp(Color("718188"), night_rain_lift * 0.12)
+	environment_settings.ambient_light_energy = maxf((sample["amb_energy"] as float) * (weather["ambient_energy"] as float) + night_rain_lift * 0.08, 0.35)
 	environment_settings.fog_light_color = (sample["fog_color"] as Color).lerp(weather["fog_tint"] as Color, weather["fog_color_mix"] as float)
-	environment_settings.fog_density = (sample["fog_density"] as float) * (weather["fog_density"] as float)
-	environment_settings.background_color = (sample["bg_color"] as Color).lerp(weather["fog_tint"] as Color, weather["background_tint"] as float)
+	environment_settings.fog_density = (sample["fog_density"] as float) * (weather["fog_density"] as float) * lerpf(1.0, 0.92, night_rain_lift)
+	environment_settings.background_color = (sample["bg_color"] as Color).lerp(weather["fog_tint"] as Color, weather["background_tint"] as float).lerp(Color("536371"), night_rain_lift * 0.08)
 	weather_rain_amount = weather["rain"] as float
 	weather_wind_amount = weather["wind"] as float
+	weather_surface_wetness = weather["surface_wetness"] as float
+	_apply_weather_surface_feedback()
+
+
+func _apply_weather_surface_feedback() -> void:
+	var wetness := clampf(weather_surface_wetness, 0.0, 1.0)
+	ground_material.albedo_color = Color("6f8f65").lerp(Color("5f795f"), wetness * 0.45)
+	ground_material.roughness = lerpf(0.95, 0.78, wetness)
+	path_material.albedo_color = Color("9a8466").lerp(Color("806c5a"), wetness * 0.38)
+	path_material.roughness = lerpf(1.0, 0.7, wetness)
+	if pond_water_material != null:
+		pond_water_material.albedo_color = Color.WHITE.lerp(Color("b0c2ba"), wetness * 0.16)
+		pond_water_material.roughness = lerpf(0.25, 0.4, wetness)
+		pond_water_material.emission_energy_multiplier = lerpf(0.07, 0.1, wetness)
 
 
 func _sample_day(hour: float) -> Dictionary:
@@ -726,6 +790,7 @@ func _animate_weather() -> void:
 	rain_field.visible = weather_rain_amount > 0.01
 	var rain_color := Color(0.55, 0.68, 0.71, weather_rain_amount * 0.30)
 	rain_material.albedo_color = rain_color
+	var herb_rack := get_node_or_null("VillageProps/HerbDryingRack") as Node3D
 	for index in rain_streaks.size():
 		var params := rain_params[index]
 		var fall := fposmod((params["start_y"] as float) - portal_time * (params["speed"] as float), 9.0)
@@ -742,6 +807,11 @@ func _animate_weather() -> void:
 			var distance_inside := minf(3.15 - absf(house_local.x), 3.15 - absf(house_local.z))
 			if distance_inside > 0.0:
 				shelter_alpha = maxf(shelter_alpha, _smoothstep_range(0.0, 0.55, distance_inside))
+		if herb_rack != null:
+			var rack_local := herb_rack.to_local(rain_world_position)
+			var under_awning := absf(rack_local.x) < 0.95 and absf(rack_local.z + 0.08) < 0.36 and rack_local.y > 0.0 and rack_local.y < 1.76
+			if under_awning:
+				shelter_alpha = 1.0
 		streak.transparency = shelter_alpha
 
 
@@ -933,9 +1003,9 @@ func _build_world() -> void:
 	_add_ground_patch("PortalPathBlend", Vector3(2.4, 0.0, 11.1), 2.4, Vector2(0.72, 0.9), Color("8a7458"), 0.105, 0.24)
 	_add_ground_patch("PondPathBlend", Vector3(-2.3, 0.0, 11.8), 2.1, Vector2(0.72, 0.9), Color("846f55"), 0.105, 0.22)
 	_add_ground_patch("PondLookout", Vector3(-3.9, 0.0, 12.4), 1.5, Vector2(0.68, 0.95), Color("75624b"), 0.058, 0.28)
-	_add_ground_patch("HerbYardGrass", Vector3(-14.6, 0.0, -9.8), 4.6, Vector2(1.0, 0.78), Color("587451"), 0.035, 0.28)
+	_add_ground_patch("HerbYardGrass", Vector3(-14.6, 0.0, -9.8), 5.2, Vector2(1.08, 0.82), Color("587451"), 0.035, 0.28)
 	_add_road("HerbYardPath", PackedVector2Array([
-		Vector2(-9.4, -6.9), Vector2(-11.2, -7.0), Vector2(-12.9, -7.6), Vector2(-14.4, -8.5),
+		Vector2(-9.4, -6.9), Vector2(-11.2, -7.0), Vector2(-12.9, -7.6), Vector2(-14.8, -8.8),
 	]), PackedFloat32Array([0.72, 0.7, 0.78, 0.9]), 0.055, 0.25, true)
 
 	_add_house(Vector3(-9.0, 0.0, -10.0), 0.15)
@@ -1057,6 +1127,7 @@ func _build_villagers() -> void:
 	_add_villager("HerbalistMira", Vector3(-12.0, 0.0, -7.0), -2.4, MiraCharacter, Vector3(-0.65, 0.0, -0.75), 0.64)
 	_add_villager("GatekeeperToren", Vector3(3.0, 0.0, -15.2), 2.95, TorenCharacter, Vector3.BACK, 0.67)
 	_add_villager("WeaverNia", Vector3(-5.5, 0.0, 6.5), 1.15, NiaCharacter, Vector3.BACK, 0.78)
+	villager_patrol_pauses[0] = MIRA_HERB_PAUSES[0]
 	villager_patrol_pauses[1] = 2.8
 
 
@@ -1601,6 +1672,7 @@ func _add_pond(position: Vector3) -> void:
 	water_material.emission_enabled = true
 	water_material.emission = Color("2d5757")
 	water_material.emission_energy_multiplier = 0.07
+	pond_water_material = water_material
 	var water_mesh := PlaneMesh.new()
 	water_mesh.size = Vector2(8.0, 5.2)
 	var water := MeshInstance3D.new()
@@ -1721,13 +1793,13 @@ func _add_herb_plot() -> void:
 	plot.position = HERB_PLOT_POSITION
 	plot.rotation.y = PI * 0.5
 	add_child(plot)
-	_add_box("Soil", Vector3(4.6, 0.08, 2.8), Vector3(0.0, 0.04, 0.0), _material(Color("4e3b2b"), 1.0), false, plot)
+	_add_box("Soil", Vector3(5.2, 0.08, 3.2), Vector3(0.0, 0.04, 0.0), _material(Color("4e3b2b"), 1.0), false, plot)
 	var edging_material := _material(Color("6b4b2d"), 0.9)
-	_add_box("NorthEdge", Vector3(4.8, 0.14, 0.12), Vector3(0.0, 0.1, -1.46), edging_material, false, plot)
-	_add_box("SouthEdge", Vector3(4.8, 0.14, 0.12), Vector3(0.0, 0.1, 1.46), edging_material, false, plot)
-	_add_box("MiddleEdge", Vector3(4.5, 0.1, 0.1), Vector3(0.0, 0.085, 0.0), edging_material, false, plot)
-	_add_box("WestEdge", Vector3(0.12, 0.14, 2.8), Vector3(-2.36, 0.1, 0.0), edging_material, false, plot)
-	_add_box("EastEdge", Vector3(0.12, 0.14, 2.8), Vector3(2.36, 0.1, 0.0), edging_material, false, plot)
+	_add_box("NorthEdge", Vector3(5.4, 0.14, 0.12), Vector3(0.0, 0.1, -1.66), edging_material, false, plot)
+	_add_box("SouthEdge", Vector3(5.4, 0.14, 0.12), Vector3(0.0, 0.1, 1.66), edging_material, false, plot)
+	_add_box("MiddleEdge", Vector3(5.1, 0.1, 0.1), Vector3(0.0, 0.085, 0.0), edging_material, false, plot)
+	_add_box("WestEdge", Vector3(0.12, 0.14, 3.2), Vector3(-2.66, 0.1, 0.0), edging_material, false, plot)
+	_add_box("EastEdge", Vector3(0.12, 0.14, 3.2), Vector3(2.66, 0.1, 0.0), edging_material, false, plot)
 	var plants := [
 		["Fern_1", Vector3(-1.65, 0.08, -0.58), -0.3, 0.24],
 		["Grass_Common_Tall", Vector3(-0.82, 0.08, -0.62), 0.5, 0.34],
@@ -1793,6 +1865,8 @@ func _add_village_props() -> void:
 	herb_right_post.rotation.z = 0.018
 	var herb_crossbar := _add_box("Crossbar", Vector3(1.55, 0.09, 0.09), Vector3(0.0, 1.38, 0.0), work_wood_material, false, herb_rack)
 	herb_crossbar.rotation.z = 0.012
+	var herb_awning := _add_box("RainAwning", Vector3(1.9, 0.1, 0.72), Vector3(0.0, 1.68, -0.08), work_wood_material, false, herb_rack)
+	herb_awning.rotation.x = -0.06
 	_add_box("DryingLine", Vector3(1.42, 0.035, 0.035), Vector3(0.0, 1.2, 0.0), _material(Color("4f3b2c"), 1.0), false, herb_rack)
 	for bundle_index in 4:
 		var bundle := _add_model(
@@ -2557,7 +2631,7 @@ func _is_meadow_excluded(point: Vector2) -> bool:
 	var pond_offset := point - Vector2(-7.8, 12.0)
 	if pow(pond_offset.x / 4.55, 2.0) + pow(pond_offset.y / 3.15, 2.0) < 1.0:
 		return true
-	if absf(point.x - HERB_PLOT_POSITION.x) < 2.7 and absf(point.y - HERB_PLOT_POSITION.z) < 3.6:
+	if absf(point.x - HERB_PLOT_POSITION.x) < 3.0 and absf(point.y - HERB_PLOT_POSITION.z) < 4.0:
 		return true
 	if point.distance_to(Vector2(4.3, -5.5)) < 3.25:
 		return true

@@ -87,10 +87,10 @@ func weather_duration_range(state: String) -> Vector2:
 
 func weather_profile(state: String) -> Dictionary:
 	match state:
-		"cloudy": return {"sun_energy": 0.78, "sun_tint": 0.20, "ambient_energy": 1.02, "ambient_tint": 0.16, "shadow": 0.78, "fog_density": 1.22, "fog_color_mix": 0.18, "background_tint": 0.20, "rain": 0.0, "wind": 0.86, "tint": Color("b5c2c1"), "fog_tint": Color("899d9f")}
-		"mist": return {"sun_energy": 0.84, "sun_tint": 0.24, "ambient_energy": 1.04, "ambient_tint": 0.20, "shadow": 0.66, "fog_density": 2.0, "fog_color_mix": 0.34, "background_tint": 0.32, "rain": 0.0, "wind": 0.48, "tint": Color("b9c5bd"), "fog_tint": Color("94a8a3")}
-		"light_rain": return {"sun_energy": 0.66, "sun_tint": 0.30, "ambient_energy": 1.0, "ambient_tint": 0.24, "shadow": 0.56, "fog_density": 1.48, "fog_color_mix": 0.28, "background_tint": 0.30, "rain": 1.0, "wind": 1.12, "tint": Color("aab9bb"), "fog_tint": Color("778f95")}
-		_: return {"sun_energy": 1.0, "sun_tint": 0.0, "ambient_energy": 1.0, "ambient_tint": 0.0, "shadow": 1.0, "fog_density": 1.0, "fog_color_mix": 0.0, "background_tint": 0.0, "rain": 0.0, "wind": 0.62, "tint": Color.WHITE, "fog_tint": Color.WHITE}
+		"cloudy": return {"sun_energy": 0.78, "sun_tint": 0.20, "ambient_energy": 1.02, "ambient_tint": 0.16, "shadow": 0.78, "fog_density": 1.22, "fog_color_mix": 0.18, "background_tint": 0.20, "rain": 0.0, "wind": 0.86, "surface_wetness": 0.08, "tint": Color("b5c2c1"), "fog_tint": Color("899d9f")}
+		"mist": return {"sun_energy": 0.84, "sun_tint": 0.24, "ambient_energy": 1.04, "ambient_tint": 0.20, "shadow": 0.66, "fog_density": 2.0, "fog_color_mix": 0.34, "background_tint": 0.32, "rain": 0.0, "wind": 0.48, "surface_wetness": 0.22, "tint": Color("b9c5bd"), "fog_tint": Color("94a8a3")}
+		"light_rain": return {"sun_energy": 0.66, "sun_tint": 0.30, "ambient_energy": 1.0, "ambient_tint": 0.24, "shadow": 0.56, "fog_density": 1.48, "fog_color_mix": 0.28, "background_tint": 0.30, "rain": 1.0, "wind": 1.12, "surface_wetness": 0.78, "tint": Color("aab9bb"), "fog_tint": Color("778f95")}
+		_: return {"sun_energy": 1.0, "sun_tint": 0.0, "ambient_energy": 1.0, "ambient_tint": 0.0, "shadow": 1.0, "fog_density": 1.0, "fog_color_mix": 0.0, "background_tint": 0.0, "rain": 0.0, "wind": 0.62, "surface_wetness": 0.0, "tint": Color.WHITE, "fog_tint": Color.WHITE}
 
 
 func blend_weather_profiles(from_profile: Dictionary, to_profile: Dictionary, blend: float) -> Dictionary:
@@ -99,6 +99,6 @@ func blend_weather_profiles(from_profile: Dictionary, to_profile: Dictionary, bl
 		"ambient_energy": lerpf(from_profile["ambient_energy"], to_profile["ambient_energy"], blend), "ambient_tint": lerpf(from_profile["ambient_tint"], to_profile["ambient_tint"], blend),
 		"shadow": lerpf(from_profile["shadow"], to_profile["shadow"], blend), "fog_density": lerpf(from_profile["fog_density"], to_profile["fog_density"], blend),
 		"fog_color_mix": lerpf(from_profile["fog_color_mix"], to_profile["fog_color_mix"], blend), "background_tint": lerpf(from_profile["background_tint"], to_profile["background_tint"], blend),
-		"rain": lerpf(from_profile["rain"], to_profile["rain"], blend), "wind": lerpf(from_profile["wind"], to_profile["wind"], blend),
+		"rain": lerpf(from_profile["rain"], to_profile["rain"], blend), "wind": lerpf(from_profile["wind"], to_profile["wind"], blend), "surface_wetness": lerpf(from_profile["surface_wetness"], to_profile["surface_wetness"], blend),
 		"tint": (from_profile["tint"] as Color).lerp(to_profile["tint"], blend), "fog_tint": (from_profile["fog_tint"] as Color).lerp(to_profile["fog_tint"], blend),
 	}
