@@ -15,6 +15,7 @@ func _initialize() -> void:
 	var quest_runtime := game_root.get_node("QuestRuntime") as QuestRuntime
 	var router := game_root.get_node("SceneRouter") as SceneRouter
 	var main := game_root.get_node("RegionContainer/FogValley/Main")
+	main.call("_finish_opening")
 	var objective_row := game_root.get_node("PersistentUI/ObjectiveRow") as HBoxContainer
 	var objective_label := objective_row.get_node("ObjectiveText") as Label
 	assert(objective_row != null and objective_label != null)

@@ -108,6 +108,15 @@ const NIA_DAY_RAIN_ROUTE := [
 	Vector3(-6.5, 0.0, 6.4),
 ]
 const NIA_DAY_RAIN_LOOK_TARGET := Vector3(-10.0, 0.0, 5.0)
+const NIA_POND_ROUTE := [
+	Vector3(-5.5, 0.0, 6.5),
+	Vector3(-5.1, 0.0, 7.9),
+	Vector3(-4.6, 0.0, 9.1),
+	Vector3(-4.0, 0.0, 10.15),
+]
+const NIA_POND_LOOK_TARGET := Vector3(-5.3, 0.0, 11.3)
+const NIA_POND_START_HOUR := 14.0
+const NIA_POND_END_HOUR := 15.25
 const WAGON_CARGO_POSITIONS := [
 	Vector3(-0.25, 0.62, -1.35),
 	Vector3(0.28, 0.60, -1.95),
@@ -495,6 +504,9 @@ func _runtime_tick(delta: float) -> void:
 		elif index == 2 and nia_routine == "errand":
 			var look_direction := NIA_PUBLIC_LOOK_TARGET - villagers[index].global_position
 			target_yaw = atan2(look_direction.x, look_direction.z)
+		elif index == 2 and nia_routine == "pond":
+			var look_direction := NIA_POND_LOOK_TARGET - villagers[index].global_position
+			target_yaw = atan2(look_direction.x, look_direction.z)
 		villager.rotation.y = lerp_angle(villager.rotation.y, target_yaw, minf(delta * 6.0, 1.0))
 
 
@@ -782,6 +794,10 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 		next_routine = "returning"
 		route = NIA_PUBLIC_ROUTE.duplicate()
 		route.reverse()
+	elif nia_routine == "pond_returning" or (nia_routine == "pond" and (hour >= NIA_POND_END_HOUR or weather_rain_amount > 0.2)):
+		next_routine = "pond_returning"
+		route = NIA_POND_ROUTE.duplicate()
+		route.reverse()
 	elif hour >= 18.5 and hour < 22.5:
 		next_routine = "rain_shelter" if weather_rain_amount > 0.2 else "hearth"
 		route = NIA_RAIN_ROUTE if next_routine == "rain_shelter" else NIA_HEARTH_ROUTE
@@ -795,6 +811,9 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 	elif hour >= 10.5 and hour < 12.25:
 		next_routine = "errand"
 		route = NIA_PUBLIC_ROUTE
+	elif hour >= NIA_POND_START_HOUR and hour < NIA_POND_END_HOUR:
+		next_routine = "pond"
+		route = NIA_POND_ROUTE
 	if next_routine == "work":
 		if nia_routine != "work":
 			nia.visible = true
@@ -820,8 +839,8 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 		nia.collision_layer = 1
 		nia.collision_mask = 1
 		nia_route_index = 0
-		nia_errand_action_done = next_routine != "errand"
-		if next_routine in ["errand", "day_rain_shelter", "day_rain_returning"]:
+		nia_errand_action_done = next_routine not in ["errand", "pond"]
+		if next_routine in ["errand", "pond", "pond_returning", "day_rain_shelter", "day_rain_returning"]:
 			villager_patrol_pauses[2] = 0.0
 		if next_routine in ["day_rain_shelter", "day_rain_returning"]:
 			nia_route_index = route.size() - 1
@@ -845,25 +864,26 @@ func _update_nia_routine(nia: CharacterBody3D, animation_player: AnimationPlayer
 		else:
 			nia.velocity.x = 0.0
 			nia.velocity.z = 0.0
-			if nia_routine == "errand":
+			if nia_routine in ["errand", "pond"]:
 				if not nia_errand_action_done:
+					var action_animation := "Interact" if nia_routine == "pond" else "PickUp"
 					if villager_patrol_pauses[2] <= 0.0:
-						villager_patrol_pauses[2] = animation_player.get_animation("PickUp").length + 0.15
-						animation_player.play("PickUp", 0.2)
+						villager_patrol_pauses[2] = animation_player.get_animation(action_animation).length + 0.15
+						animation_player.play(action_animation, 0.2)
 					else:
 						villager_patrol_pauses[2] = maxf(villager_patrol_pauses[2] - delta, 0.0)
 						if villager_patrol_pauses[2] <= 0.0:
 							nia_errand_action_done = true
 							animation_player.play("Idle", 0.2)
-						elif animation_player.assigned_animation != "PickUp":
-							animation_player.play("PickUp", 0.2)
+						elif animation_player.assigned_animation != action_animation:
+							animation_player.play(action_animation, 0.2)
 				else:
 					if animation_player.assigned_animation != "Idle":
 						animation_player.play("Idle", 0.2)
 			else:
 				if animation_player.assigned_animation != "Idle":
 					animation_player.play("Idle", 0.2)
-			if nia_routine == "returning" or nia_routine == "day_rain_returning":
+			if nia_routine in ["returning", "pond_returning", "day_rain_returning"]:
 				nia_routine = "work"
 				nia_route_index = 0
 				nia_work_index = 0
@@ -2498,6 +2518,20 @@ func _add_village_props() -> void:
 		cloth.use_collision = false
 		weaving_line.add_child(cloth)
 		wind_nodes.append(cloth)
+	var wash_station := Node3D.new()
+	wash_station.name = "WeaverWashStation"
+	wash_station.position = Vector3(-4.55, 0.0, 10.75)
+	wash_station.rotation.y = -0.18
+	props.add_child(wash_station)
+	var wash_basket := _add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3.ZERO, 0.0, 0.26, wash_station)
+	wash_basket.name = "WashBasket"
+	for cloth_data in [
+		["WetClothPlum", Vector3(-0.17, 0.5, -0.02), Color("65525f"), -0.1],
+		["WetClothMoss", Vector3(0.14, 0.48, 0.01), Color("586651"), 0.08],
+		["WetClothMist", Vector3(-0.01, 0.56, 0.12), Color("526d70"), -0.03],
+	]:
+		var wet_cloth := _add_box(cloth_data[0], Vector3(0.34, 0.055, 0.22), cloth_data[1], _material(cloth_data[2], 0.92), false, wash_station)
+		wet_cloth.rotation.y = cloth_data[3]
 	var wagon_collision := _add_box("WagonCollision", Vector3(1.9, 1.5, 2.6), Vector3(-5.8, 0.75, -2.7), stone_material, true, props)
 	wagon_collision.rotation.y = 1.37
 	wagon_collision.visible = false

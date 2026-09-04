@@ -722,6 +722,12 @@ func _initialize() -> void:
 	assert(trace_material.emission_enabled and trace_material.emission_energy_multiplier <= 0.2)
 	var weaving_line := village_props.get_node_or_null("WeaverDryingLine") as Node3D
 	assert(weaving_line != null and weaving_line.get_child_count() == 6)
+	var wash_station := village_props.get_node_or_null("WeaverWashStation") as Node3D
+	assert(wash_station != null and wash_station.position.is_equal_approx(Vector3(-4.55, 0.0, 10.75)))
+	assert(wash_station.get_node_or_null("WashBasket") is Node3D)
+	for wet_cloth_name in ["WetClothPlum", "WetClothMoss", "WetClothMist"]:
+		var wet_cloth := wash_station.get_node_or_null(wet_cloth_name) as CSGBox3D
+		assert(wet_cloth != null and not wet_cloth.use_collision)
 	var village_marker := village_props.get_node_or_null("VillageBoundaryMarker") as Node3D
 	assert(village_marker != null and village_marker.position.is_equal_approx(Vector3(3.35, 0.0, 5.1)))
 	assert((-village_marker.basis.z).dot(Vector3.FORWARD) > 0.99)
@@ -1447,6 +1453,7 @@ func _initialize() -> void:
 	var nia_work_targets: Array = main_constants["NIA_WORK_TARGETS"]
 	var nia_work_pauses: Array = main_constants["NIA_WORK_PAUSES"]
 	var nia_day_rain_route: Array = main_constants["NIA_DAY_RAIN_ROUTE"]
+	var nia_pond_route: Array = main_constants["NIA_POND_ROUTE"]
 	assert(toren_route.size() == 3 and toren_targets.size() == 3 and toren_pauses.size() == 3)
 	assert(nia_public_route.size() == 9)
 	assert((nia_public_route[0] as Vector3).is_equal_approx(Vector3(-5.5, 0.0, 6.5)))
@@ -1461,6 +1468,12 @@ func _initialize() -> void:
 	assert((nia_day_rain_route[0] as Vector3).is_equal_approx(nia_work_route[0]))
 	assert((nia_day_rain_route[-1] as Vector3).is_equal_approx(Vector3(-6.5, 0.0, 6.4)))
 	assert((nia_day_rain_route[0] as Vector3).distance_to(nia_day_rain_route[-1]) < 1.1)
+	assert(nia_pond_route.size() == 4)
+	assert((nia_pond_route[0] as Vector3).is_equal_approx(nia_work_route[0]))
+	assert((nia_pond_route[-1] as Vector3).distance_to(wash_station.global_position) > 0.6)
+	assert((nia_pond_route[-1] as Vector3).distance_to(wash_station.global_position) < 1.0)
+	assert(is_equal_approx(main_constants["NIA_POND_START_HOUR"], 14.0))
+	assert(is_equal_approx(main_constants["NIA_POND_END_HOUR"], 15.25))
 	assert((nia_work_targets[2] as Vector3).is_equal_approx(weaving_line.global_position))
 	assert((nia_work_route[2] as Vector3).distance_to(weaving_line.global_position) > 1.0)
 	assert((nia_work_route[2] as Vector3).distance_to(weaving_line.global_position) < 1.2)
@@ -1996,6 +2009,49 @@ func _initialize() -> void:
 	assert(identity_npc.position.is_equal_approx(nia_work_reset))
 	assert(main.get("nia_work_index") == 0)
 	assert(nia_animation.assigned_animation == "Idle")
+	main.set("time_hour", 14.5)
+	main.set("weather_override", "clear")
+	main.set("nia_routine", "work")
+	identity_npc.position = nia_pond_route[0]
+	identity_npc.velocity = Vector3.ZERO
+	main.get("villager_patrol_pauses")[2] = 0.0
+	main.call("_process", 0.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("nia_routine") == "pond")
+	assert(main.get("nia_route_index") == 1)
+	assert(nia_animation.assigned_animation == "Walk")
+	identity_npc.position = nia_pond_route[-1]
+	identity_npc.velocity = Vector3.ZERO
+	main.set("nia_route_index", nia_pond_route.size() - 1)
+	main.set("nia_errand_action_done", false)
+	main.get("villager_patrol_pauses")[2] = 0.0
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(nia_animation.assigned_animation == "Interact")
+	var nia_pond_action_pause: float = main.get("villager_patrol_pauses")[2]
+	assert(nia_pond_action_pause >= nia_interact_length)
+	main.call("_process", 1.0)
+	var nia_pond_direction: Vector3 = main_constants["NIA_POND_LOOK_TARGET"] - identity_npc.global_position
+	assert(absf(angle_difference(nia_visual.rotation.y, atan2(nia_pond_direction.x, nia_pond_direction.z))) < 0.001)
+	main.call("_physics_process", nia_pond_action_pause + 0.05)
+	assert(main.get("nia_errand_action_done"))
+	assert(nia_animation.assigned_animation == "Idle")
+	main.set("time_hour", 15.5)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("nia_routine") == "pond_returning")
+	assert(nia_animation.assigned_animation == "Walk")
+	identity_npc.position = nia_pond_route[0]
+	identity_npc.velocity = Vector3.ZERO
+	main.set("nia_route_index", nia_pond_route.size() - 1)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("nia_routine") == "work")
+	assert(identity_npc.position.is_equal_approx(nia_pond_route[0]))
+	main.set("time_hour", 14.5)
+	main.set("weather_override", "light_rain")
+	main.set("nia_routine", "work")
+	identity_npc.position = nia_work_route[0]
+	main.call("_process", 0.0)
+	main.call("_physics_process", 1.0 / 60.0)
+	assert(main.get("nia_routine") == "day_rain_shelter")
 	main.set("time_hour", 19.0)
 	main.set("weather_override", "clear")
 	main.set("nia_routine", "work")

@@ -35,6 +35,37 @@ func _record() -> void:
 	main.set_physics_process(false)
 	await _capture(main, player, output_dir, "day-work", Vector3(-3.0, 1.0, 2.5))
 
+	var nia_pond_route: Array = main_constants["NIA_POND_ROUTE"]
+	main.set("time_hour", 14.5)
+	main.set("weather_override", "clear")
+	main.call("_process", 0.0)
+	main.set("nia_routine", "work")
+	main.set("nia_route_index", 0)
+	main.set("nia_errand_action_done", false)
+	nia.position = nia_pond_route[0]
+	nia.velocity = Vector3.ZERO
+	main.get("villager_patrol_pauses")[2] = 0.0
+	main.set_physics_process(true)
+	await create_timer(3.0).timeout
+	main.set_physics_process(false)
+	await _capture(main, player, output_dir, "day-pond-walk", Vector3(-2.5, 1.0, 8.0), -20.0)
+	nia.position = nia_pond_route[-1]
+	nia.velocity = Vector3.ZERO
+	main.set("nia_routine", "pond")
+	main.set("nia_route_index", nia_pond_route.size() - 1)
+	main.set("nia_errand_action_done", false)
+	main.get("villager_patrol_pauses")[2] = 0.0
+	main.call("_physics_process", 1.0 / 60.0)
+	await _capture(main, player, output_dir, "day-pond-wash", Vector3(-2.5, 1.0, 8.0), -30.0)
+	main.set("time_hour", 15.5)
+	main.set_physics_process(true)
+	await create_timer(1.2).timeout
+	main.set_physics_process(false)
+	await _capture(main, player, output_dir, "day-pond-return", Vector3(-2.5, 1.0, 8.0), -20.0)
+	if "--pond-only" in OS.get_cmdline_user_args():
+		quit()
+		return
+
 	var nia_day_rain_route: Array = main_constants["NIA_DAY_RAIN_ROUTE"]
 	main.set("time_hour", 9.5)
 	main.set("weather_override", "light_rain")
@@ -118,6 +149,7 @@ func _capture(main: Node3D, player: CharacterBody3D, output_dir: String, shot_na
 	var nia := main.get_node("WeaverNia") as CharacterBody3D
 	var nia_animation := main.get("villager_animations")[2] as AnimationPlayer
 	print("NIA_STATE ", shot_name, " routine=", main.get("nia_routine"), " animation=", nia_animation.assigned_animation, " position=", nia.position)
+	RenderingServer.force_draw(false)
 	var image := root.get_texture().get_image()
 	var path := "%s/%s.png" % [output_dir, shot_name]
 	image.save_png(ProjectSettings.globalize_path(path))
