@@ -1211,3 +1211,23 @@
 - Phase 85 后美术审核提名草甸远景轮廓重复 P2；生活气息与场景动效审核独立一致提名米拉夜间仍持续采药 P1。
 - 按严重度先补米拉 18:30 返家、22:30 入屋、06:30 晴天返岗及清晨雨天留屋；只复用药圃路线和现有屋檐代理点，草甸三档轮廓留作下一阶段。
 - 后台试玩进程 PID `1656` 仍响应，实施前 `main...origin/main` 且工作树干净。
+
+# 2026-09-04 Phase 86 恢复
+
+- 用户明确恢复开发；从已推送 WIP `bd67ce3` 和干净工作树继续，后台 Phase 85 试玩进程 PID `1656` 仍响应。
+- 首次复跑确认旧契约实际值为 `HerbalistMira unexpectedly playing Walk`。根因是晴天稳态分支每帧无条件清零米拉的停留计时，导致开场 `Idle` 被立即跳过；清零现仅保留在从 `homeward` 直接取消回 `work` 的状态转换上。
+- 修正后完整冒烟输出 `SMOKE TEST PASSED`；新增 `tests/mira_routine_capture.gd`，固定天气种子、晴天 override 与 18:48/23:00/06:48/09:30 四个时刻，复用 Phase 73 已验证的住宅/药圃俯视机位。
+- 首次隐藏捕获因 `Start-Process -ArgumentList` 拆分含空格项目路径而以退出码 1 结束，未进入 Godot 场景；改用显式带引号的单一参数串，不重复原命令。
+- 第二次隐藏捕获正常退出并生成 `16 frames @ 5 FPS`；四个状态分别为 `homeward/Walk`、`home/Idle/hidden`、`returning/Walk`、`work/PickUp`。人工目检发现前后两帧米拉被左边界裁切，故只调整专项相机中心后重录，不改生产场景。
+- 西移相机后隐藏重录正常退出，四图哈希均不同；米拉在黄昏、清晨、上午帧完整可见，23:00 空院成立，住宅、药圃、屋檐、板车支路与主路关系清楚，夜间暖窗/炉火焦点未回归。
+- 首次并行启动树木与晴雨扫查时，JavaScript 生成的 PowerShell 参数错误使用反斜杠转义引号，三个子进程均在项目加载前以 `Invalid project path ""C:\...\well"` 退出；后续改用已验证的 PowerShell `-f` 参数模板。
+- 改用正确参数后，树冠/落叶测试输出 `TREE MOTION TEST PASSED canopies=16 leaves=12`；晴天和小雨 21 机位均正常生成，分别为 `21/21` 唯一哈希，时间戳属于本轮。
+- Windows FFmpeg 不支持 `-pattern_type glob`，第一次改写显式输入时又因 PowerShell 把 `for` 当表达式而解析失败；最终使用 `0..20 | ForEach-Object` 生成 21 个输入和 `xstack` 布局，成功输出晴雨联系表，原始扫查图未受影响。
+- 人工总览复核未见道路占用、屋顶透明、住宅穿模或药圃布局回归；专项四帧确认黄昏返家、夜间空院、清晨返岗和上午采药均完整可读。
+
+# 2026-09-04 Phase 86 完成
+
+- 修正晴天稳态错误清零米拉停留计时的问题；计时只在真正取消 `homeward` 并恢复 `work` 时清零，开场 `Idle` 契约恢复。
+- 最终门禁：`SMOKE TEST PASSED`、`TREE MOTION TEST PASSED canopies=16 leaves=12`、米拉四时段状态证据、晴天/小雨扫查各 `21/21` 唯一哈希、`git diff --check`。
+- 六张证据归档到 `captures/phase86-mira-*.png`、`captures/phase86-overview-clear.png` 和 `captures/phase86-overview-rain.png`；美术、生活气息和场景动效三类终审均 `PASS 0/0/0`。
+- Phase 87 仅保留草甸短宽/常规/稍高窄三档轮廓这一已知 P2；不得减少草量或改变实例位置、颜色、排除带和风摆逻辑。

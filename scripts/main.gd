@@ -577,11 +577,11 @@ func _update_mira_herb_route(mira: CharacterBody3D, animation_player: AnimationP
 		elif mira_routine == "homeward":
 			if mira_rain_shelter_leg == 0:
 				mira_routine = "work"
+				villager_patrol_pauses[0] = 0.0
 			else:
 				mira_routine = "returning"
 				mira_rain_shelter_leg -= 1
 		mira_rain_shelter_active = false
-		villager_patrol_pauses[0] = 0.0
 	if mira_routine == "home":
 		mira.velocity.x = 0.0
 		mira.velocity.z = 0.0
