@@ -52,6 +52,11 @@ const ROOF_FADE_EXIT_PLAYER_DISTANCE := 6.3
 const ROOF_FADE_ENTER_VIEW_DISTANCE := 3.0
 const ROOF_FADE_EXIT_VIEW_DISTANCE := 3.6
 const ROOF_FADE_EXIT_PROJECTION_MARGIN := 0.05
+const PORTAL_OCCLUSION_ENTER_PLAYER_DISTANCE := 5.0
+const PORTAL_OCCLUSION_EXIT_PLAYER_DISTANCE := 5.4
+const PORTAL_OCCLUSION_ENTER_VIEW_DISTANCE := 1.0
+const PORTAL_OCCLUSION_EXIT_VIEW_DISTANCE := 1.3
+const PORTAL_OCCLUSION_EXIT_PROJECTION_MARGIN := 0.04
 const TOREN_WATCH_ROUTE := [
 	Vector3(3.0, 0.0, -15.2),
 	Vector3(2.7, 0.0, -19.2),
@@ -123,6 +128,8 @@ var portal_reaction_time := 0.0
 var portal_time := 0.0
 var portal_center := Vector3.ZERO
 var portal_motes: Array[MeshInstance3D] = []
+var portal_occluders: Array[Node3D] = []
+var portal_occluding := false
 var wind_nodes: Array[Node3D] = []
 var seasonal_bushes: Array[Node3D] = []
 var seasonal_bush_materials: Array[StandardMaterial3D] = []
@@ -285,6 +292,24 @@ func _is_house_roof_occluding(camera_xz: Vector2, player_xz: Vector2, house_xz: 
 	return house_xz.distance_to(closest_point) < view_distance_limit
 
 
+func _is_portal_occluding(camera_xz: Vector2, player_xz: Vector2, was_occluding: bool) -> bool:
+	var player_distance_limit := PORTAL_OCCLUSION_EXIT_PLAYER_DISTANCE if was_occluding else PORTAL_OCCLUSION_ENTER_PLAYER_DISTANCE
+	var portal_xz := Vector2(portal_center.x, portal_center.z)
+	if portal_xz.distance_to(player_xz) >= player_distance_limit:
+		return false
+	var camera_to_player := player_xz - camera_xz
+	var segment_length_squared := camera_to_player.length_squared()
+	if segment_length_squared <= 0.001:
+		return false
+	var projection := (portal_xz - camera_xz).dot(camera_to_player) / segment_length_squared
+	var projection_margin := PORTAL_OCCLUSION_EXIT_PROJECTION_MARGIN if was_occluding else 0.0
+	if projection <= -projection_margin or projection >= 1.0 + projection_margin:
+		return false
+	var closest_point := camera_xz + camera_to_player * clampf(projection, 0.0, 1.0)
+	var view_distance_limit := PORTAL_OCCLUSION_EXIT_VIEW_DISTANCE if was_occluding else PORTAL_OCCLUSION_ENTER_VIEW_DISTANCE
+	return portal_xz.distance_to(closest_point) < view_distance_limit
+
+
 func _process(delta: float) -> void:
 	if fog_valley_runtime != null:
 		fog_valley_runtime.tick(delta)
@@ -394,6 +419,11 @@ func _runtime_tick(delta: float) -> void:
 			var house_position := houses[house_index].global_position
 			var house_xz := Vector2(house_position.x, house_position.z)
 			house_roofs_faded[house_index] = _is_house_roof_occluding(camera_xz, player_xz, house_xz, house_roofs_faded[house_index])
+		portal_occluding = _is_portal_occluding(camera_xz, player_xz, portal_occluding)
+	else:
+		portal_occluding = false
+	for portal_occluder in portal_occluders:
+		portal_occluder.visible = not portal_occluding
 	for index in house_fade_materials.size():
 		var house_index := house_fade_house_indices[index]
 		var target_alpha := 0.0 if house_roofs_faded[house_index] else house_fade_alphas[index]
@@ -2669,8 +2699,11 @@ func _add_ruin(position: Vector3) -> void:
 		["Rock_Medium_2", Vector3(1.95, 1.35, 0), 2.2, 0.76],
 		["Rock_Medium_1", Vector3(2.1, 0.15, 0), 2.9, 0.9],
 	]
-	for stone in stones:
-		_add_model("res://assets/quaternius/nature/%s.gltf" % stone[0], stone[1], stone[2], stone[3], ruin)
+	for stone_index in stones.size():
+		var stone: Array = stones[stone_index]
+		var arch_stone := _add_model("res://assets/quaternius/nature/%s.gltf" % stone[0], stone[1], stone[2], stone[3], ruin)
+		arch_stone.name = "ArchStone%d" % stone_index
+		portal_occluders.append(arch_stone)
 	var edge_details := [
 		["Rock_Medium_1", Vector3(-3.45, 0.02, -1.45), 0.6, 0.28],
 		["Rock_Medium_2", Vector3(-3.25, 0.02, 1.4), 2.2, 0.2],
@@ -2721,6 +2754,7 @@ func _add_ruin(position: Vector3) -> void:
 	portal_ring.position = center + Vector3.UP * 1.85
 	portal_ring.material = portal_material
 	add_child(portal_ring)
+	portal_occluders.append(portal_ring)
 	var portal_mesh := QuadMesh.new()
 	portal_mesh.size = Vector2(2.8, 2.8)
 	portal_surface_material = ShaderMaterial.new()
@@ -2734,6 +2768,7 @@ func _add_ruin(position: Vector3) -> void:
 	portal.material_override = portal_surface_material
 	portal.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(portal)
+	portal_occluders.append(portal)
 	portal_light = OmniLight3D.new()
 	portal_light.name = "PortalLight"
 	portal_light.position = center + Vector3(0.0, 1.85, 0.7)
