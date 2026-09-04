@@ -1349,3 +1349,36 @@
 - 固定 `time_hour=9.5` 的晴天/小雨 21 机位均以隐藏窗口重录，两套均为 `21/21` 唯一哈希，21 对同机位无相同文件。
 - 证据归档为 `captures/phase91-toren-watch-before-after.png`、`phase91-toren-watch-clear.png`、`phase91-toren-watch-rain.png`、`phase91-overview-clear.png`、`phase91-overview-rain.png` 与 `phase91-tree-motion.png`。
 - 美术、生活气息和场景动效三类最终审查均为 `PASS 0/0/0`，Phase 91 可以提交；山口与北侧雾幕仍保持暂缓。
+
+# 2026-09-04 Phase 92 开始
+
+- 从已推送提交 `1fb3dc5` 和干净工作树继续；当前试玩 PID `55772` 以最小化窗口运行且响应正常。
+- 已重新读取完整美术规范和 Phase 91 最终记录；本阶段先基于最新晴雨 21 机位复审，再选择唯一有证据的下一项。
+- 规范第 153 行关于“现有 Quaternius Ranger”的描述与当前 KayKit Hooded Rogue 生产主角不一致，已列为规范校准候选，但不会与未经审定的场景改动混在一起。
+- 本地任务链审计确认当前序章只有“石环调查 → 托伦对话 → 炉火抵达”，还没有玩家可完成的职责活动；若三类成片审查无更高优先级问题，Phase 92 将优先评估这一纵切片缺口。
+- 一次 Windows `rg tests/*.gd` 因通配路径语法返回 OS error 123；已改为直接检索 `tests` 目录，未影响文件或进程。
+- 恢复后确认 `main` 与 `origin/main` 同为 `1fb3dc5`，工作树仍仅有三份 Phase 92 记录；后台试玩 PID `55772` 响应正常。
+- 美术与动效基线审查为 `none`，生活气息唯一 P1 为玩家缺少一次实际村民活动；Phase 92 选择在米拉对话后开放一次性药草采集。
+- 已走通现有数据流：米拉对话设置 `mira_met`，药草交互写入 `WorldState.collected_ids` 并调用 `QuestRuntime.advance(..., herb_gathered)`，任务再允许炉火完成；不增加背包或通用物品层。
+- 本轮只读检索另有一次未闭合 `rg` 正则和一次错误脚本路径，均已更正为纯文本检索及 `scripts/core/game_state.gd`，未修改生产文件。
+- 第一版最小实现已落地：药圃末端现有蕨草成为第五个 `InteractionTarget`；米拉对话设置 `mira_met`，任务新增 `herb_gathered` 步骤，采集写入 `mira_mistleaf` 并隐藏植株。
+- 玩家脚本增加仅覆盖 `PickUp` 时长的动画锁和移动输入抑制；未增加背包、物品数据、通用交互控制器或新素材。
+- 冒烟、序章集成、任务运行时与 `herb_gather_capture.gd` 已同步扩展，下一步先做静态差异检查和无头测试，再根据真实失败修正。
+- `QUEST RUNTIME TEST PASSED` 与 `PROLOGUE FOUNDATION INTEGRATION TEST PASSED`；第一轮完整冒烟仅在解析阶段因新增测试变量重名失败，已改名为 `gather_player_animation`，生产逻辑和断言强度未变。
+- 第二轮解析继续发现同段 `pickup_length` 与前文重名，已统一改为 `gather_pickup_length`；这是同一测试作用域问题，未进入生产运行也未放宽断言。
+- 第三轮完整冒烟输出 `SMOKE TEST PASSED`；两项 KayKit 角色视觉测试与树冠/落叶回归通过，隐藏实机采药脚本输出三帧并确认 `collected=true`。
+- 首轮三帧里玩家与目标植株投影重叠，采前/采后的视觉差异不够明确；只将专项玩家机位横移至植株侧面并固定动作中段姿态，同时把米拉台词补成自然的采药请求，不改生产场景布局。
+- 调整后的隐藏捕获再次输出 `HERB GATHER CAPTURE PASSED collected=true`，主代理逐张确认采前植株、采集中弯腰姿态和采后空位清楚可辨；序章集成测试同步通过。
+- 固定 `time_hour=9.5` 的晴天与小雨 21 机位已并行隐藏重录；两套均为本轮 `21/21` 张、各自 `21/21` 唯一哈希，21 对同机位晴雨哈希全部不同，原试玩 PID `55772` 未受影响。
+- 自审补齐独立 `main.tscn` 的米拉兜底标记：没有 `DialogueRunner` 时，米拉硬编码对话也写入 `mira_met`；冒烟改为验证这条真实路径，不再手工造标记。
+- 三类首轮终审中美术与生活气息为 `PASS 0/0/0`；动效为 `FAIL 0/1/0`，指出证据脚本手工预转向掩盖生产交互未朝向药草。已把转向移入 `_gather_herb()`，删除证据预设并增加任意初始朝向的行为断言。
+- 一次最终并行验证的 JavaScript 输出汇总正则存在语法错误，命令在执行前被拦截；改为直接输出后 `SMOKE TEST PASSED`、序章集成与任务运行时测试通过，文件和进程未受错误调用影响。
+- 转向修复后的首轮冒烟在朝向断言失败：测试把玩家放在药草正上方，XZ 向量为零，生产逻辑正确跳过无定义方向。测试已改为水平相邻站位，并结束断言中止后遗留的 PID `21100`，不改生产转向规则。
+
+# 2026-09-04 Phase 92 完成
+
+- 修复后完整冒烟再次输出 `SMOKE TEST PASSED`；既有 glTF UID fallback 与 Dummy/GLES3 退出资源告警仍不影响退出码。
+- 序章集成、任务运行时、两项角色视觉和树冠/落叶回归均通过；采药专项输出 `HERB GATHER CAPTURE PASSED collected=true`。
+- 固定 `time_hour=9.5` 的晴天/小雨扫查均为 `21/21` 唯一哈希，21 对同机位无相同帧；7 张最终证据已归档为 `captures/phase92-*`。
+- 美术、生活气息和场景动效三类终审全部为 `PASS 0/0/0`；首轮动效 P1 已关闭，采药生产逻辑会自动朝向目标，证据脚本未再手工预转向。
+- 最小实现审查通过：没有新增外部依赖、资产、背包系统或通用框架。按用户要求，Phase 92 后停止继续开发，规范校准与 Phase 93 均不在本次提交内。

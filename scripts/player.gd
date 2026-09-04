@@ -20,6 +20,7 @@ var walk_time := 0.0
 var camera_target_height := 15.0
 var footstep_index := 0
 var character_animation: AnimationPlayer
+var interaction_animation_remaining := 0.0
 
 
 func _ready() -> void:
@@ -27,6 +28,8 @@ func _ready() -> void:
 	for animation_name in ["Idle", "Run"]:
 		if character_animation.has_animation(animation_name):
 			character_animation.get_animation(animation_name).loop_mode = Animation.LOOP_LINEAR
+	if character_animation.has_animation("PickUp"):
+		character_animation.get_animation("PickUp").loop_mode = Animation.LOOP_NONE
 	character_animation.play("Idle")
 	var footsteps := AudioStreamPlayer3D.new()
 	footsteps.name = "Footsteps"
@@ -53,7 +56,7 @@ func _physics_process(delta: float) -> void:
 	camera_yaw += Input.get_axis("camera_left", "camera_right") * TURN_SPEED * delta
 	$CameraRig.rotation.y = camera_yaw
 
-	var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var input := Vector2.ZERO if interaction_animation_remaining > 0.0 else Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := Vector3(input.x, 0.0, input.y).rotated(Vector3.UP, camera_yaw)
 	velocity.x = move_toward(velocity.x, direction.x * SPEED, 30.0 * delta)
 	velocity.z = move_toward(velocity.z, direction.z * SPEED, 30.0 * delta)
@@ -83,6 +86,10 @@ func _update_camera_lead(delta: float, real_velocity: Vector3) -> void:
 
 
 func _update_walk_visual(delta: float, move_amount: float) -> void:
+	if interaction_animation_remaining > 0.0:
+		interaction_animation_remaining = maxf(interaction_animation_remaining - delta, 0.0)
+		if interaction_animation_remaining > 0.0:
+			return
 	if move_amount > 0.05:
 		var previous_step := floori(walk_time / PI)
 		walk_time += delta * 10.0 * move_amount
@@ -91,6 +98,16 @@ func _update_walk_visual(delta: float, move_amount: float) -> void:
 	var target_animation := "Run" if move_amount > 0.05 else "Idle"
 	if character_animation.current_animation != target_animation:
 		character_animation.play(target_animation, 0.15)
+
+
+func play_pickup() -> bool:
+	if character_animation == null or not character_animation.has_animation("PickUp"):
+		return false
+	velocity.x = 0.0
+	velocity.z = 0.0
+	interaction_animation_remaining = character_animation.get_animation("PickUp").length
+	character_animation.play("PickUp", 0.1)
+	return true
 
 
 func _play_footstep() -> void:

@@ -19,6 +19,8 @@ const NiaCharacter = preload("res://scenes/npc/nia_visual.tscn")
 const ValleyBoundaryScene = preload("res://scenes/world/valley_boundary.tscn")
 const FogValleyDialogue = preload("res://data/dialogue/fog_valley_intro.tres")
 const HERB_PLOT_POSITION := Vector3(-14.8, 0.0, -10.0)
+const GATHERABLE_HERB_ID := &"mira_mistleaf"
+const GATHERABLE_HERB_DISTANCE := 1.8
 const MIRA_HERB_ROUTE := [
 	Vector3(-12.0, 0.0, -7.0), Vector3(-13.2, 0.0, -7.7),
 	Vector3(-14.8, 0.0, -9.2), Vector3(-15.6, 0.0, -12.0),
@@ -180,6 +182,9 @@ var nia_errand_action_done := false
 var nia_work_index := 0
 var nia_work_action_done := false
 var nearby_villager: CharacterBody3D
+var gatherable_herb: Node3D
+var gatherable_herb_target: InteractionTarget
+var nearby_herb: InteractionTarget
 var mistcap_material: StandardMaterial3D
 var mistcap_caps: Array[MeshInstance3D] = []
 var mistcap_lights: Array[OmniLight3D] = []
@@ -938,7 +943,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("interact"):
 		return
 	var player := get_node_or_null("Player") as CharacterBody3D
-	if nearby_villager != null:
+	if nearby_herb != null:
+		if not _gather_herb(player):
+			return
+	elif nearby_villager != null:
 		var villager_target := nearby_villager.get_node_or_null("InteractionTarget") as InteractionTarget
 		if villager_target == null or not villager_target.interact(player):
 			return
@@ -956,6 +964,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _update_villager_interaction() -> void:
 	var player := get_node_or_null("Player") as CharacterBody3D
 	nearby_villager = null
+	nearby_herb = null
 	var nearest_distance := 3.0
 	if player != null:
 		for villager in villagers:
@@ -965,9 +974,18 @@ func _update_villager_interaction() -> void:
 			if distance < nearest_distance:
 				nearest_distance = distance
 				nearby_villager = villager
+	if gatherable_herb != null and gatherable_herb_target != null:
+		var collected := _herb_is_collected()
+		gatherable_herb.visible = not collected
+		gatherable_herb_target.enabled = _herb_gather_available()
+		if gatherable_herb_target.can_interact(player):
+			nearby_herb = gatherable_herb_target
 	if portal_prompt == null or (portal_lore != null and portal_lore.visible):
 		return
-	if nearby_villager != null:
+	if nearby_herb != null:
+		portal_prompt.text = "F  采集雾叶草"
+		portal_prompt.show()
+	elif nearby_villager != null:
 		portal_prompt.text = "F  与%s交谈" % _villager_name(nearby_villager.name)
 		portal_prompt.show()
 	elif portal_nearby:
@@ -986,7 +1004,7 @@ func _show_villager_dialogue() -> void:
 	var migrated := false
 	match nearby_villager.name:
 		"HerbalistMira":
-			message = "米拉：雾起前采下的药草，效力最好。"
+			message = "米拉：雾起前采下的雾叶草效力最好。能替我采一株吗？"
 			migrated = _start_migrated_dialogue(&"mira")
 		"GatekeeperToren":
 			message = "托伦：沿石路走，别踏进谷边的浓雾。"
@@ -999,6 +1017,10 @@ func _show_villager_dialogue() -> void:
 	nod.tween_property(model, "position:y", model_y - 0.06, 0.12)
 	nod.tween_property(model, "position:y", model_y, 0.18)
 	if not migrated:
+		if nearby_villager.name == "HerbalistMira":
+			var state := _active_world_state()
+			if state != null:
+				state.flags[&"mira_met"] = true
 		_show_interaction_text(message)
 
 
@@ -1008,6 +1030,49 @@ func _show_portal_lore() -> void:
 	portal_react_player.play()
 	if not migrated:
 		_show_interaction_text("石环残留着与你相似的异界气息。")
+
+
+func _active_world_state() -> WorldState:
+	if prologue_quest_runtime != null:
+		return prologue_quest_runtime.state
+	var game_state := get_node_or_null("/root/GameState")
+	return game_state.get("active") as WorldState if game_state != null else null
+
+
+func _herb_is_collected() -> bool:
+	var state := _active_world_state()
+	return state != null and GATHERABLE_HERB_ID in state.collected_ids
+
+
+func _herb_gather_available() -> bool:
+	var state := _active_world_state()
+	if state == null or not bool(state.flags.get(&"mira_met", false)) or GATHERABLE_HERB_ID in state.collected_ids:
+		return false
+	if prologue_quest_runtime == null:
+		return true
+	var progress: Dictionary = state.quests.get(&"arrival", {})
+	return StringName(str(progress.get("status", ""))) == &"active" and int(progress.get("step_index", -1)) == 2
+
+
+func _gather_herb(player: CharacterBody3D) -> bool:
+	if player == null or gatherable_herb == null or gatherable_herb_target == null or not _herb_gather_available():
+		return false
+	if not gatherable_herb_target.interact(player):
+		return false
+	if prologue_quest_runtime != null and not prologue_quest_runtime.advance(&"arrival", &"herb_gathered"):
+		return false
+	var herb_direction := gatherable_herb_target.global_position - player.global_position
+	var player_visual := player.get_node_or_null("Visual") as Node3D
+	if player_visual != null and Vector2(herb_direction.x, herb_direction.z).length_squared() > 0.001:
+		player_visual.rotation.y = atan2(herb_direction.x, herb_direction.z)
+	var state := _active_world_state()
+	state.collected_ids.append(GATHERABLE_HERB_ID)
+	gatherable_herb_target.enabled = false
+	gatherable_herb.hide()
+	nearby_herb = null
+	player.call("play_pickup")
+	_show_interaction_text("你采下了一株带着微光的雾叶草。")
+	return true
 
 
 func _on_dialogue_line_started(_speaker_id: StringName, text_key: StringName) -> void:
@@ -2208,6 +2273,18 @@ func _add_herb_plot() -> void:
 		var plant := _add_model("res://assets/quaternius/nature/%s.gltf" % plant_data[0], plant_data[1], plant_data[2], plant_data[3], plot)
 		if plant != null:
 			wind_nodes.append(plant)
+			if plant_data == plants[-1]:
+				plant.name = "GatherableMistleaf"
+				gatherable_herb = plant
+				gatherable_herb_target = InteractionTarget.new()
+				gatherable_herb_target.name = "InteractionTarget"
+				gatherable_herb_target.target_id = GATHERABLE_HERB_ID
+				gatherable_herb_target.prompt_key = &"interaction.gather"
+				gatherable_herb_target.interaction_priority = 10
+				gatherable_herb_target.interaction_distance = GATHERABLE_HERB_DISTANCE
+				gatherable_herb_target.enabled = false
+				plant.add_child(gatherable_herb_target)
+				plant.visible = not _herb_is_collected()
 
 
 func _add_village_props() -> void:

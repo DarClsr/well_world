@@ -12,6 +12,7 @@ func _initialize() -> void:
 	for values: Array in [
 		[&"inspect_portal", &"quest.arrival.portal", &"portal_inspected"],
 		[&"meet_toren", &"quest.arrival.toren", &"toren_met"],
+		[&"gather_herb", &"quest.arrival.herb", &"herb_gathered"],
 		[&"reach_hearth", &"quest.arrival.hearth", &"hearth_reached"],
 	]:
 		var step = QuestStepScript.new()
@@ -29,6 +30,8 @@ func _initialize() -> void:
 	assert(runtime.advance(&"arrival", &"portal_inspected"))
 	assert(state.quests[&"arrival"]["step_index"] == 1)
 	assert(runtime.advance(&"arrival", &"toren_met"))
+	assert(not runtime.advance(&"arrival", &"hearth_reached"))
+	assert(runtime.advance(&"arrival", &"herb_gathered"))
 	var restored := WorldState.from_dictionary(state.to_dictionary())
 	var resumed = QuestRuntimeScript.new()
 	resumed.configure(restored)

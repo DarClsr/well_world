@@ -14,7 +14,8 @@ emit_event_ids = Array[StringName]([&"portal_inspected"])
 script = ExtResource("2")
 id = &"mira"
 speaker_id = &"mira"
-text_key = &"米拉：雾起前采下的药草，效力最好。"
+text_key = &"米拉：雾起前采下的雾叶草效力最好。能替我采一株吗？"
+set_flags = {&"mira_met": true}
 emit_event_ids = Array[StringName]([&"mira_met"])
 
 [sub_resource type="Resource" id="Toren"]

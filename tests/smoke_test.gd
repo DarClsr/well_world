@@ -784,6 +784,15 @@ func _initialize() -> void:
 	assert(herb_plot.position.is_equal_approx(Vector3(-14.8, 0.0, -10.0)))
 	assert(is_equal_approx(herb_plot.rotation.y, PI * 0.5))
 	assert(herb_plot.get_child_count() == 16)
+	var gatherable_herb := herb_plot.get_node_or_null("GatherableMistleaf") as Node3D
+	assert(gatherable_herb != null and gatherable_herb.visible)
+	var gatherable_herb_target := gatherable_herb.get_node_or_null("InteractionTarget") as InteractionTarget
+	assert(gatherable_herb_target != null)
+	assert(gatherable_herb_target.target_id == &"mira_mistleaf")
+	assert(gatherable_herb_target.prompt_key == &"interaction.gather")
+	assert(gatherable_herb_target.interaction_priority == 10)
+	assert(is_equal_approx(gatherable_herb_target.interaction_distance, 1.8))
+	assert(not gatherable_herb_target.enabled)
 	for bed_part_name in ["Soil", "NorthEdge", "SouthEdge", "MiddleEdge", "WestEdge", "EastEdge"]:
 		var bed_part := herb_plot.get_node_or_null(bed_part_name) as CSGBox3D
 		assert(bed_part != null)
@@ -2100,6 +2109,31 @@ func _initialize() -> void:
 		assert(lore.visible)
 		assert(lore.text.contains(dialogue_data[1]))
 		assert(not prompt.visible)
+	var game_state := root.get_node("GameState")
+	assert(game_state.active.flags.get(&"mira_met") == true)
+	player.global_position = gatherable_herb_target.global_position + Vector3(1.0, 1.0, 0.0)
+	lore.hide()
+	main.call("_process", 0.0)
+	assert(gatherable_herb_target.enabled)
+	assert(main.get("nearby_herb") == gatherable_herb_target)
+	assert(prompt.visible and prompt.text.contains("采集雾叶草"))
+	var gather_player_visual := player.get_node("Visual") as Node3D
+	var gather_direction := gatherable_herb_target.global_position - player.global_position
+	var gather_expected_yaw := atan2(gather_direction.x, gather_direction.z)
+	gather_player_visual.rotation.y = gather_expected_yaw + PI
+	assert(main.call("_gather_herb", player))
+	assert(absf(angle_difference(gather_player_visual.rotation.y, gather_expected_yaw)) < 0.001)
+	assert(&"mira_mistleaf" in game_state.active.collected_ids)
+	assert(not gatherable_herb.visible and not gatherable_herb_target.enabled)
+	var gather_player_animation := player.get("character_animation") as AnimationPlayer
+	var gather_pickup_length := gather_player_animation.get_animation("PickUp").length
+	assert(gather_player_animation.assigned_animation == "PickUp")
+	assert(player.get("interaction_animation_remaining") > 0.0)
+	player.call("_update_walk_visual", gather_pickup_length * 0.5, 1.0)
+	assert(gather_player_animation.assigned_animation == "PickUp")
+	player.call("_update_walk_visual", gather_pickup_length, 0.0)
+	assert(gather_player_animation.assigned_animation == "Idle")
+	assert(not main.call("_gather_herb", player))
 	var facing_npc := main.get_node("WeaverNia") as CharacterBody3D
 	var facing_visual := facing_npc.get_node("Visual") as Node3D
 	player.position = facing_npc.position + Vector3(2.0, 1.0, 0.0)
