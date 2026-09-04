@@ -1473,7 +1473,7 @@ func _build_world() -> void:
 	var undergrowth := [
 		["Bush_Common_Flowers", Vector3(-13, 0, -17), 0.3, 1.0],
 		["Bush_Common", Vector3(13, 0, -16), 1.4, 1.2],
-		["Bush_Common", Vector3(-18, 0, 8), 2.1, 0.9],
+		["Bush_Common", Vector3(-24.7, 0, 10.3), 2.1, 0.9],
 		["Fern_1", Vector3(20, 0, 9), 0.6, 0.35],
 		["Fern_1", Vector3(-14, 0, 20), 2.6, 0.28],
 		["Grass_Common_Tall", Vector3(5, 0, 17), 0.2, 0.8],

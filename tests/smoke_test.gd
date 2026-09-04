@@ -1281,6 +1281,10 @@ func _initialize() -> void:
 	var seasonal_bush_materials: Array = main.get("seasonal_bush_materials")
 	assert(seasonal_bushes.size() == 3)
 	assert(seasonal_bush_materials.size() == 3)
+	var southwest_bush := seasonal_bushes[1] as Node3D
+	assert(southwest_bush.position.is_equal_approx(Vector3(-24.7, 0.0, 10.3)))
+	assert(southwest_bush.position.x < west_cliff.position.x + west_cliff.size.x * 0.5)
+	assert(Vector2(southwest_bush.position.x, southwest_bush.position.z).distance_to(Vector2(-17.0, 9.0)) > 7.5)
 	for index in seasonal_bushes.size():
 		assert((seasonal_bushes[index] as Node3D).name == "SeasonalBush%d" % index)
 		assert((seasonal_bushes[index] as Node3D) in wind_nodes)
