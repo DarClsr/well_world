@@ -52,6 +52,8 @@ const ROOF_FADE_EXIT_PLAYER_DISTANCE := 6.3
 const ROOF_FADE_ENTER_VIEW_DISTANCE := 3.0
 const ROOF_FADE_EXIT_VIEW_DISTANCE := 3.6
 const ROOF_FADE_EXIT_PROJECTION_MARGIN := 0.05
+const PLAYER_OCCLUSION_MAX_ALPHA := 0.30
+const PLAYER_OCCLUSION_FADE_SPEED := 8.0
 const PORTAL_OCCLUSION_ENTER_PLAYER_DISTANCE := 5.0
 const PORTAL_OCCLUSION_EXIT_PLAYER_DISTANCE := 5.4
 const PORTAL_OCCLUSION_ENTER_VIEW_DISTANCE := 1.0
@@ -150,6 +152,7 @@ var house_fade_alphas: Array[float] = []
 var house_fade_house_indices: Array[int] = []
 var house_roofs_faded: Array[bool] = []
 var houses: Array[Node3D] = []
+var player_occlusion_material: StandardMaterial3D
 var hearth_flames: Array[CSGPolygon3D] = []
 var hearth_flame_origins: Array[Vector3] = []
 var hearth_light: OmniLight3D
@@ -412,6 +415,7 @@ func _runtime_tick(delta: float) -> void:
 		fog_banks[index].transparency = 0.28 + (sin(fog_phase * 0.9) + 1.0) * 0.1
 	var player := get_node_or_null("Player") as CharacterBody3D
 	var camera := player.get_node_or_null("CameraRig/Camera3D") as Camera3D if player != null else null
+	var player_house_occluded := false
 	if player != null and camera != null:
 		var player_xz := Vector2(player.global_position.x, player.global_position.z)
 		var camera_xz := Vector2(camera.global_position.x, camera.global_position.z)
@@ -419,11 +423,17 @@ func _runtime_tick(delta: float) -> void:
 			var house_position := houses[house_index].global_position
 			var house_xz := Vector2(house_position.x, house_position.z)
 			house_roofs_faded[house_index] = _is_house_roof_occluding(camera_xz, player_xz, house_xz, house_roofs_faded[house_index])
+			player_house_occluded = player_house_occluded or house_roofs_faded[house_index]
 		portal_occluding = _is_portal_occluding(camera_xz, player_xz, portal_occluding)
 	else:
 		portal_occluding = false
 	for portal_occluder in portal_occluders:
 		portal_occluder.visible = not portal_occluding
+	if player_occlusion_material != null:
+		var occlusion_color := player_occlusion_material.albedo_color
+		var occlusion_target := PLAYER_OCCLUSION_MAX_ALPHA if player_house_occluded else 0.0
+		occlusion_color.a = lerpf(occlusion_color.a, occlusion_target, minf(delta * PLAYER_OCCLUSION_FADE_SPEED, 1.0))
+		player_occlusion_material.albedo_color = occlusion_color
 	for index in house_fade_materials.size():
 		var house_index := house_fade_house_indices[index]
 		var target_alpha := 0.0 if house_roofs_faded[house_index] else house_fade_alphas[index]
@@ -1451,8 +1461,19 @@ func _build_player() -> void:
 	visual.name = "Visual"
 	player.add_child(visual)
 	_attach_character_model(visual, DrifterCharacter, 0.78, 0.0)
+	player_occlusion_material = StandardMaterial3D.new()
+	player_occlusion_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	player_occlusion_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	player_occlusion_material.no_depth_test = true
+	player_occlusion_material.cull_mode = BaseMaterial3D.CULL_FRONT
+	player_occlusion_material.grow = true
+	player_occlusion_material.grow_amount = 0.035
+	player_occlusion_material.render_priority = 127
+	player_occlusion_material.albedo_color = Color(0.22, 0.32, 0.29, 0.0)
 	for mesh_node in visual.find_children("*", "MeshInstance3D", true, false):
-		(mesh_node as MeshInstance3D).layers |= 2
+		var player_mesh := mesh_node as MeshInstance3D
+		player_mesh.layers |= 2
+		player_mesh.material_overlay = player_occlusion_material
 
 	var rig := Node3D.new()
 	rig.name = "CameraRig"

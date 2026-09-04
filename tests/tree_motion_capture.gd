@@ -68,5 +68,8 @@ func _record() -> void:
 		if not (falling_leaves.get_child(index) as MeshInstance3D).position.is_equal_approx(leaf_start[index]):
 			moved_leaves += 1
 	assert(moved_leaves == 12)
+	for player_mesh_node in player.get_node("Visual").find_children("*", "MeshInstance3D", true, false):
+		(player_mesh_node as MeshInstance3D).material_overlay = null
+	main.free()
 	print("TREE MOTION TEST PASSED canopies=", canopies.size(), " leaves=", moved_leaves)
 	quit()

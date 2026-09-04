@@ -1005,6 +1005,24 @@ func _initialize() -> void:
 	assert(house_fade_materials.size() == main.get("house_fade_house_indices").size())
 	assert((main.get("house_roofs_faded") as Array).size() == 3)
 	assert((main.get("house_roofs_faded") as Array).all(func(is_faded): return not is_faded))
+	var player_occlusion_material := main.get("player_occlusion_material") as StandardMaterial3D
+	assert(player_occlusion_material != null)
+	assert(player_occlusion_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA)
+	assert(player_occlusion_material.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED)
+	assert(player_occlusion_material.no_depth_test)
+	assert(player_occlusion_material.cull_mode == BaseMaterial3D.CULL_FRONT)
+	assert(player_occlusion_material.grow)
+	assert(is_equal_approx(player_occlusion_material.grow_amount, 0.035))
+	assert(player_occlusion_material.render_priority == 127)
+	assert(player_occlusion_material.albedo_color.is_equal_approx(Color(0.22, 0.32, 0.29, 0.0)))
+	var player_body_mesh_count := 0
+	for player_mesh_node in player.get_node("Visual").find_children("*", "MeshInstance3D", true, false):
+		if player_mesh_node.name == "OtherworldMark":
+			assert((player_mesh_node as MeshInstance3D).material_overlay == null)
+			continue
+		player_body_mesh_count += 1
+		assert((player_mesh_node as MeshInstance3D).material_overlay == player_occlusion_material)
+	assert(player_body_mesh_count > 0)
 	var first_house_material := house_fade_materials[0] as StandardMaterial3D
 	assert(first_house_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA)
 	assert(is_equal_approx(first_house_material.albedo_color.a, 1.0))
@@ -1021,10 +1039,12 @@ func _initialize() -> void:
 	roof_camera_rig.rotation.y = PI
 	main.call("_process", 1.0 / 60.0)
 	assert(first_house_material.albedo_color.a > 0.0 and first_house_material.albedo_color.a < 1.0)
+	assert(player_occlusion_material.albedo_color.a > 0.0 and player_occlusion_material.albedo_color.a < 0.30)
 	for frame_index in 120:
 		main.call("_process", 1.0 / 60.0)
 	assert(first_house_material.albedo_color.a < 0.001)
 	assert((main.get("house_roofs_faded") as Array)[0])
+	assert(is_equal_approx(player_occlusion_material.albedo_color.a, 0.30))
 	var house_fade_house_indices: Array = main.get("house_fade_house_indices")
 	for material_index in house_fade_materials.size():
 		if house_fade_house_indices[material_index] == 0:
@@ -1061,9 +1081,11 @@ func _initialize() -> void:
 	roof_camera_rig.rotation.y = 0.0
 	main.call("_process", 1.0 / 60.0)
 	assert(first_house_material.albedo_color.a > 0.0 and first_house_material.albedo_color.a < 1.0)
+	assert(player_occlusion_material.albedo_color.a > 0.0 and player_occlusion_material.albedo_color.a < 0.30)
 	for frame_index in 120:
 		main.call("_process", 1.0 / 60.0)
 	assert(first_house_material.albedo_color.a > 0.99)
+	assert(player_occlusion_material.albedo_color.a < 0.001)
 	assert(is_equal_approx(warm_glass_materials[0].albedo_color.a, 0.66))
 	player.position = Vector3(0.0, 1.0, 30.0)
 	main.call("_process", 0.0)
@@ -2096,6 +2118,9 @@ func _initialize() -> void:
 	assert(lore.text.contains("异界气息"))
 	assert(not prompt.visible)
 	assert(main.get_child_count() > 20)
+	for player_mesh_node in player.get_node("Visual").find_children("*", "MeshInstance3D", true, false):
+		(player_mesh_node as MeshInstance3D).material_overlay = null
+	main.free()
 	print("SMOKE TEST PASSED")
 	quit(0)
 
