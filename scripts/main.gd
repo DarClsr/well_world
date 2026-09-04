@@ -2312,6 +2312,25 @@ func _add_village_props() -> void:
 		Vector3(1.38, 0.0, -5.4), 1.1, 0.1, village_entry
 	)
 	entry_right_stone.name = "RightStone"
+	var toren_watch_post := Node3D.new()
+	toren_watch_post.name = "TorenWatchPost"
+	toren_watch_post.position = Vector3(5.6, 0.0, -18.3)
+	props.add_child(toren_watch_post)
+	var watch_rail := _add_model(
+		"res://assets/quaternius/village/Prop_WoodenFence_Single.gltf",
+		Vector3.ZERO, 0.08, 0.86, toren_watch_post
+	)
+	watch_rail.name = "RoadsideRail"
+	var watch_post := _add_box(
+		"NorthPost", Vector3(0.16, 1.08, 0.16), Vector3(-0.62, 0.54, -1.08),
+		work_wood_material, false, toren_watch_post
+	)
+	watch_post.rotation.z = -0.035
+	var watch_footing := _add_model(
+		"res://assets/quaternius/nature/Rock_Medium_2.gltf",
+		Vector3(0.58, 0.0, 0.72), -0.42, 0.12, toren_watch_post
+	)
+	watch_footing.name = "LowFooting"
 	var herb_rack := Node3D.new()
 	herb_rack.name = "HerbDryingRack"
 	herb_rack.position = Vector3(-15.6, 0.0, -12.6)

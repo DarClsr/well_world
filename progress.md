@@ -1333,3 +1333,19 @@
 - 晴天和小雨 21 机位以隐藏窗口完成重录，两套均为 `21/21` 唯一哈希，21 对同机位无相同文件；树冠与落叶回归输出 `TREE MOTION TEST PASSED canopies=16 leaves=12`。
 - 四张证据已归档为 `captures/phase90-road-before-after.png`、`phase90-overview-clear.png`、`phase90-overview-rain.png` 与 `phase90-tree-motion.png`。
 - 主代理实图复核及美术、生活气息、场景动效三类终审均为 `PASS 0/0/0`；住宅核心主路 P1 关闭，山口与北侧雾幕仍保持暂缓。
+
+# 2026-09-04 Phase 91 开始
+
+- 从已推送提交 `2074639` 和干净工作区继续；后台最新试玩 PID `26364` 正常响应。
+- 已重新读取 `docs/art-direction.md` 与 Phase 90 最终证据；范围保持在出生石环、雾池和村庄生活区，山口与北侧雾幕暂缓。
+- 下一步由美术、生活气息和场景动效三个既有专项代理基于最终晴雨证据各自提名最多一个可复现缺口，允许返回 `none`。
+- 三方提名收敛为生活气息唯一 P2：托伦缺少守门人职业锚点；美术与动效均为 `none`，因此没有调整全局美术或动态系统。
+- 已在北路东侧草肩加入 `TorenWatchPost`，只含现有短木栏、非碰撞木桩与低矮石基；冒烟契约锁定固定位置、道路净空、无碰撞无灯光，以及托伦北端停留点的朝北观察方向。
+- 第一轮完整冒烟输出 `SMOKE TEST PASSED`。隐藏晴天扫查连续用于调位：北界截断、纵向投影过细和姓名标签重叠三种候选均未接受；最终 `(5.6, 0, -18.3)` 横向半栏通过主视图初审。
+
+# 2026-09-04 Phase 91 完成
+
+- 最终完整冒烟输出 `SMOKE TEST PASSED`；树冠与落叶回归输出 `TREE MOTION TEST PASSED canopies=16 leaves=12`。
+- 固定 `time_hour=9.5` 的晴天/小雨 21 机位均以隐藏窗口重录，两套均为 `21/21` 唯一哈希，21 对同机位无相同文件。
+- 证据归档为 `captures/phase91-toren-watch-before-after.png`、`phase91-toren-watch-clear.png`、`phase91-toren-watch-rain.png`、`phase91-overview-clear.png`、`phase91-overview-rain.png` 与 `phase91-tree-motion.png`。
+- 美术、生活气息和场景动效三类最终审查均为 `PASS 0/0/0`，Phase 91 可以提交；山口与北侧雾幕仍保持暂缓。

@@ -720,6 +720,20 @@ func _initialize() -> void:
 	var entry_right_stone := village_entry.get_node_or_null("RightStone") as Node3D
 	assert(entry_left_stone != null and entry_right_stone != null)
 	assert(village_entry.find_children("*", "Light3D", true, false).is_empty())
+	var toren_watch_post := village_props.get_node_or_null("TorenWatchPost") as Node3D
+	assert(toren_watch_post != null and toren_watch_post.position.is_equal_approx(Vector3(5.6, 0.0, -18.3)))
+	assert(toren_watch_post.get_node_or_null("RoadsideRail") is Node3D)
+	var watch_north_post := toren_watch_post.get_node_or_null("NorthPost") as CSGBox3D
+	assert(watch_north_post != null and not watch_north_post.use_collision)
+	assert(toren_watch_post.get_node_or_null("LowFooting") is Node3D)
+	assert(toren_watch_post.find_children("*", "CollisionObject3D", true, false).is_empty())
+	assert(toren_watch_post.find_children("*", "Light3D", true, false).is_empty())
+	for watch_piece_name in ["RoadsideRail", "NorthPost", "LowFooting"]:
+		var watch_piece := toren_watch_post.get_node(watch_piece_name) as Node3D
+		var watch_position := watch_piece.global_position
+		assert((main.call("_meadow_road_edge_distance", Vector2(watch_position.x, watch_position.z), "VillagePath") as float) > 0.65)
+	var watch_rail_roadward_end := toren_watch_post.global_position + Vector3(-1.0, 0.0, 0.0)
+	assert((main.call("_meadow_road_edge_distance", Vector2(watch_rail_roadward_end.x, watch_rail_roadward_end.z), "VillagePath") as float) > 0.65)
 	var village_wagon := village_props.get_node_or_null("VillageWagon") as Node3D
 	assert(village_wagon != null and village_wagon.position.is_equal_approx(Vector3(-5.8, 0.0, -2.7)))
 	assert(is_equal_approx(village_wagon.rotation.y, 1.37))
@@ -1391,6 +1405,9 @@ func _initialize() -> void:
 		assert(work_point.distance_to((weaving_line.get_node("LeftPost") as Node3D).global_position) > 0.65)
 		assert(work_point.distance_to((weaving_line.get_node("RightPost") as Node3D).global_position) > 0.65)
 	assert((toren_route[0] as Vector3).is_equal_approx(Vector3(3.0, 0.0, -15.2)))
+	assert((toren_route[1] as Vector3).distance_to(toren_watch_post.global_position) < 3.2)
+	var north_watch_direction := ((toren_targets[1] as Vector3) - (toren_route[1] as Vector3)).normalized()
+	assert(north_watch_direction.dot(Vector3.FORWARD) > 0.9)
 	var toren_first_leg := (toren_route[1] as Vector3) - (toren_route[0] as Vector3)
 	var toren_second_leg := (toren_route[2] as Vector3) - (toren_route[0] as Vector3)
 	assert(absf(toren_first_leg.x * toren_second_leg.z - toren_first_leg.z * toren_second_leg.x) > 0.5)
