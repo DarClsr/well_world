@@ -52,6 +52,7 @@ func _record() -> void:
 		await create_timer(1.2).timeout
 		await process_frame
 		await process_frame
+		RenderingServer.force_draw(false)
 		var image := root.get_texture().get_image()
 		var path := "%s/%s.png" % [output_dir, shot[0]]
 		image.save_png(ProjectSettings.globalize_path(path))

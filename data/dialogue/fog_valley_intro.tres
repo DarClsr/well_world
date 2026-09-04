@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DialogueData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="DialogueData" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/dialogue/dialogue_data.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/dialogue/dialogue_line_data.gd" id="2"]
@@ -18,6 +18,18 @@ text_key = &"米拉：雾起前采下的雾叶草效力最好。能替我采一�
 set_flags = {&"mira_met": true}
 emit_event_ids = Array[StringName]([&"mira_met"])
 
+[sub_resource type="Resource" id="MiraAfterHerb"]
+script = ExtResource("2")
+id = &"mira_after_herb"
+speaker_id = &"mira"
+text_key = &"米拉：谢谢你。先把它带到炉火旁吧，暖光会让叶脉说出它的来处。"
+
+[sub_resource type="Resource" id="MiraAfterHearth"]
+script = ExtResource("2")
+id = &"mira_after_hearth"
+speaker_id = &"mira"
+text_key = &"米拉：原来那道青光不属于雾谷。北方山口或许记得你从哪里来。"
+
 [sub_resource type="Resource" id="Toren"]
 script = ExtResource("2")
 id = &"toren"
@@ -36,4 +48,4 @@ emit_event_ids = Array[StringName]([&"nia_met"])
 script = ExtResource("1")
 id = &"fog_valley_intro"
 start_line_id = &"portal"
-lines = {&"portal": SubResource("Portal"), &"mira": SubResource("Mira"), &"toren": SubResource("Toren"), &"nia": SubResource("Nia")}
+lines = {&"portal": SubResource("Portal"), &"mira": SubResource("Mira"), &"mira_after_herb": SubResource("MiraAfterHerb"), &"mira_after_hearth": SubResource("MiraAfterHearth"), &"toren": SubResource("Toren"), &"nia": SubResource("Nia")}

@@ -418,10 +418,10 @@ func _initialize() -> void:
 		var cross_section_width := village_path_vertices[vertex_index].distance_to(village_path_vertices[vertex_index + 2])
 		village_path_min_width = minf(village_path_min_width, cross_section_width)
 		village_path_max_width = maxf(village_path_max_width, cross_section_width)
-	assert(is_equal_approx(village_path_min_width, 2.24))
+	assert(is_equal_approx(village_path_min_width, 2.0))
 	assert(is_equal_approx(village_path_max_width, 4.2))
-	var village_core_x := PackedFloat32Array([0.1, -0.78, -0.2, 0.78, 0.1])
-	var village_core_widths := PackedFloat32Array([2.5, 2.4, 2.24, 2.56, 3.4])
+	var village_core_x := PackedFloat32Array([0.1, -0.65, -0.05, 0.95, 0.1])
+	var village_core_widths := PackedFloat32Array([2.4, 2.5, 2.0, 2.32, 3.0])
 	for core_index in village_core_x.size():
 		var vertex_index := (core_index + 3) * 15
 		var left := village_path_vertices[vertex_index]
@@ -429,7 +429,7 @@ func _initialize() -> void:
 		var right := village_path_vertices[vertex_index + 2]
 		assert(is_equal_approx(center.x, village_core_x[core_index]))
 		assert(is_equal_approx(left.distance_to(right), village_core_widths[core_index]))
-	assert(village_core_x[1] < -0.75 and village_core_x[3] > 0.75)
+	assert(village_core_x[1] < -0.64 and village_core_x[3] > 0.94)
 	assert(main.get_node_or_null("VillageSquare") == null)
 	for lane_name in ["VillageWestLane", "VillageHearthLane", "VillageWagonLane", "VillageSouthLane"]:
 		var lane := main.get_node_or_null(lane_name) as MeshInstance3D
@@ -438,9 +438,14 @@ func _initialize() -> void:
 	var village_west_vertices := (main.get_node("VillageWestLane") as MeshInstance3D).mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
 	var village_hearth_vertices := (main.get_node("VillageHearthLane") as MeshInstance3D).mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
 	var village_wagon_vertices := (main.get_node("VillageWagonLane") as MeshInstance3D).mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
+	var village_south_vertices := (main.get_node("VillageSouthLane") as MeshInstance3D).mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
 	assert(Vector2(village_west_vertices[1].x, village_west_vertices[1].z).is_equal_approx(Vector2(-1.35, -6.85)))
 	assert(Vector2(village_hearth_vertices[1].x, village_hearth_vertices[1].z).is_equal_approx(Vector2(1.3, -4.55)))
 	assert(Vector2(village_wagon_vertices[1].x, village_wagon_vertices[1].z).is_equal_approx(Vector2(-1.35, -1.9)))
+	assert(Vector2(village_south_vertices[1].x, village_south_vertices[1].z).is_equal_approx(Vector2(-0.8, 7.4)))
+	for lane_start in [village_west_vertices[1], village_hearth_vertices[1], village_wagon_vertices[1], village_south_vertices[1]]:
+		var lane_edge_distance: float = main.call("_meadow_road_edge_distance", Vector2(lane_start.x, lane_start.z), "VillagePath")
+		assert(lane_edge_distance <= 0.75, "Village lane left accepted road blend: %.3f" % lane_edge_distance)
 	var wagon_lane_end := village_wagon_vertices[village_wagon_vertices.size() - 2]
 	assert(Vector2(wagon_lane_end.x, wagon_lane_end.z).is_equal_approx(Vector2(-6.9, -2.75)))
 	assert(main.get_node_or_null("VillageCommonGround") == null)
@@ -458,6 +463,10 @@ func _initialize() -> void:
 		var track_vertices := cart_track.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
 		var track_colors := cart_track.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR] as PackedColorArray
 		assert(track_vertices.size() >= 2 and is_equal_approx(track_vertices[0].distance_to(track_vertices[1]), 0.28))
+		if track_name.begins_with("SouthCartTrack"):
+			for track_vertex in track_vertices:
+				var track_edge_distance: float = main.call("_meadow_road_edge_distance", Vector2(track_vertex.x, track_vertex.z), "VillagePath")
+				assert(track_edge_distance <= 0.24, "South cart track left road exclusion: %.3f" % track_edge_distance)
 		var track_min_alpha := 1.0
 		var track_max_alpha := 0.0
 		for track_color in track_colors:
@@ -544,7 +553,7 @@ func _initialize() -> void:
 	assert(meadow.multimesh.mesh.get_surface_count() == 1)
 	var meadow_vertices := meadow.multimesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
 	assert(meadow_vertices.size() == 303)
-	assert(meadow.multimesh.instance_count == 1902, "Unexpected meadow instance count: %d" % meadow.multimesh.instance_count)
+	assert(meadow.multimesh.instance_count == 1912, "Unexpected meadow instance count: %d" % meadow.multimesh.instance_count)
 	assert(meadow.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
 	var meadow_material := meadow.material_override as ShaderMaterial
 	assert(meadow_material != null)
@@ -565,8 +574,10 @@ func _initialize() -> void:
 	var meadow_brightness: PackedFloat32Array = meadow.get_meta("brightness_values")
 	assert(meadow_positions.size() == meadow.multimesh.instance_count)
 	assert(meadow_brightness.size() == meadow.multimesh.instance_count)
-	assert(hash(meadow_positions) == 1499786692, "Unexpected meadow position hash: %d" % hash(meadow_positions))
-	assert(hash(meadow_brightness) == 870796962, "Unexpected meadow brightness hash: %d" % hash(meadow_brightness))
+	assert(
+		hash(meadow_positions) == 966575886 and hash(meadow_brightness) == 4154867313,
+		"Unexpected meadow hashes: positions=%d brightness=%d" % [hash(meadow_positions), hash(meadow_brightness)]
+	)
 	var meadow_silhouette_scales: Array = meadow.get_meta("silhouette_scales")
 	var meadow_profile_indices: PackedByteArray = meadow.get_meta("silhouette_profile_indices")
 	assert(meadow_silhouette_scales == [Vector3(1.10, 0.88, 1.10), Vector3.ONE, Vector3(0.90, 1.12, 0.90)])
@@ -583,7 +594,7 @@ func _initialize() -> void:
 		assert(meadow_brightness[meadow_index] >= 0.939 and meadow_brightness[meadow_index] <= 1.061)
 		if meadow_point.x > -20.0 and meadow_point.x < 18.0 and meadow_point.y > -19.0 and meadow_point.y < 9.5:
 			dense_meadow_instances += 1
-	assert(meadow_profile_counts == [634, 634, 634])
+	assert(meadow_profile_counts == [638, 637, 637])
 	assert(0.34 * (meadow_silhouette_scales[2] as Vector3).y <= 0.381)
 	assert(dense_meadow_instances > 1100, "Unexpected village meadow count: %d" % dense_meadow_instances)
 	for activity_point in [Vector2(-4.7, 5.25), Vector2(-5.5, 7.4), Vector2(3.0, -14.1), Vector2(4.2, -15.2)]:
@@ -2144,6 +2155,10 @@ func _initialize() -> void:
 	assert(absf(angle_difference(gather_player_visual.rotation.y, gather_expected_yaw)) < 0.001)
 	assert(&"mira_mistleaf" in game_state.active.collected_ids)
 	assert(not gatherable_herb.visible and not gatherable_herb_target.enabled)
+	main.set("nearby_villager", main.get_node("HerbalistMira"))
+	main.call("_show_villager_dialogue")
+	assert(lore.text == "米拉：谢谢你。先把它带到炉火旁吧，暖光会让叶脉说出它的来处。")
+	assert(game_state.active.flags.get(&"mira_met") == true)
 	var gather_player_animation := player.get("character_animation") as AnimationPlayer
 	var gather_pickup_length := gather_player_animation.get_animation("PickUp").length
 	assert(gather_player_animation.assigned_animation == "PickUp")

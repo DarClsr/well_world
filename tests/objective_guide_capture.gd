@@ -38,7 +38,7 @@ func _record() -> void:
 	main.call("_show_villager_dialogue")
 	await create_timer(0.25).timeout
 	await _capture(output_dir, "03-find-mira", objective_label)
-	player.position = Vector3(-12.1, 1.0, -7.2)
+	player.position = Vector3(-13.7, 1.0, -6.4)
 	main.set("nearby_villager", main.get_node("HerbalistMira"))
 	main.call("_show_villager_dialogue")
 	await create_timer(0.25).timeout
@@ -50,10 +50,20 @@ func _record() -> void:
 	assert(main.call("_gather_herb", player))
 	await create_timer(0.25).timeout
 	await _capture(output_dir, "05-reach-hearth", objective_label)
+	player.position = Vector3(-13.7, 1.0, -6.4)
+	main.set("nearby_villager", main.get_node("HerbalistMira"))
+	main.call("_show_villager_dialogue")
+	await create_timer(0.25).timeout
+	await _capture(output_dir, "06-mira-thanks", objective_label)
 	player.global_position = (main.get_node("VillageHearth") as Node3D).global_position
 	main.call("_update_hearth_event")
+	await create_timer(0.4).timeout
+	await _capture(output_dir, "07-hearth-clue", objective_label)
+	player.position = Vector3(-13.7, 1.0, -6.4)
+	main.set("nearby_villager", main.get_node("HerbalistMira"))
+	main.call("_show_villager_dialogue")
 	await create_timer(0.25).timeout
-	await _capture(output_dir, "06-hearth-clue", objective_label)
+	await _capture(output_dir, "08-mira-after-hearth", objective_label)
 	print("OBJECTIVE GUIDE CAPTURE PASSED completed=", game_root.get_node("QuestRuntime").get_status(&"arrival"))
 	quit()
 
@@ -63,4 +73,4 @@ func _capture(output_dir: String, shot_name: String, objective_label: Label) -> 
 	await process_frame
 	var image := root.get_texture().get_image()
 	image.save_png(ProjectSettings.globalize_path("%s/%s.png" % [output_dir, shot_name]))
-	print("SAVED ", shot_name, " objective=", objective_label.text)
+	print("SAVED ", shot_name, " objective=", objective_label.text, " visible=", objective_label.get_parent().visible, " alpha=", objective_label.get_parent().modulate.a)

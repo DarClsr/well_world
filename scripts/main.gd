@@ -1004,8 +1004,15 @@ func _show_villager_dialogue() -> void:
 	var migrated := false
 	match nearby_villager.name:
 		"HerbalistMira":
+			var mira_line_id := &"mira"
 			message = "米拉：雾起前采下的雾叶草效力最好。能替我采一株吗？"
-			migrated = _start_migrated_dialogue(&"mira")
+			if _herb_is_collected():
+				var mira_state := _active_world_state()
+				var mira_progress: Dictionary = mira_state.quests.get(&"arrival", {}) if mira_state != null else {}
+				var mira_completed := StringName(str(mira_progress.get("status", ""))) == &"completed"
+				mira_line_id = &"mira_after_hearth" if mira_completed else &"mira_after_herb"
+				message = "米拉：原来那道青光不属于雾谷。北方山口或许记得你从哪里来。" if mira_completed else "米拉：谢谢你。先把它带到炉火旁吧，暖光会让叶脉说出它的来处。"
+			migrated = _start_migrated_dialogue(mira_line_id)
 		"GatekeeperToren":
 			message = "托伦：北边山口雾重。先沿石路去西侧药圃找米拉吧。"
 			migrated = _start_migrated_dialogue(&"toren")
@@ -1017,7 +1024,7 @@ func _show_villager_dialogue() -> void:
 	nod.tween_property(model, "position:y", model_y - 0.06, 0.12)
 	nod.tween_property(model, "position:y", model_y, 0.18)
 	if not migrated:
-		if nearby_villager.name == "HerbalistMira":
+		if nearby_villager.name == "HerbalistMira" and not _herb_is_collected():
 			var state := _active_world_state()
 			if state != null:
 				state.flags[&"mira_met"] = true
@@ -1369,10 +1376,10 @@ func _build_world() -> void:
 	_add_fog_banks()
 	_add_road("VillagePath", PackedVector2Array([
 		Vector2(0.0, -28.0), Vector2(0.4, -23.0), Vector2(0.8, -17.0),
-		Vector2(0.1, -11.0), Vector2(-0.78, -5.0), Vector2(-0.2, 2.0),
-		Vector2(0.78, 9.0), Vector2(0.1, 16.0), Vector2(-0.7, 23.0),
+		Vector2(0.1, -11.0), Vector2(-0.65, -5.0), Vector2(-0.05, 2.0),
+		Vector2(0.95, 9.0), Vector2(0.1, 16.0), Vector2(-0.7, 23.0),
 		Vector2(-1.2, 31.0),
-	]), PackedFloat32Array([2.1, 1.95, 1.7, 1.25, 1.2, 1.12, 1.28, 1.7, 2.0, 2.0]))
+	]), PackedFloat32Array([2.1, 1.95, 1.7, 1.2, 1.25, 1.0, 1.16, 1.5, 2.0, 2.0]))
 	_add_road("VillageWestLane", PackedVector2Array([
 		Vector2(-1.35, -6.85), Vector2(-2.7, -7.12), Vector2(-6.4, -7.0), Vector2(-9.3, -6.9),
 	]), PackedFloat32Array([0.62, 0.82, 0.82, 0.58]), 0.06, 0.3, true)
