@@ -418,8 +418,18 @@ func _initialize() -> void:
 		var cross_section_width := village_path_vertices[vertex_index].distance_to(village_path_vertices[vertex_index + 2])
 		village_path_min_width = minf(village_path_min_width, cross_section_width)
 		village_path_max_width = maxf(village_path_max_width, cross_section_width)
-	assert(is_equal_approx(village_path_min_width, 2.56))
+	assert(is_equal_approx(village_path_min_width, 2.24))
 	assert(is_equal_approx(village_path_max_width, 4.2))
+	var village_core_x := PackedFloat32Array([0.1, -0.78, -0.2, 0.78, 0.1])
+	var village_core_widths := PackedFloat32Array([2.5, 2.4, 2.24, 2.56, 3.4])
+	for core_index in village_core_x.size():
+		var vertex_index := (core_index + 3) * 15
+		var left := village_path_vertices[vertex_index]
+		var center := village_path_vertices[vertex_index + 1]
+		var right := village_path_vertices[vertex_index + 2]
+		assert(is_equal_approx(center.x, village_core_x[core_index]))
+		assert(is_equal_approx(left.distance_to(right), village_core_widths[core_index]))
+	assert(village_core_x[1] < -0.75 and village_core_x[3] > 0.75)
 	assert(main.get_node_or_null("VillageSquare") == null)
 	for lane_name in ["VillageWestLane", "VillageHearthLane", "VillageWagonLane", "VillageSouthLane"]:
 		var lane := main.get_node_or_null(lane_name) as MeshInstance3D
@@ -534,7 +544,7 @@ func _initialize() -> void:
 	assert(meadow.multimesh.mesh.get_surface_count() == 1)
 	var meadow_vertices := meadow.multimesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
 	assert(meadow_vertices.size() == 303)
-	assert(meadow.multimesh.instance_count == 1849, "Unexpected meadow instance count: %d" % meadow.multimesh.instance_count)
+	assert(meadow.multimesh.instance_count == 1902, "Unexpected meadow instance count: %d" % meadow.multimesh.instance_count)
 	assert(meadow.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
 	var meadow_material := meadow.material_override as ShaderMaterial
 	assert(meadow_material != null)
@@ -555,8 +565,8 @@ func _initialize() -> void:
 	var meadow_brightness: PackedFloat32Array = meadow.get_meta("brightness_values")
 	assert(meadow_positions.size() == meadow.multimesh.instance_count)
 	assert(meadow_brightness.size() == meadow.multimesh.instance_count)
-	assert(hash(meadow_positions) == 180955129)
-	assert(hash(meadow_brightness) == 3492265916)
+	assert(hash(meadow_positions) == 1499786692, "Unexpected meadow position hash: %d" % hash(meadow_positions))
+	assert(hash(meadow_brightness) == 870796962, "Unexpected meadow brightness hash: %d" % hash(meadow_brightness))
 	var meadow_silhouette_scales: Array = meadow.get_meta("silhouette_scales")
 	var meadow_profile_indices: PackedByteArray = meadow.get_meta("silhouette_profile_indices")
 	assert(meadow_silhouette_scales == [Vector3(1.10, 0.88, 1.10), Vector3.ONE, Vector3(0.90, 1.12, 0.90)])
@@ -573,7 +583,7 @@ func _initialize() -> void:
 		assert(meadow_brightness[meadow_index] >= 0.939 and meadow_brightness[meadow_index] <= 1.061)
 		if meadow_point.x > -20.0 and meadow_point.x < 18.0 and meadow_point.y > -19.0 and meadow_point.y < 9.5:
 			dense_meadow_instances += 1
-	assert(meadow_profile_counts == [617, 616, 616])
+	assert(meadow_profile_counts == [634, 634, 634])
 	assert(0.34 * (meadow_silhouette_scales[2] as Vector3).y <= 0.381)
 	assert(dense_meadow_instances > 1100, "Unexpected village meadow count: %d" % dense_meadow_instances)
 	for activity_point in [Vector2(-4.7, 5.25), Vector2(-5.5, 7.4), Vector2(3.0, -14.1), Vector2(4.2, -15.2)]:

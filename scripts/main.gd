@@ -1302,10 +1302,10 @@ func _build_world() -> void:
 	_add_fog_banks()
 	_add_road("VillagePath", PackedVector2Array([
 		Vector2(0.0, -28.0), Vector2(0.4, -23.0), Vector2(0.8, -17.0),
-		Vector2(0.15, -11.0), Vector2(-0.75, -5.0), Vector2(-0.35, 2.0),
-		Vector2(0.55, 9.0), Vector2(0.2, 16.0), Vector2(-0.7, 23.0),
+		Vector2(0.1, -11.0), Vector2(-0.78, -5.0), Vector2(-0.2, 2.0),
+		Vector2(0.78, 9.0), Vector2(0.1, 16.0), Vector2(-0.7, 23.0),
 		Vector2(-1.2, 31.0),
-	]), PackedFloat32Array([2.1, 2.0, 1.85, 1.42, 1.28, 1.32, 1.48, 1.85, 2.0, 2.0]))
+	]), PackedFloat32Array([2.1, 1.95, 1.7, 1.25, 1.2, 1.12, 1.28, 1.7, 2.0, 2.0]))
 	_add_road("VillageWestLane", PackedVector2Array([
 		Vector2(-1.35, -6.85), Vector2(-2.7, -7.12), Vector2(-6.4, -7.0), Vector2(-9.3, -6.9),
 	]), PackedFloat32Array([0.62, 0.82, 0.82, 0.58]), 0.06, 0.3, true)
