@@ -6,25 +6,25 @@
 [sub_resource type="Resource" id="QuestStep_portal"]
 script = ExtResource("2")
 id = &"inspect_portal"
-description_key = &"quest.arrival.portal"
+description_key = &"调查苏醒的异界石环"
 required_event = &"portal_inspected"
 
 [sub_resource type="Resource" id="QuestStep_toren"]
 script = ExtResource("2")
 id = &"meet_toren"
-description_key = &"quest.arrival.toren"
+description_key = &"沿石路寻找守门人托伦"
 required_event = &"toren_met"
 
 [sub_resource type="Resource" id="QuestStep_herb"]
 script = ExtResource("2")
 id = &"gather_herb"
-description_key = &"quest.arrival.herb"
+description_key = &"去西侧药圃找药草师米拉"
 required_event = &"herb_gathered"
 
 [sub_resource type="Resource" id="QuestStep_hearth"]
 script = ExtResource("2")
 id = &"reach_hearth"
-description_key = &"quest.arrival.hearth"
+description_key = &"前往村庄炉火"
 required_event = &"hearth_reached"
 
 [resource]

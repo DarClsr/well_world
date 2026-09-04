@@ -1007,7 +1007,7 @@ func _show_villager_dialogue() -> void:
 			message = "米拉：雾起前采下的雾叶草效力最好。能替我采一株吗？"
 			migrated = _start_migrated_dialogue(&"mira")
 		"GatekeeperToren":
-			message = "托伦：沿石路走，别踏进谷边的浓雾。"
+			message = "托伦：北边山口雾重。先沿石路去西侧药圃找米拉吧。"
 			migrated = _start_migrated_dialogue(&"toren")
 		_:
 			migrated = _start_migrated_dialogue(&"nia")
@@ -1071,7 +1071,7 @@ func _gather_herb(player: CharacterBody3D) -> bool:
 	gatherable_herb.hide()
 	nearby_herb = null
 	player.call("play_pickup")
-	_show_interaction_text("你采下了一株带着微光的雾叶草。")
+	_show_interaction_text("雾叶草的叶脉亮起，正回应着村庄炉火的暖光。")
 	return true
 
 
@@ -1106,6 +1106,8 @@ func _update_hearth_event() -> void:
 		return
 	if story_player.global_position.distance_to(story_hearth.global_position) <= 4.0:
 		hearth_event_emitted = prologue_quest_runtime.advance(&"arrival", &"hearth_reached")
+		if hearth_event_emitted:
+			_show_interaction_text("雾叶草在炉火旁泛起青光，北方山口传来遥远的回响。")
 
 
 func _apply_time_of_day() -> void:

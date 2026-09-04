@@ -1144,6 +1144,18 @@ func _initialize() -> void:
 	var lore := main.get_node_or_null("PortalInteraction/PromptStack/PortalLore") as Label
 	assert(prompt != null)
 	assert(lore != null)
+	var prologue_quest := load("res://data/quests/prologue_arrival.tres") as QuestData
+	assert(prologue_quest != null and prologue_quest.steps.size() == 4)
+	var objective_texts := [
+		"调查苏醒的异界石环",
+		"沿石路寻找守门人托伦",
+		"去西侧药圃找药草师米拉",
+		"前往村庄炉火",
+	]
+	for objective_index in objective_texts.size():
+		assert(String(prologue_quest.steps[objective_index].description_key) == objective_texts[objective_index])
+	var game_root_source := FileAccess.get_file_as_string("res://scripts/core/game_root.gd")
+	assert(game_root_source.contains("objective_label.mouse_filter = Control.MOUSE_FILTER_IGNORE"))
 	var wind_nodes: Array = main.get("wind_nodes")
 	assert(wind_nodes.size() >= 15)
 	var tree_canopies: Array = main.get("tree_canopies")
@@ -2108,6 +2120,8 @@ func _initialize() -> void:
 		main.call("_show_villager_dialogue")
 		assert(lore.visible)
 		assert(lore.text.contains(dialogue_data[1]))
+		if dialogue_data[0] == "GatekeeperToren":
+			assert(lore.text == "托伦：北边山口雾重。先沿石路去西侧药圃找米拉吧。")
 		assert(not prompt.visible)
 	var game_state := root.get_node("GameState")
 	assert(game_state.active.flags.get(&"mira_met") == true)
@@ -2122,6 +2136,7 @@ func _initialize() -> void:
 	var gather_expected_yaw := atan2(gather_direction.x, gather_direction.z)
 	gather_player_visual.rotation.y = gather_expected_yaw + PI
 	assert(main.call("_gather_herb", player))
+	assert(lore.text == "雾叶草的叶脉亮起，正回应着村庄炉火的暖光。")
 	assert(absf(angle_difference(gather_player_visual.rotation.y, gather_expected_yaw)) < 0.001)
 	assert(&"mira_mistleaf" in game_state.active.collected_ids)
 	assert(not gatherable_herb.visible and not gatherable_herb_target.enabled)
