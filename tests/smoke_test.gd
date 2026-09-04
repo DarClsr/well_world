@@ -1155,6 +1155,10 @@ func _initialize() -> void:
 	var lore := main.get_node_or_null("PortalInteraction/PromptStack/PortalLore") as Label
 	assert(prompt != null)
 	assert(lore != null)
+	assert(not main.get("opening_finished"))
+	main.call("_update_villager_interaction")
+	assert(not prompt.visible, "Interaction prompt must stay hidden until the opening title has fully faded")
+	main.set("opening_finished", true)
 	var prologue_quest := load("res://data/quests/prologue_arrival.tres") as QuestData
 	assert(prologue_quest != null and prologue_quest.steps.size() == 4)
 	var objective_texts := [
@@ -1184,12 +1188,18 @@ func _initialize() -> void:
 		elif Vector2(candidate.global_position.x, candidate.global_position.z).is_equal_approx(Vector2(-16.0, 17.0)):
 			pond_twisted_tree_canopy = candidate
 	assert(northwest_tree_canopy != null and northwest_pine_canopy != null and pond_twisted_tree_canopy != null)
+	assert(pond_twisted_tree_canopy.global_basis.get_scale().is_equal_approx(Vector3.ONE * 0.56))
 	var northwest_tree_collision: CSGCylinder3D
+	var pond_twisted_tree_collision: CSGCylinder3D
 	for child in main.get_children():
 		if child is CSGCylinder3D and (child as CSGCylinder3D).position.is_equal_approx(Vector3(-21.0, 1.8375, -24.8)):
 			northwest_tree_collision = child as CSGCylinder3D
-			break
+		elif child is CSGCylinder3D and Vector2((child as CSGCylinder3D).position.x, (child as CSGCylinder3D).position.z).is_equal_approx(Vector2(-16.0, 17.0)):
+			pond_twisted_tree_collision = child as CSGCylinder3D
 	assert(northwest_tree_collision != null and northwest_tree_collision.position.z < -24.5)
+	assert(pond_twisted_tree_collision != null)
+	assert(is_equal_approx(pond_twisted_tree_collision.radius, 0.252))
+	assert(is_equal_approx(pond_twisted_tree_collision.height, 1.96))
 	var muted_tree_canopy_count := 0
 	for canopy_index in tree_canopies.size():
 		var canopy := tree_canopies[canopy_index] as MeshInstance3D

@@ -140,6 +140,7 @@ var seasonal_bush_materials: Array[StandardMaterial3D] = []
 var portal_prompt: Label
 var portal_lore: Label
 var portal_nearby := false
+var opening_finished := false
 var portal_lore_tween: Tween
 var smoke_puffs: Array[MeshInstance3D] = []
 var smoke_origins: Array[Vector3] = []
@@ -980,7 +981,12 @@ func _update_villager_interaction() -> void:
 		gatherable_herb_target.enabled = _herb_gather_available()
 		if gatherable_herb_target.can_interact(player):
 			nearby_herb = gatherable_herb_target
-	if portal_prompt == null or (portal_lore != null and portal_lore.visible):
+	if portal_prompt == null:
+		return
+	if not opening_finished:
+		portal_prompt.hide()
+		return
+	if portal_lore != null and portal_lore.visible:
 		return
 	if nearby_herb != null:
 		portal_prompt.text = "F  采集雾叶草"
@@ -1468,7 +1474,7 @@ func _build_world() -> void:
 		["CommonTree_3", Vector3(17, 0, -18), 2.1, 0.9],
 		["Pine_2", Vector3(-19, 0, 1), 1.4, 1.15],
 		["CommonTree_1", Vector3(18, 0, 3), 2.8, 1.0],
-		["TwistedTree_1", Vector3(-16, 0, 17), 0.8, 0.68],
+		["TwistedTree_1", Vector3(-16, 0, 17), 0.8, 0.56],
 		["Pine_2", Vector3(19, 0, 18), 2.5, 1.2],
 		["CommonTree_3", Vector3(-7, 0, 23), 0.1, 0.92],
 		["CommonTree_1", Vector3(8, 0, 23), 1.8, 1.05],
@@ -1737,6 +1743,7 @@ func _build_opening() -> void:
 	title_tween.tween_property(titles, "modulate:a", 1.0, 0.65)
 	title_tween.tween_interval(2.1)
 	title_tween.tween_property(titles, "modulate:a", 0.0, 0.8)
+	title_tween.tween_callback(func(): opening_finished = true)
 	title_tween.tween_callback(titles.queue_free)
 
 
