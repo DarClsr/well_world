@@ -1531,13 +1531,15 @@ func _build_world() -> void:
 	var road_stones := [
 		["Rock_Medium_1", Vector3(-2.8, 0, 19), 0.2, 0.18],
 		["Rock_Medium_2", Vector3(2.8, 0, 16), 1.3, 0.16],
-		["Rock_Medium_2", Vector3(-2.9, 0, 8), 2.4, 0.2],
+		["Rock_Medium_2", Vector3(-2.9, 0, 6.0), 2.4, 0.2],
 		["Rock_Medium_1", Vector3(2.9, 0, 2), 0.8, 0.17],
 		["Rock_Medium_1", Vector3(3.8, 0, 9.1), 1.9, 0.16],
 		["Rock_Medium_2", Vector3(7.2, 0, 12.9), 0.4, 0.19],
 	]
-	for stone in road_stones:
-		_add_nature(stone[0], stone[1], stone[2], stone[3], false)
+	for stone_index in road_stones.size():
+		var stone: Array = road_stones[stone_index]
+		var stone_instance := _add_model("res://assets/quaternius/nature/%s.gltf" % stone[0], stone[1], stone[2], stone[3])
+		stone_instance.name = "RoadStone%02d" % stone_index
 
 	var entrance_details := [
 		["Rock_Medium_1", Vector3(-4.3, 0, 1.2), 0.3, 0.55],

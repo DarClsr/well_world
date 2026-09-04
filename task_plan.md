@@ -1239,3 +1239,30 @@
 - 端点修正后完整冒烟通过；晴天和小雨 21 机位串行后台重录均验证 `MINIMIZED=True`、退出码 `0`、`SAVED=21`。
 - 两套均为 `21/21` 新文件和 `21/21` 唯一哈希，同机位无相同文件；`04-pond-fork`、`15-west-house` 明确显示晴天晾布、小雨空架，屋檐下箱筐不占道路或角色站位。
 - 美术、生活气息和场景动效最终复审全部为 `PASS 0/0/0`；晴雨关键帧归档到 `captures/phase102-weaver-clear.png` 与 `captures/phase102-weaver-rain.png`。Phase 102 完成，停止继续开发。
+
+### Phase 103：压低边界巨岩的远景亮度
+
+**Status:** complete
+
+- 处理 Phase 102 已独立记录的边界巨岩浅色顶面 P2；以 `18-corner-ne`、`19-corner-nw`、`20-corner-se`、`21-corner-sw` 为主证据。
+- 仅调整 `ValleyBoundary/CliffVisuals` 的 36 块边界巨岩材质层级，使其回到蓝灰、灰紫的远景框景角色；不改变碰撞、摆放、山口与北侧雾幕。
+- 同步冒烟契约，重录固定晴雨 21 机位，并由美术、生活气息和场景动效三类代理终审。
+
+**Errors encountered:** 首轮误把近边巨岩归到 `BoundaryScenery`，`#aab4b5` 与 `#748084` 两次覆写均通过冒烟但四角关键顶面几乎未变；实图反证后追到真正渲染主体 `ValleyBoundary/CliffVisuals`。已撤回无效改动并把共享材质与契约移到正确所有者。首次读取脚本时误用 `scenes/world/valley_boundary.gd` 路径，实际脚本由场景引用在 `scripts/valley_boundary.gd`，随后已按场景声明定位。
+
+- 最终 12 个仓库测试、树冠/落叶专项、固定 09:30 晴雨 21 机位全部通过；晴雨各 `21/21` 唯一，同机位无相同图像。
+- 美术、生活气息和场景动效三类终审全部为 `PASS 0/0/0`；关键晴雨证据归档为 `captures/phase103-boundary-clear.png` 与 `captures/phase103-boundary-rain.png`。Phase 103 完成。
+
+### Phase 104：清理雾池住宅支路的视觉占道
+
+**Status:** complete
+
+- 以 Phase 103 后最新固定 09:30 晴雨 21 机位做全景复核；山口与北侧雾幕继续暂缓，已完成项不重复调整。
+- 三类基线提名为：美术 P2 雾池住宅支路中央旧路缘石视觉占道；生活气息 P2 炉火屋三段栅栏缺少围合语义；动效 `none`。
+- 优先处理直接影响俯视通行判断、且可独立迁移的支路占道石；栅栏问题保留为下一独立候选，不在本阶段混改。
+- 只移动 `road_stones` 中位于 `(-2.9, 0, 8)` 的无碰撞 `Rock_Medium_2` 到草肩外，保持模型、缩放、材质、道路曲线和雾池职责不变；同步契约、晴雨 21 机位和三类终审。
+
+**Errors encountered:** Windows 版 `ffmpeg` 不支持 `-pattern_type glob`，首次联系表命令未生成输出；随后改为显式传入 21 张图片并使用 `xstack` 成功生成晴雨联系表。首次构造该 PowerShell 命令时，JavaScript 包装字符串中的 PowerShell 转义反引号触发解析错误，改用格式运算符避免反引号后成功。首轮冒烟因异构数组索引的局部变量使用 `:=` 而触发 GDScript 4.7.1 类型推断错误；已显式声明为 `Array` 后重跑。
+
+- 最终固定 09:30 晴雨 21 机位各 `SAVED=21`、`21/21` 唯一，同机位无相同图像；`04/06` 证明支路连续且迁移石落在草肩。
+- 12 个仓库测试和树冠/落叶专项全部退出码 `0`；美术、生活气息和场景动效终审均为 `PASS 0/0/0`。关键证据归档为 `captures/phase104-south-lane-clear.png` 与 `captures/phase104-south-lane-rain.png`，Phase 104 完成。

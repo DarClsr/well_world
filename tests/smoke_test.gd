@@ -445,6 +445,16 @@ func _initialize() -> void:
 		assert(is_equal_approx(left.distance_to(right), village_core_widths[core_index]))
 	assert(village_core_x[1] < -0.64 and village_core_x[3] > 0.94)
 	assert(main.get_node_or_null("VillageSquare") == null)
+	for road_stone_index in 6:
+		assert(main.get_node_or_null("RoadStone%02d" % road_stone_index) is Node3D)
+	var south_lane_stone := main.get_node("RoadStone02") as Node3D
+	assert(south_lane_stone.position.is_equal_approx(Vector3(-2.9, 0.0, 6.0)))
+	var south_lane_stone_edge: float = main.call(
+		"_meadow_road_edge_distance",
+		Vector2(south_lane_stone.position.x, south_lane_stone.position.z),
+		"VillageSouthLane"
+	)
+	assert(south_lane_stone_edge >= 0.7, "South lane stone edge distance: %.3f" % south_lane_stone_edge)
 	for lane_name in ["VillageWestLane", "VillageHearthLane", "VillageWagonLane", "VillageSouthLane"]:
 		var lane := main.get_node_or_null(lane_name) as MeshInstance3D
 		assert(lane != null and lane.mesh is ArrayMesh)
@@ -933,6 +943,11 @@ func _initialize() -> void:
 	for cliff_index in cliff_visuals.get_child_count():
 		var cliff_rock := cliff_visuals.get_child(cliff_index) as Node3D
 		assert(cliff_rock.name == "CliffRock%02d" % cliff_index)
+		for mesh_node in cliff_rock.find_children("*", "MeshInstance3D", true, false):
+			var boundary_material := (mesh_node as MeshInstance3D).material_override as StandardMaterial3D
+			assert(boundary_material != null and boundary_material.resource_name == "BoundaryRockMuted")
+			assert(boundary_material.albedo_color.is_equal_approx(Color("748084")))
+			assert(boundary_material.albedo_texture is Texture2D and boundary_material.roughness >= 0.98)
 		if cliff_rock.position.z < -25.0 and absf(cliff_rock.position.x) < 10.0:
 			assert(cliff_rock.scale.x <= 2.1)
 	assert(main.get_node("BoundaryScenery").get_child_count() == 29)

@@ -5,6 +5,7 @@ const ROCK_SCENES: Array[PackedScene] = [
 	preload("res://assets/quaternius/nature/Rock_Medium_1.gltf"),
 	preload("res://assets/quaternius/nature/Rock_Medium_2.gltf"),
 ]
+const ROCK_TEXTURE := preload("res://assets/quaternius/nature/Rocks_Diffuse.png")
 
 const NORTH_X: Array[float] = [-24.0, -19.0, -14.0, -9.0, -5.5, 5.5, 9.0, 14.0, 19.0, 24.0]
 const SOUTH_X: Array[float] = [-24.0, -19.0, -14.0, -9.0, -4.0, 1.0, 6.0, 11.0, 16.0, 21.0, 25.0]
@@ -36,6 +37,12 @@ func _build_cliff_visuals() -> void:
 	var cliff_visuals := Node3D.new()
 	cliff_visuals.name = "CliffVisuals"
 	add_child(cliff_visuals)
+	var cliff_material := StandardMaterial3D.new()
+	cliff_material.resource_name = "BoundaryRockMuted"
+	cliff_material.albedo_color = Color("748084")
+	cliff_material.albedo_texture = ROCK_TEXTURE
+	cliff_material.roughness = 0.98
+	cliff_material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	var placements: Array[Vector3] = []
 	for x in NORTH_X:
 		placements.append(Vector3(x, 0.0, -25.4))
@@ -56,3 +63,5 @@ func _build_cliff_visuals() -> void:
 		cliff_rock.rotation.y = fmod(float(index) * 1.37, TAU)
 		cliff_rock.scale = Vector3.ONE * scale_factor
 		cliff_visuals.add_child(cliff_rock)
+		for mesh_node in cliff_rock.find_children("*", "MeshInstance3D", true, false):
+			(mesh_node as MeshInstance3D).material_override = cliff_material
