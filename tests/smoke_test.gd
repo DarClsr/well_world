@@ -15,6 +15,7 @@ func _initialize() -> void:
 	await process_frame
 	var player := main.get_node_or_null("Player") as CharacterBody3D
 	assert(player != null)
+	assert(not player.get("controls_enabled"))
 	assert(is_equal_approx(main.get("time_hour"), 9.5))
 	assert(not main.get("time_running"))
 	var environment_settings := main.get("environment_settings") as Environment
@@ -370,9 +371,22 @@ func _initialize() -> void:
 	assert(camera_rig.position.is_zero_approx())
 	assert(camera.position.is_equal_approx(camera_position))
 	assert(listener.position.is_equal_approx(listener_position))
+	var locked_position := Vector2(player.position.x, player.position.z)
+	var locked_camera_yaw: float = player.get("camera_yaw")
+	player.set("controls_enabled", false)
+	Input.action_press("move_forward")
+	Input.action_press("camera_right")
+	player.call("_physics_process", 1.0 / 60.0)
+	Input.action_release("move_forward")
+	Input.action_release("camera_right")
+	assert(Vector2(player.position.x, player.position.z).is_equal_approx(locked_position))
+	assert(is_equal_approx(player.get("camera_yaw"), locked_camera_yaw))
 	var zoom_in := InputEventMouseButton.new()
 	zoom_in.button_index = MOUSE_BUTTON_WHEEL_UP
 	zoom_in.pressed = true
+	player.call("_unhandled_input", zoom_in)
+	assert(is_equal_approx(player.get("camera_target_height"), 15.0))
+	player.set("controls_enabled", true)
 	player.call("_unhandled_input", zoom_in)
 	assert(is_equal_approx(player.get("camera_target_height"), 13.5))
 	player.call("_update_camera_zoom", 1.0)
@@ -1158,7 +1172,13 @@ func _initialize() -> void:
 	assert(not main.get("opening_finished"))
 	main.call("_update_villager_interaction")
 	assert(not prompt.visible, "Interaction prompt must stay hidden until the opening title has fully faded")
-	main.set("opening_finished", true)
+	var locked_interact := InputEventAction.new()
+	locked_interact.action = "interact"
+	locked_interact.pressed = true
+	main.call("_unhandled_input", locked_interact)
+	assert(not lore.visible)
+	main.call("_finish_opening")
+	assert(main.get("opening_finished") and player.get("controls_enabled"))
 	var prologue_quest := load("res://data/quests/prologue_arrival.tres") as QuestData
 	assert(prologue_quest != null and prologue_quest.steps.size() == 4)
 	var objective_texts := [

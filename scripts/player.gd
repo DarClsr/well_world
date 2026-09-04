@@ -21,6 +21,7 @@ var camera_target_height := 15.0
 var footstep_index := 0
 var character_animation: AnimationPlayer
 var interaction_animation_remaining := 0.0
+var controls_enabled := true
 
 
 func _ready() -> void:
@@ -40,6 +41,8 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not controls_enabled:
+		return
 	if not (event is InputEventMouseButton) or not event.pressed:
 		return
 	if event.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -53,10 +56,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	_update_camera_zoom(delta)
-	camera_yaw += Input.get_axis("camera_left", "camera_right") * TURN_SPEED * delta
+	if controls_enabled:
+		camera_yaw += Input.get_axis("camera_left", "camera_right") * TURN_SPEED * delta
 	$CameraRig.rotation.y = camera_yaw
 
-	var input := Vector2.ZERO if interaction_animation_remaining > 0.0 else Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var input := Vector2.ZERO if not controls_enabled or interaction_animation_remaining > 0.0 else Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := Vector3(input.x, 0.0, input.y).rotated(Vector3.UP, camera_yaw)
 	velocity.x = move_toward(velocity.x, direction.x * SPEED, 30.0 * delta)
 	velocity.z = move_toward(velocity.z, direction.z * SPEED, 30.0 * delta)

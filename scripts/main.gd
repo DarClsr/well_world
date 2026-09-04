@@ -941,7 +941,7 @@ func _portal_proximity() -> float:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed("interact"):
+	if not opening_finished or not event.is_action_pressed("interact"):
 		return
 	var player := get_node_or_null("Player") as CharacterBody3D
 	if nearby_herb != null:
@@ -1527,6 +1527,7 @@ func _build_player() -> void:
 	player.name = "Player"
 	player.position = portal_center + Vector3(0.0, 0.0, 3.0)
 	player.set_script(PlayerScript)
+	player.set("controls_enabled", false)
 
 	var collider := CollisionShape3D.new()
 	collider.name = "CollisionShape3D"
@@ -1743,8 +1744,15 @@ func _build_opening() -> void:
 	title_tween.tween_property(titles, "modulate:a", 1.0, 0.65)
 	title_tween.tween_interval(2.1)
 	title_tween.tween_property(titles, "modulate:a", 0.0, 0.8)
-	title_tween.tween_callback(func(): opening_finished = true)
+	title_tween.tween_callback(_finish_opening)
 	title_tween.tween_callback(titles.queue_free)
+
+
+func _finish_opening() -> void:
+	opening_finished = true
+	var player := get_node_or_null("Player") as CharacterBody3D
+	if player != null:
+		player.set("controls_enabled", true)
 
 
 func _build_portal_interaction() -> void:
