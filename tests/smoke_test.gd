@@ -722,6 +722,38 @@ func _initialize() -> void:
 	assert(trace_material.emission_enabled and trace_material.emission_energy_multiplier <= 0.2)
 	var weaving_line := village_props.get_node_or_null("WeaverDryingLine") as Node3D
 	assert(weaving_line != null and weaving_line.get_child_count() == 6)
+	var rain_crate := village_props.get_node_or_null("WeaverRainCrate") as Node3D
+	assert(rain_crate != null and rain_crate.position.is_equal_approx(Vector3(-6.62, 0.0, 5.72)))
+	assert(rain_crate.get_node_or_null("Crate") is Node3D)
+	var drying_cloths: Array = main.get("weaver_drying_cloths")
+	var sheltered_cloths: Array = main.get("weaver_sheltered_cloths")
+	assert(drying_cloths.size() == 3 and sheltered_cloths.size() == 3)
+	for folded_cloth_name in ["FoldedRose", "FoldedMoss", "FoldedOchre"]:
+		var folded_cloth := rain_crate.get_node_or_null(folded_cloth_name) as CSGBox3D
+		assert(folded_cloth != null and not folded_cloth.use_collision)
+		assert((folded_cloth.material as StandardMaterial3D).roughness >= 0.99)
+	main.set("weather_rain_amount", 0.0)
+	main.call("_apply_weather_surface_feedback")
+	assert(drying_cloths.all(func(cloth): return is_zero_approx((cloth as GeometryInstance3D).transparency)))
+	assert(drying_cloths.all(func(cloth): return (cloth as GeometryInstance3D).visible))
+	assert(sheltered_cloths.all(func(cloth): return is_equal_approx((cloth as GeometryInstance3D).transparency, 1.0)))
+	assert(sheltered_cloths.all(func(cloth): return not (cloth as GeometryInstance3D).visible))
+	main.set("weather_rain_amount", 0.2)
+	main.call("_apply_weather_surface_feedback")
+	for cloth in drying_cloths:
+		assert((cloth as GeometryInstance3D).transparency > 0.0 and (cloth as GeometryInstance3D).transparency < 1.0)
+		assert((cloth as GeometryInstance3D).visible)
+	for cloth in sheltered_cloths:
+		assert((cloth as GeometryInstance3D).transparency > 0.0 and (cloth as GeometryInstance3D).transparency < 1.0)
+		assert((cloth as GeometryInstance3D).visible)
+	main.set("weather_rain_amount", 1.0)
+	main.call("_apply_weather_surface_feedback")
+	assert(drying_cloths.all(func(cloth): return is_equal_approx((cloth as GeometryInstance3D).transparency, 1.0)))
+	assert(drying_cloths.all(func(cloth): return not (cloth as GeometryInstance3D).visible))
+	assert(sheltered_cloths.all(func(cloth): return is_zero_approx((cloth as GeometryInstance3D).transparency)))
+	assert(sheltered_cloths.all(func(cloth): return (cloth as GeometryInstance3D).visible))
+	main.set("weather_rain_amount", 0.0)
+	main.call("_apply_weather_surface_feedback")
 	var wash_station := village_props.get_node_or_null("WeaverWashStation") as Node3D
 	assert(wash_station != null and wash_station.position.is_equal_approx(Vector3(-4.55, 0.0, 10.75)))
 	assert(wash_station.get_node_or_null("WashBasket") is Node3D)

@@ -144,6 +144,8 @@ var portal_motes: Array[MeshInstance3D] = []
 var portal_occluders: Array[Node3D] = []
 var portal_occluding := false
 var wind_nodes: Array[Node3D] = []
+var weaver_drying_cloths: Array[CSGPolygon3D] = []
+var weaver_sheltered_cloths: Array[CSGBox3D] = []
 var seasonal_bushes: Array[Node3D] = []
 var seasonal_bush_materials: Array[StandardMaterial3D] = []
 var portal_prompt: Label
@@ -1174,6 +1176,13 @@ func _apply_weather_surface_feedback() -> void:
 		pond_water_material.albedo_color = Color.WHITE.lerp(Color("b0c2ba"), wetness * 0.16)
 		pond_water_material.roughness = lerpf(0.25, 0.4, wetness)
 		pond_water_material.emission_energy_multiplier = lerpf(0.07, 0.1, wetness)
+	var rain_cloth_blend := _smoothstep_range(0.08, 0.32, weather_rain_amount)
+	for cloth in weaver_drying_cloths:
+		cloth.transparency = rain_cloth_blend
+		cloth.visible = rain_cloth_blend < 0.999
+	for cloth in weaver_sheltered_cloths:
+		cloth.transparency = 1.0 - rain_cloth_blend
+		cloth.visible = rain_cloth_blend > 0.001
 
 
 func _sample_day(hour: float) -> Dictionary:
@@ -2518,6 +2527,23 @@ func _add_village_props() -> void:
 		cloth.use_collision = false
 		weaving_line.add_child(cloth)
 		wind_nodes.append(cloth)
+		weaver_drying_cloths.append(cloth)
+	var rain_crate := Node3D.new()
+	rain_crate.name = "WeaverRainCrate"
+	rain_crate.position = Vector3(-6.62, 0.0, 5.72)
+	rain_crate.rotation.y = 0.12
+	props.add_child(rain_crate)
+	var rain_crate_model := _add_model("res://assets/quaternius/village/Prop_Crate.gltf", Vector3.ZERO, 0.0, 0.26, rain_crate)
+	rain_crate_model.name = "Crate"
+	for cloth_data in [
+		["FoldedRose", Vector3(-0.12, 0.47, -0.02), Color("70494d"), -0.08],
+		["FoldedMoss", Vector3(0.04, 0.53, 0.01), Color("596044"), 0.05],
+		["FoldedOchre", Vector3(-0.03, 0.59, 0.04), Color("765a3d"), -0.03],
+	]:
+		var folded_cloth := _add_box(cloth_data[0], Vector3(0.38, 0.055, 0.24), cloth_data[1], _material(cloth_data[2], 1.0), false, rain_crate)
+		folded_cloth.rotation.y = cloth_data[3]
+		folded_cloth.transparency = 1.0
+		weaver_sheltered_cloths.append(folded_cloth)
 	var wash_station := Node3D.new()
 	wash_station.name = "WeaverWashStation"
 	wash_station.position = Vector3(-4.55, 0.0, 10.75)
