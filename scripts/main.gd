@@ -2971,6 +2971,12 @@ func _add_meadow_grass() -> void:
 	var transforms: Array[Transform3D] = []
 	var positions := PackedVector3Array()
 	var brightness_values := PackedFloat32Array()
+	var silhouette_scales: Array[Vector3] = [
+		Vector3(1.10, 0.88, 1.10),
+		Vector3.ONE,
+		Vector3(0.90, 1.12, 0.90),
+	]
+	var silhouette_profile_indices := PackedByteArray()
 	for cell_z in range(-23, 29):
 		for cell_x in range(-22, 22):
 			var cell_center := Vector2(float(cell_x) + 0.5, float(cell_z) + 0.5)
@@ -2986,10 +2992,13 @@ func _add_meadow_grass() -> void:
 				if _is_meadow_excluded(point):
 					continue
 				var scale_value := random.randf_range(0.20, 0.34)
-				var basis := Basis(Vector3.UP, random.randf_range(0.0, TAU)).scaled(Vector3.ONE * scale_value)
+				var profile_index := transforms.size() % silhouette_scales.size()
+				var silhouette_scale := silhouette_scales[profile_index]
+				var basis := Basis(Vector3.UP, random.randf_range(0.0, TAU)).scaled(silhouette_scale * scale_value)
 				var origin := Vector3(point.x, 0.01, point.y)
 				transforms.append(Transform3D(basis, origin))
 				positions.append(origin)
+				silhouette_profile_indices.append(profile_index)
 				var brightness := random.randf_range(0.94, 1.06)
 				brightness_values.append(brightness)
 
@@ -3017,6 +3026,8 @@ func _add_meadow_grass() -> void:
 	meadow_grass.set_meta("seed", 20260901)
 	meadow_grass.set_meta("positions", positions)
 	meadow_grass.set_meta("brightness_values", brightness_values)
+	meadow_grass.set_meta("silhouette_scales", silhouette_scales)
+	meadow_grass.set_meta("silhouette_profile_indices", silhouette_profile_indices)
 	add_child(meadow_grass)
 
 

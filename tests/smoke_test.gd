@@ -534,10 +534,7 @@ func _initialize() -> void:
 	assert(meadow.multimesh.mesh.get_surface_count() == 1)
 	var meadow_vertices := meadow.multimesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
 	assert(meadow_vertices.size() == 303)
-	assert(
-		meadow.multimesh.instance_count > 1600 and meadow.multimesh.instance_count < 7000,
-		"Unexpected meadow instance count: %d" % meadow.multimesh.instance_count
-	)
+	assert(meadow.multimesh.instance_count == 1849, "Unexpected meadow instance count: %d" % meadow.multimesh.instance_count)
 	assert(meadow.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
 	var meadow_material := meadow.material_override as ShaderMaterial
 	assert(meadow_material != null)
@@ -558,14 +555,26 @@ func _initialize() -> void:
 	var meadow_brightness: PackedFloat32Array = meadow.get_meta("brightness_values")
 	assert(meadow_positions.size() == meadow.multimesh.instance_count)
 	assert(meadow_brightness.size() == meadow.multimesh.instance_count)
+	assert(hash(meadow_positions) == 180955129)
+	assert(hash(meadow_brightness) == 3492265916)
+	var meadow_silhouette_scales: Array = meadow.get_meta("silhouette_scales")
+	var meadow_profile_indices: PackedByteArray = meadow.get_meta("silhouette_profile_indices")
+	assert(meadow_silhouette_scales == [Vector3(1.10, 0.88, 1.10), Vector3.ONE, Vector3(0.90, 1.12, 0.90)])
+	assert(meadow_profile_indices.size() == meadow.multimesh.instance_count)
 	var dense_meadow_instances := 0
+	var meadow_profile_counts := [0, 0, 0]
 	for meadow_index in meadow.multimesh.instance_count:
 		var meadow_origin := meadow_positions[meadow_index]
 		var meadow_point := Vector2(meadow_origin.x, meadow_origin.z)
+		var profile_index := meadow_profile_indices[meadow_index]
+		assert(profile_index < meadow_silhouette_scales.size())
+		meadow_profile_counts[profile_index] += 1
 		assert(not main.call("_is_meadow_excluded", meadow_point), "Excluded meadow instance %d at %s" % [meadow_index, meadow_point])
 		assert(meadow_brightness[meadow_index] >= 0.939 and meadow_brightness[meadow_index] <= 1.061)
 		if meadow_point.x > -20.0 and meadow_point.x < 18.0 and meadow_point.y > -19.0 and meadow_point.y < 9.5:
 			dense_meadow_instances += 1
+	assert(meadow_profile_counts == [617, 616, 616])
+	assert(0.34 * (meadow_silhouette_scales[2] as Vector3).y <= 0.381)
 	assert(dense_meadow_instances > 1100, "Unexpected village meadow count: %d" % dense_meadow_instances)
 	for activity_point in [Vector2(-4.7, 5.25), Vector2(-5.5, 7.4), Vector2(3.0, -14.1), Vector2(4.2, -15.2)]:
 		assert(main.call("_is_meadow_excluded", activity_point))
