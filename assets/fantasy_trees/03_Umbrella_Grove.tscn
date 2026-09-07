@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/fantasy_trees/03_Umbrella_Grove.glb" id="1"]
+[ext_resource type="Script" path="res://assets/fantasy_trees/tree_wind.gd" id="2"]
+
+[sub_resource type="CapsuleShape3D" id="Capsule"]
+radius = 0.262
+height = 2.0
+
+[node name="03_Umbrella_Grove" type="Node3D"]
+script = ExtResource("2")
+tree_height = 6.63
+crown_width = 8.71
+crown_depth = 7.34
+
+[node name="Model" parent="." instance=ExtResource("1")]
+
+[node name="TrunkBody" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TrunkBody"]
+position = Vector3(0, 1, 0)
+shape = SubResource("Capsule")

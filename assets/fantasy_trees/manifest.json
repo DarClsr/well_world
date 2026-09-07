@@ -1,0 +1,50 @@
+[
+  {
+    "name": "01_Elder_Sage",
+    "triangles": 19992,
+    "height": 8.13,
+    "width": 8.37,
+    "depth": 6.83,
+    "trunk_radius": 0.476
+  },
+  {
+    "name": "02_Silver_Spire",
+    "triangles": 17616,
+    "height": 9.01,
+    "width": 4.67,
+    "depth": 3.99,
+    "trunk_radius": 0.387
+  },
+  {
+    "name": "03_Umbrella_Grove",
+    "triangles": 17616,
+    "height": 6.63,
+    "width": 8.71,
+    "depth": 7.34,
+    "trunk_radius": 0.262
+  },
+  {
+    "name": "04_Windward_Tree",
+    "triangles": 19992,
+    "height": 7.01,
+    "width": 7.91,
+    "depth": 6.38,
+    "trunk_radius": 0.279
+  },
+  {
+    "name": "05_Amber_Sapling",
+    "triangles": 12864,
+    "height": 4.98,
+    "width": 4.11,
+    "depth": 3.25,
+    "trunk_radius": 0.189
+  },
+  {
+    "name": "06_Dusk_Warden",
+    "triangles": 19992,
+    "height": 7.63,
+    "width": 7.39,
+    "depth": 6.65,
+    "trunk_radius": 0.439
+  }
+]
