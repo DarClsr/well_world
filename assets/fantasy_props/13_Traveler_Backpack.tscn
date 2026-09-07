@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/fantasy_props/13_Traveler_Backpack.glb" id="1"]
+
+[node name="13_Traveler_Backpack" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1")]

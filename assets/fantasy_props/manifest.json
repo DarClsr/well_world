@@ -1,0 +1,348 @@
+[
+  {
+    "name": "01_Fern_Spread",
+    "category": "plants",
+    "animated": true,
+    "triangles": 1120,
+    "size": [
+      1.564,
+      1.539,
+      0.383
+    ],
+    "center": [
+      0.002,
+      -0.015,
+      0.191
+    ]
+  },
+  {
+    "name": "02_Fern_Fiddlehead",
+    "category": "plants",
+    "animated": true,
+    "triangles": 1580,
+    "size": [
+      1.266,
+      1.252,
+      0.68
+    ],
+    "center": [
+      0.012,
+      0.018,
+      0.34
+    ]
+  },
+  {
+    "name": "03_Mushrooms_Russet",
+    "category": "plants",
+    "animated": false,
+    "triangles": 1224,
+    "size": [
+      0.81,
+      0.67,
+      0.778
+    ],
+    "center": [
+      -0.02,
+      0.005,
+      0.389
+    ]
+  },
+  {
+    "name": "04_Mushrooms_Azure",
+    "category": "plants",
+    "animated": false,
+    "triangles": 1224,
+    "size": [
+      0.81,
+      0.67,
+      0.778
+    ],
+    "center": [
+      -0.02,
+      0.005,
+      0.389
+    ]
+  },
+  {
+    "name": "05_Mushrooms_Shelf",
+    "category": "plants",
+    "animated": false,
+    "triangles": 1260,
+    "size": [
+      0.66,
+      0.48,
+      0.571
+    ],
+    "center": [
+      -0.045,
+      0.0,
+      0.286
+    ]
+  },
+  {
+    "name": "06_Flowers_Starlight",
+    "category": "plants",
+    "animated": true,
+    "triangles": 370,
+    "size": [
+      0.697,
+      0.558,
+      0.702
+    ],
+    "center": [
+      0.002,
+      -0.02,
+      0.351
+    ]
+  },
+  {
+    "name": "07_Flowers_Dusk",
+    "category": "plants",
+    "animated": true,
+    "triangles": 370,
+    "size": [
+      0.697,
+      0.558,
+      0.702
+    ],
+    "center": [
+      0.002,
+      -0.02,
+      0.351
+    ]
+  },
+  {
+    "name": "08_MossRock_Broad",
+    "category": "nature",
+    "animated": false,
+    "triangles": 1280,
+    "size": [
+      1.589,
+      1.054,
+      0.628
+    ],
+    "center": [
+      -0.05,
+      0.024,
+      0.314
+    ],
+    "revision": 2,
+    "textures": "1024px embedded BaseColor, Normal and Roughness"
+  },
+  {
+    "name": "09_MossRock_Split",
+    "category": "nature",
+    "animated": false,
+    "triangles": 6154,
+    "size": [
+      1.368,
+      0.878,
+      1.033
+    ],
+    "center": [
+      -0.014,
+      0.037,
+      0.516
+    ],
+    "revision": 2,
+    "textures": "1024px embedded BaseColor, Normal and Roughness"
+  },
+  {
+    "name": "10_MossRock_Pebbles",
+    "category": "nature",
+    "animated": false,
+    "triangles": 6400,
+    "size": [
+      0.978,
+      0.898,
+      0.306
+    ],
+    "center": [
+      -0.038,
+      0.008,
+      0.153
+    ],
+    "revision": 2,
+    "textures": "1024px embedded BaseColor, Normal and Roughness"
+  },
+  {
+    "name": "11_Fallen_Branch",
+    "category": "nature",
+    "animated": false,
+    "triangles": 438,
+    "size": [
+      1.768,
+      0.949,
+      0.28
+    ],
+    "center": [
+      -0.018,
+      0.183,
+      0.14
+    ],
+    "revision": 2,
+    "textures": "1024px embedded BaseColor, Normal and Roughness"
+  },
+  {
+    "name": "12_Hollow_Log",
+    "category": "nature",
+    "animated": false,
+    "triangles": 5974,
+    "size": [
+      2.439,
+      0.949,
+      1.082
+    ],
+    "center": [
+      0.125,
+      0.029,
+      0.541
+    ],
+    "revision": 2,
+    "textures": "1024px embedded BaseColor, Normal and Roughness"
+  },
+  {
+    "name": "13_Traveler_Backpack",
+    "category": "travel",
+    "animated": false,
+    "triangles": 18192,
+    "size": [
+      0.608,
+      0.574,
+      0.818
+    ],
+    "center": [
+      0.0,
+      0.01,
+      0.409
+    ]
+  },
+  {
+    "name": "14_Rolled_Bedroll",
+    "category": "travel",
+    "animated": false,
+    "triangles": 5164,
+    "size": [
+      0.84,
+      0.544,
+      0.544
+    ],
+    "center": [
+      -0.0,
+      0.0,
+      0.272
+    ]
+  },
+  {
+    "name": "15_Old_Lantern",
+    "category": "travel",
+    "animated": true,
+    "triangles": 1168,
+    "size": [
+      0.48,
+      0.48,
+      0.923
+    ],
+    "center": [
+      0.0,
+      0.0,
+      0.462
+    ]
+  },
+  {
+    "name": "16_Leather_Flask",
+    "category": "travel",
+    "animated": false,
+    "triangles": 2696,
+    "size": [
+      0.5,
+      0.238,
+      0.792
+    ],
+    "center": [
+      0.0,
+      -0.004,
+      0.396
+    ]
+  },
+  {
+    "name": "17_Staved_Barrel",
+    "category": "village",
+    "animated": false,
+    "triangles": 7104,
+    "size": [
+      0.747,
+      0.75,
+      0.93
+    ],
+    "center": [
+      0.0,
+      0.001,
+      0.465
+    ]
+  },
+  {
+    "name": "18_Wicker_Basket",
+    "category": "village",
+    "animated": false,
+    "triangles": 24720,
+    "size": [
+      0.776,
+      0.776,
+      0.831
+    ],
+    "center": [
+      0.0,
+      0.0,
+      0.415
+    ]
+  },
+  {
+    "name": "19_Firewood_Stack",
+    "category": "village",
+    "animated": false,
+    "triangles": 10860,
+    "size": [
+      1.004,
+      0.748,
+      0.607
+    ],
+    "center": [
+      0.013,
+      0.0,
+      0.304
+    ]
+  },
+  {
+    "name": "20_Terracotta_Jar",
+    "category": "village",
+    "animated": false,
+    "triangles": 6592,
+    "size": [
+      0.739,
+      0.588,
+      0.717
+    ],
+    "center": [
+      0.004,
+      0.001,
+      0.359
+    ]
+  },
+  {
+    "name": "21_Glazed_Amphora",
+    "category": "village",
+    "animated": false,
+    "triangles": 6592,
+    "size": [
+      0.681,
+      0.485,
+      0.932
+    ],
+    "center": [
+      0.002,
+      0.0,
+      0.466
+    ]
+  }
+]

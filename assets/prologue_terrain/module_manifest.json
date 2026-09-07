@@ -1,0 +1,16 @@
+{
+  "module_instances": {
+    "Stone_Block_150": 3,
+    "Wall_Section_300": 7,
+    "Stone_Step_200": 5,
+    "Timber_Plank_360": 32,
+    "Timber_Post_200": 20,
+    "House_Platform_600": 4,
+    "Boulder_A": 24,
+    "Boulder_B": 35
+  },
+  "shared_mesh_check": "passed",
+  "modules": 8,
+  "terrain_sections": 5,
+  "stage": "Blender modular blockout; Godot pending"
+}

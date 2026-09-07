@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/fantasy_props/12_Hollow_Log.glb" id="1"]
+[ext_resource type="Shape3D" path="res://assets/fantasy_props/12_Hollow_Log_collision.tres" id="2"]
+
+[node name="12_Hollow_Log" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1")]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+shape = ExtResource("2")

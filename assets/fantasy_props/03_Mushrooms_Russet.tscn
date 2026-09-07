@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/fantasy_props/03_Mushrooms_Russet.glb" id="1"]
+[ext_resource type="Script" path="res://assets/fantasy_props/plant_idle.gd" id="2"]
+
+[node name="03_Mushrooms_Russet" type="Node3D"]
+script = ExtResource("2")
+
+[node name="Model" parent="." instance=ExtResource("1")]
