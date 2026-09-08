@@ -1,0 +1,78 @@
+{
+  "source_v11_sha256": "064f1776a0e94f48a91413711704bfda433292c79ae7a39a5c6bbf7a8bd6e8fe",
+  "asset": "art/exploration_props/v1/Ancient_Wood_Jade_Chest.blend",
+  "placements": [
+    {
+      "name": "Chest_Hidden_Ruins",
+      "position": [
+        -145.0,
+        75.0,
+        16.345596313476562
+      ],
+      "normal": [
+        0.0,
+        0.0,
+        0.9999999403953552
+      ],
+      "id": "prologue_hidden_ruins",
+      "rotation_euler": [
+        0.0,
+        -0.0,
+        0.4000000059604645
+      ]
+    },
+    {
+      "name": "Chest_Forest_Rest",
+      "position": [
+        -73.0,
+        32.0,
+        13.032012939453125
+      ],
+      "normal": [
+        0.1746571809053421,
+        0.033087149262428284,
+        0.984073281288147
+      ],
+      "id": "prologue_forest_rest",
+      "rotation_euler": [
+        -0.11409927159547806,
+        0.13784945011138916,
+        -0.5078852772712708
+      ]
+    },
+    {
+      "name": "Chest_Ridge_Forage",
+      "position": [
+        143.0,
+        67.0,
+        14.53680419921875
+      ],
+      "normal": [
+        0.013346967287361622,
+        -0.0173651035875082,
+        0.9997601509094238
+      ],
+      "id": "prologue_ridge_forage",
+      "rotation_euler": [
+        0.02187006175518036,
+        0.0012106526410207152,
+        0.600013256072998
+      ]
+    }
+  ],
+  "animation": {
+    "closed": 1,
+    "open": 55,
+    "close_end": 110
+  },
+  "scope": "Blender visual asset and animation only",
+  "verified": {
+    "source_v11_unchanged": true,
+    "three_linked_chests": true,
+    "closed_open_closed_animation": true,
+    "magic_off_on_off": true,
+    "linked_paths_resolve": true
+  },
+  "motifs": "Original white-eared beast face, mountains and river waves",
+  "effects": "Jade emission, opening glyphs and wisps, 24 animated gold motes, timed interior point light, subtle compositor glow"
+}

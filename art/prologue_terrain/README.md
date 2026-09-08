@@ -154,3 +154,7 @@ Godot 碰撞、导航、帧时间尚未验证。
 `prologue_terrain_v11.blend` 增加遗骨古树祭场、玉质异草与三只白耳猿形异兽。五类独立 Collection 素材库位于 `art/shanhai_ecology/v1/`；异兽含转头、呼吸原型动画。
 
 说明与限制见 [v11 制作记录](../../docs/prologue-shanhai-v11.md)。本轮仅 Blender 优化；写实精模、完整运动和游戏行为仍待完成。
+
+## v12 山海探索宝箱
+
+`prologue_terrain_v12.blend` 在三处探索点新增链接宝箱，带白耳兽面、山形水纹和开盖神异特效。初始关闭；在 Blender 时间线帧 55 查看打开与光纹效果。独立资源与使用边界见 [宝箱说明](../exploration_props/README.md)。

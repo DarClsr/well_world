@@ -1,0 +1,1 @@
+Blender-only scope persists. Use weathered wood, subdued bronze and jade; avoid Western domed treasure-chest conventions. v11 and original sources must stay unchanged. No gameplay rewards or interaction implementation is implied.
