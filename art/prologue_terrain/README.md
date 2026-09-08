@@ -65,3 +65,92 @@ v03 未合并导出一个庞大的静态 GLB，避免烘死原有动画与资产
 检查 17 个来源、959 个实例、外部链接与贴图、源文件哈希和六种动画来源。
 预览：`blender_overview_v03.png`、`blender_woodland_v03.png`、
 `blender_settlement_v03.png`、`blender_ruins_v03.png`。
+
+## v04 废墟独立模块
+
+`prologue_terrain_v04.blend` 替换废墟旧占位，新增 8 类石砌模块的 25 个关联实例。
+保留 v03 全部 959 个既有素材实例，源文件哈希检查未改变。
+源文件、GLB、预览和使用说明见 [废墟模块](../ruins_modules/README.md)。
+本版为废墟初版美术验收，聚落仍为占位，Godot 碰撞与实际行走待验收。
+
+## v05 废墟优化
+
+`prologue_terrain_v05.blend` 使用 [废墟模块 v2](../ruins_modules/v2/README.md)，
+保留 v04。调整石料、残墙轮廓、铺石与坍塌区域，新增墙根自然布景。
+8 类模块通过 28 个实例复用，另有 10 个复用旧素材的边缘实例。
+独立文件、GLB 贴图/顶点色、链接及旧素材哈希验证通过；美术验收待用户审阅。
+
+## v06 扩图与内容空间
+
+`prologue_terrain_v06.blend` 扩至320×280米，保留v05及原素材尺寸。
+新增三条支路、四处内容空间，复用自然素材、生活物件与旧木构/废墟模块。
+路线、素材复用、验证结果及玩法边界见 [扩图与内容落位](../../docs/prologue-v06-content-layout.md)。
+
+## v07 地表与水岸优化
+
+`prologue_terrain_v07.blend` 在 v06 基础上增加世界坐标地表色差、细节凹凸、
+水面细波纹和暖色日照。水面横向延伸至岸坡内部，修复近景可见的悬空黑缝；
+322 个边缘顶点中 320 个找到岸坡交界，地图边界两点未延伸。
+复用已有链接素材增加 766 个岸石与林下实例，实例锚点避开路线中心 4 米。
+此锚点间距不等同完整碰撞包围盒检查。
+
+五块地形坐标不变，v06 与 25 个链接源文件哈希不变。
+生成脚本：`tools/refine_prologue_scene.py`；记录：
+`assets/prologue_terrain/refinement_v07.json`。
+预览：`overview_v07.png`、`creek_v07.png`。
+
+这是 Blender 场景美术迭代；聚落和桥仍需替换占位。
+程序化材质需要烘焙或在 Godot 重建，水纹尚未动画化，
+Godot 碰撞、导航、帧时间尚未验证。
+
+## v08 聚落、木桥与光影
+
+`prologue_terrain_v08.blend` 将四处聚落占位替换为 3 座复用夯土茅屋与 1 座工作棚，
+木桥增加独立桥板、纵梁、桥桩、栏杆与麻绳绑扎；桥板两端坐标与原版一致。
+住宅补充石基、台阶、真实侧窗开口，保留并调整既有陶罐、藤篮和柴火堆摆放。
+地形顶点坐标保持不变，门前顶点色增加踩踏土色。
+
+光照采用暖色方向光、大气天空补光与 AgX；降低天空饱和度和强度后，
+避免第一版过蓝、发白。水面保留天空反射与微小波纹。
+这是静态 Blender 美术预览，不表示引擎性能、动画或碰撞已经完成。
+
+同机位前后对照：`settlement_before_v08.png` / `settlement_v08.png`，
+`bridge_before_v08.png` / `bridge_v08.png`，`house_before_v08.png` / `house_v08.png`。
+独立复用源见 [聚落模块](../settlement_modules/v1/README.md)。
+验证记录：`assets/prologue_terrain/polish_v08.json`。
+
+## v09 河道与浅滩（仅 Blender）
+
+`prologue_terrain_v09.blend` 保留 v08，局部细分并重塑河道附近地形，
+形成宽窄变化、浅岸与最深约 1.36 米的河床。水面有深度驱动的颜色和透明度，
+叠加 1.8 厘米以内的静态细起伏、法线波纹及少量石群附近的泡沫色斑。
+水纹映射随 Blender 时间轴移动；这不是流体模拟，也不是物理交互。
+
+重新贴地 157 个既有自然实例，增加 56 个复用石块实例。
+桥面几何保留，六根桥桩重新适配河床。原素材文件保留。
+近景：`river_v09.png`、`river_shallows_v09.png`。
+
+生成：`tools/refine_prologue_river.py`；重开验证：`tools/check_prologue_river.py`。
+记录：`assets/prologue_terrain/river_v09/river_report.json`。
+按本轮用户要求，没有导出或接入 Godot。
+
+## v10 既有小模型场景组合（仅 Blender）
+
+`prologue_terrain_v10.blend` 复用 16 种既有素材与木构模块，新增 187 个摆放对象：
+储物院 18、备柴院 18、歇脚院 15、工作棚周边 25、溪岸枯木群落 47、废墟墙脚 64。
+木构分隔栏共享原模块网格，以对象材质覆盖使用既有旧木材质。
+蘑菇缩小到更适合近景的尺寸，枯木下增加局部腐殖土顶点色。
+
+预览：`courtyards_v10.png`、`creek_pocket_v10.png`、`ruin_edges_v10.png`。
+生成：`tools/dress_prologue_lived_spaces.py`；重开验证：`tools/check_prologue_dressing.py`。
+复用与摆放记录：`assets/prologue_terrain/dressing_v10.json`。
+
+验证通过：v09 与 25 个链接源文件哈希保留；地形和水面顶点坐标不变；
+新增落地物件包围半径距道路中心线最小约 3.13 米，包围盒底部与取样地面吻合。
+这不是全部物件之间的碰撞检查，也不是 Godot 导航验证；本轮未接入引擎。
+
+## v11 神异地标与生物原型
+
+`prologue_terrain_v11.blend` 增加遗骨古树祭场、玉质异草与三只白耳猿形异兽。五类独立 Collection 素材库位于 `art/shanhai_ecology/v1/`；异兽含转头、呼吸原型动画。
+
+说明与限制见 [v11 制作记录](../../docs/prologue-shanhai-v11.md)。本轮仅 Blender 优化；写实精模、完整运动和游戏行为仍待完成。

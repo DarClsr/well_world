@@ -44,3 +44,32 @@ woodland, nature, village and travel checks all passed. v03 source/link/animatio
 verification passed again. This does not validate full-map walkability.
 GitHub SSH port 22 timed out; command-scoped SSH over port 443 fetched successfully.
 Exclude Blender backup files and unrelated regenerated capture UID files.
+
+2026-09-08: User authorized independent ruin modules and map assembly. Added eight
+stone modules, shared packed textures, individual Blender/GLB files and v04 with
+25 linked instances. Native Blender 5.2 scene-library write crashed; object-library
+write followed by standalone scene save in a clean process succeeds. Verified each
+source opens with one visible mesh, origin/UV/packed textures and GLB structure.
+Reopened v04: all 25 links resolve, 959 existing instances preserved and 17 original
+asset hashes unchanged. Terrain ray samples at entrance/platform are Z=20; adjusted
+stairs to ground at 20 and scaled rise to meet the 0.35m platform. Rendered module
+showcase and assembled ruin. User art acceptance and Godot runtime checks pending.
+
+User requested continued optimization. Created isolated v2 asset output and v05 map;
+changed joint widths, stone variation, broken profiles and paving. Reused ten existing
+fern/pebble props at broken edges, preserving 959 original instances and source hashes.
+Visual review caught excessive bevel/gap sizes; reduced these before final render.
+GLB material auto-detection omitted vertex color; explicit named COLOR_0 export now
+passes validation together with base-color textures. Normalized source mesh bottoms
+to zero after the checker caught a 1cm offset. Reopened all eight files and v05:
+28 ruin instances, ten edge props and all library paths verified. No Godot runtime
+or final art acceptance claim. No commit/push requested.
+
+v06: User requested expansion, meaningful prologue content and reuse of previous
+assets. Expanded landmark gaps to 320x280m without scaling original collection
+instances; added ridges, three branches and four leveled content pockets. Reused
+741 natural instances and 30 pocket props/old timber pieces. Retained v05 and old
+asset hashes. Reopened file, checked terrain seams and route surfaces including
+bridge decks. Fixed steep descent and shrine approach; sampled maximum grade .475,
+no samples above .48. Rendered overview, annotated content map and two pocket views.
+Gameplay and Godot collision/navigation/performance remain unimplemented/unverified.

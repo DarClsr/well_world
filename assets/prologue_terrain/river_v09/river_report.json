@@ -1,0 +1,19 @@
+{
+  "source_v08_sha256": "a4d4973ad80a1fa461c78fcece7e4e5c4851cfadec2aebcb3c1df5311d9569f5",
+  "terrain_vertices_modified": 17783,
+  "natural_instances_reseated": 157,
+  "new_stones": 56,
+  "water_vertices": 18513,
+  "maximum_depth_m": 1.3593381824344397,
+  "water_faces": 17920,
+  "stage": "Blender-only river refinement; no Godot integration",
+  "reopen_verified": true,
+  "linked_sources_unchanged": 25,
+  "deck_geometry_unchanged": true,
+  "six_piles_reseated": true,
+  "flow_driver_shift_frames_35_75": 1.0,
+  "depth_range_m": [
+    0.0,
+    1.3593381643295288
+  ]
+}

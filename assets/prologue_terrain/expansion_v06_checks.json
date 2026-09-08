@@ -1,0 +1,11 @@
+{
+  "terrain_seams": "passed",
+  "old_sources": "unchanged",
+  "v05": "unchanged",
+  "route_max_terrain_grade": 0.4745119950579373,
+  "extra_nature_instances": 741,
+  "content_sites": 4,
+  "content_props": 30,
+  "steep_samples": [],
+  "note": "Route surface samples include bridge planks; not Godot navigation validation"
+}

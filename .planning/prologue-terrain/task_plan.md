@@ -26,3 +26,12 @@ v03 dressing pass completed using 17 pre-existing independent asset sources and
 959 linked collection instances. Four rendered views inspected. Saved-file check
 verified source hashes, library/texture resolution and six animated source types.
 Buildings remain placeholders; E is in progress, not finally accepted.
+
+v04: eight independent ruin modules and 25 library-linked instances completed.
+Standalone source/GLB and saved-map checks passed; user art acceptance pending.
+Settlement still placeholder. No new commit/push requested this turn.
+
+v05 optimization: v2 sources preserve v04 files; varied masonry and broken-wall
+profiles, staggered paving, collapse debris and 10 reused edge props. Eight sources,
+28 ruin instances; source, GLB texture/COLOR_0 and old-file checks passed. User visual
+acceptance remains pending, as does Godot validation.

@@ -1,0 +1,82 @@
+{
+  "source_v07_sha256": "d2c61b9b79c9b4facd76a293a1d0376d256ddf98a580f25ef8c5b797ac842820",
+  "linked_sources_unchanged": 25,
+  "terrain_hashes": {
+    "Terrain_01_Ruins_Highland": "f1817c25ff54972757f8aa9705bdb1a9f7090047594d1dacb4143b99e487c1c3",
+    "Terrain_02_Descending_Slope": "6eaf3181b1dd01054c8429d2d38c21db50d7248212dfab9042313470ce79c66c",
+    "Terrain_03_Settlement_Terrace": "685d785fb58e433750cdef7043cb22a31d5f6f5a0b09d9fdbd1e770745066b5c",
+    "Terrain_04_Creek_Bed": "b99cc6e94554ecd23afbf55298e35964989d92c5389b442809c31433017c37f4",
+    "Terrain_05_Eastern_Hills": "83acec23067b0c305bf5e77887f60fc583f06c403cf6d42b9e1356dc78ab9902"
+  },
+  "architecture_instances": 5,
+  "independent_assets": [
+    "Ancient_Earth_House",
+    "Ancient_Open_Work_Shelter",
+    "Ancient_Timber_Bridge"
+  ],
+  "bridge_endpoints_blender": [
+    [
+      7.487654209136963,
+      -10.0,
+      4.72947883605957
+    ],
+    [
+      22.487653732299805,
+      -10.0,
+      5.549821853637695
+    ]
+  ],
+  "bridge_clear_width_m": 3.0,
+  "bridge_support_roots": [
+    [
+      11.337653732299804,
+      -11.25,
+      3.61246337890625
+    ],
+    [
+      11.337653732299804,
+      -8.75,
+      1.6833251953125
+    ],
+    [
+      14.987653732299805,
+      -11.25,
+      1.112493896484375
+    ],
+    [
+      14.987653732299805,
+      -8.75,
+      1.167486572265625
+    ],
+    [
+      18.637653732299803,
+      -11.25,
+      1.80972900390625
+    ],
+    [
+      18.637653732299803,
+      -8.75,
+      3.8907989501953124
+    ]
+  ],
+  "limitations": "Blender-only visual iteration. Materials procedural, not yet baked. No Godot collision/navigation/performance verification.",
+  "reopen_verified": true,
+  "six_bridge_piles_embedded_035m": true,
+  "independent_library_checks": {
+    "Ancient_Earth_House": {
+      "objects": 149,
+      "base_polygons": 6294,
+      "standalone_append": true
+    },
+    "Ancient_Open_Work_Shelter": {
+      "objects": 118,
+      "base_polygons": 6118,
+      "standalone_append": true
+    },
+    "Ancient_Timber_Bridge": {
+      "objects": 142,
+      "base_polygons": 732,
+      "standalone_append": true
+    }
+  }
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "name": "01_Wall_Intact_300",
+    "triangles": 2916,
+    "size_m": [
+      3.037977695465088,
+      0.6972836256027222,
+      2.051445960998535
+    ],
+    "origin": "bottom center",
+    "animated": false
+  },
+  {
+    "name": "02_Wall_Broken_300",
+    "triangles": 1620,
+    "size_m": [
+      3.0168609619140625,
+      0.6995669007301331,
+      1.6940207481384277
+    ],
+    "origin": "bottom center",
+    "animated": false
+  },
+  {
+    "name": "03_Wall_Corner",
+    "triangles": 2700,
+    "size_m": [
+      2.519251823425293,
+      1.8596371412277222,
+      1.7120583057403564
+    ],
+    "origin": "bottom center",
+    "animated": false
+  },
+  {
+    "name": "04_Stone_Doorway",
+    "triangles": 1404,
+    "size_m": [
+      3.1503562927246094,
+      1.07112455368042,
+      2.456326484680176
+    ],
+    "origin": "bottom center",
+    "animated": false
+  },
+  {
+    "name": "05_Stair_Three_Treads",
+    "triangles": 324,
+    "size_m": [
+      2.4303348064422607,
+      1.8315242528915405,
+      0.5610985159873962
+    ],
+    "origin": "bottom center",
+    "animated": false
+  },
+  {
+    "name": "06_Foundation_Tile_300",
+    "triangles": 972,
+    "size_m": [
+      3.0152554512023926,
+      3.0049238204956055,
+      0.36352184414863586
+    ],
+    "origin": "bottom center",
+    "animated": false
+  },
+  {
+    "name": "07_Book_Niche",
+    "triangles": 1188,
+    "size_m": [
+      1.8105794191360474,
+      0.994991660118103,
+      1.6696727275848389
+    ],
+    "origin": "bottom center",
+    "animated": false
+  },
+  {
+    "name": "08_Rubble_Cluster",
+    "triangles": 1188,
+    "size_m": [
+      1.8475511074066162,
+      2.0207319259643555,
+      0.3839864432811737
+    ],
+    "origin": "bottom center",
+    "animated": false
+  }
+]

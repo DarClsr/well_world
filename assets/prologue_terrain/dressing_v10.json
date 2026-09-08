@@ -1,0 +1,3200 @@
+{
+  "source_v09_sha256": "8e214ba2e0756758869515e53b4720683f2793e177dd5b124166a8efaf5fee76",
+  "linked_source_hashes": {
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_trees\\individual\\01_Elder_Sage.blend": "d43d932142d83af7a5364f6f7c9a9d216290b4d62825f322fa8d2a9dfa2e51f8",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\01_Fern_Spread.blend": "8e4ea9a6617b8a1c56aea79b83e9018efde81fa840f69446f4df5a32e340433a",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\ruins_modules\\v2\\individual\\01_Wall_Intact_300.blend": "e6c4ee7c7c00eec8048b25695f730884bcab6a3fb556bc0dee0f174764601a9d",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\02_Fern_Fiddlehead.blend": "a77d661a31dd78007f11b32ff7d64411d152bfcd62f74706da26e0ef4e8a55b6",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_trees\\individual\\02_Silver_Spire.blend": "f43308777aebf5502dbf904008c77ab7625373171badbfd4b84b92e1663d96cd",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\ruins_modules\\v2\\individual\\02_Wall_Broken_300.blend": "6b2f5154a9a354e6fc5094def72a5b3c2af5f97d1e3cd03196a8b246b07464ea",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\03_Mushrooms_Russet.blend": "27d25ea0e1e901968351b1e75e55de417a24a5ff8f040cf16efbdb6fc5e0537a",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\ruins_modules\\v2\\individual\\03_Wall_Corner.blend": "b8f67e89e2fe2bad62abf6c71222baf50ad4921560225fb44952cc41f1b871a9",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\ruins_modules\\v2\\individual\\04_Stone_Doorway.blend": "702f3429db2889605e88bb6c13ab65a1bc61a2643dd7f2d9dabb6ca0dd0bae68",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_trees\\individual\\04_Windward_Tree.blend": "6287d8503da8ebfacbf34ba615fa6cbcaec955ec89434a26a019dd4a14845aa1",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_trees\\individual\\05_Amber_Sapling.blend": "79f6c2c1a6c5b6a5fb0bd0acbc1cedda3ccd23bf46029950c32a0490a5d83d97",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\ruins_modules\\v2\\individual\\05_Stair_Three_Treads.blend": "bb4e8515643ff85288ee63f23bb28d54918e1847acd035a46bbdd73e915a3b45",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\ruins_modules\\v2\\individual\\06_Foundation_Tile_300.blend": "e1b104f321e47d4f8b17b2e783fc26fa2ce547f5e62e959566cf65a6712c386f",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\ruins_modules\\v2\\individual\\07_Book_Niche.blend": "edf340998da379a6b76fcab43895db49b7c27bac9cb131434d1c88e43750325b",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\08_MossRock_Broad.blend": "3ad878b3a1f483ea8b94e5f126d314bea2e04e83230b9ab4df7834bbc62e7882",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\ruins_modules\\v2\\individual\\08_Rubble_Cluster.blend": "14b23792bdf4f71ef34047911db955661995d07eb33ea77de4ac146e0d0a98d4",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\09_MossRock_Split.blend": "9905eb03648e1222c4164853039e122b58de8b83859d7d075cd2fef483022333",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\10_MossRock_Pebbles.blend": "a80a4d821777fab37c74df5b89046ae331df4f6c1083e33fd4e21e41c178c90d",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\11_Fallen_Branch.blend": "03f3e06d80bfb9f66f1255c0a09c89b53dfefb597936ee2d3cdcab1800eb4f85",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\12_Hollow_Log.blend": "f795b7950f29f81914332934de7972ce9d0e999d13fd20d0717a89d12c3b3e12",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\14_Rolled_Bedroll.blend": "82405ba397958f2bc943bc83eb1cb9726a53c4cad0cffe9b276203afcc864e0d",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\16_Leather_Flask.blend": "6d0650e7c5c4565a0c2ab3b6043ecc5e8e29e41f0c7ebb75e326090ce2cc7bdb",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\18_Wicker_Basket.blend": "688917db16d6626e61da76f8253cf1fbcc793bf307e392de42fc67c5cb794429",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\19_Firewood_Stack.blend": "2438347f5403317bc26abb9ec3b4d44e718a44013f03b35ebb96f51aa95e2b6f",
+    "C:\\Users\\AAA\\Documents\\ChatGPT\\well world\\art\\prologue_terrain\\..\\fantasy_props\\individual\\20_Terracotta_Jar.blend": "ed46e4759ff21a9195fa27741c12ef93bf3cd6eb5fd11ae6c11f01a45dd2b36d"
+  },
+  "terrain_water_hashes": {
+    "Terrain_01_Ruins_Highland": "f1817c25ff54972757f8aa9705bdb1a9f7090047594d1dacb4143b99e487c1c3",
+    "Terrain_02_Descending_Slope": "6eaf3181b1dd01054c8429d2d38c21db50d7248212dfab9042313470ce79c66c",
+    "Terrain_03_Settlement_Terrace": "1aaf192a13b859a3996f2b30af6d3731fc399dba73645b8cc522ce350edadf12",
+    "Terrain_04_Creek_Bed": "924589012a913eff68df015f897588aae8a0265c31d74f0f48301eeedcf1f032",
+    "Terrain_05_Eastern_Hills": "83acec23067b0c305bf5e77887f60fc583f06c403cf6d42b9e1356dc78ab9902",
+    "Water_Creek": "03a453e5d6d93f6a8be341859e4e1ae6790f5ff1bd1dba92a62a37e7442ed4c2"
+  },
+  "new_objects": 187,
+  "source_counts": {
+    "20_Terracotta_Jar": 3,
+    "18_Wicker_Basket": 4,
+    "16_Leather_Flask": 3,
+    "10_MossRock_Pebbles": 37,
+    "Timber_Post_200": 6,
+    "Timber_Plank_360": 4,
+    "19_Firewood_Stack": 4,
+    "11_Fallen_Branch": 6,
+    "12_Hollow_Log": 5,
+    "14_Rolled_Bedroll": 1,
+    "03_Mushrooms_Russet": 30,
+    "08_MossRock_Broad": 8,
+    "01_Fern_Spread": 41,
+    "05_Amber_Sapling": 2,
+    "02_Fern_Fiddlehead": 28,
+    "09_MossRock_Split": 5
+  },
+  "group_counts": {
+    "Yard_Storage": 18,
+    "Yard_Fuel": 18,
+    "Yard_Rest": 15,
+    "Workshop": 25,
+    "Creek_Deadwood": 47,
+    "Ruins_Wall_Footings": 64
+  },
+  "skipped": {
+    "route_clearance": 1,
+    "steep_surface": 7,
+    "water_clearance": 6,
+    "ruin_access": 2
+  },
+  "placements": [
+    {
+      "object": "V10_20_Terracotta_Jar",
+      "source": "20_Terracotta_Jar",
+      "group": "Yard_Storage",
+      "position": [
+        -14.300000190734863,
+        -1.0,
+        4.399993896484375
+      ],
+      "scale": 1,
+      "yaw": 3.919755458831787,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4752961822696291,
+      "route_clearance": 8.524703817730371,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_20_Terracotta_Jar.001",
+      "source": "20_Terracotta_Jar",
+      "group": "Yard_Storage",
+      "position": [
+        -13.649999618530273,
+        -0.5,
+        4.399993896484375
+      ],
+      "scale": 0.75,
+      "yaw": 2.839942455291748,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.35647213670222183,
+      "route_clearance": 9.143527863297779,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_18_Wicker_Basket",
+      "source": "18_Wicker_Basket",
+      "group": "Yard_Storage",
+      "position": [
+        -14.199999809265137,
+        0.05000000074505806,
+        4.399993896484375
+      ],
+      "scale": 0.85,
+      "yaw": 4.019074440002441,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.46640764662737816,
+      "route_clearance": 9.583592353372623,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_16_Leather_Flask",
+      "source": "16_Leather_Flask",
+      "group": "Yard_Storage",
+      "position": [
+        -13.800000190734863,
+        -1.350000023841858,
+        4.399993896484375
+      ],
+      "scale": 0.9,
+      "yaw": 3.862722158432007,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.25091390078952003,
+      "route_clearance": 8.39908609921048,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Storage",
+      "position": [
+        -13.399999618530273,
+        1.0,
+        4.399993896484375
+      ],
+      "scale": 0.55,
+      "yaw": 1.7146763801574707,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.3835740257199604,
+      "route_clearance": 10.61642597428004,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_Timber_Post_200",
+      "source": "Timber_Post_200",
+      "group": "Yard_Storage",
+      "position": [
+        -13.300000190734863,
+        -0.5,
+        4.399993896484375
+      ],
+      "grounded": false
+    },
+    {
+      "object": "V10_Timber_Post_200.001",
+      "source": "Timber_Post_200",
+      "group": "Yard_Storage",
+      "position": [
+        -13.300000190734863,
+        1.0,
+        4.399993896484375
+      ],
+      "grounded": false
+    },
+    {
+      "object": "V10_Timber_Post_200.002",
+      "source": "Timber_Post_200",
+      "group": "Yard_Storage",
+      "position": [
+        -13.300000190734863,
+        2.5,
+        4.399993896484375
+      ],
+      "grounded": false
+    },
+    {
+      "object": "V10_Timber_Plank_360",
+      "source": "Timber_Plank_360",
+      "group": "Yard_Storage",
+      "position": [
+        -13.300000190734863,
+        1.0,
+        4.799993991851807
+      ],
+      "grounded": false
+    },
+    {
+      "object": "V10_Timber_Plank_360.001",
+      "source": "Timber_Plank_360",
+      "group": "Yard_Storage",
+      "position": [
+        -13.300000190734863,
+        1.0,
+        5.299993991851807
+      ],
+      "grounded": false
+    },
+    {
+      "object": "V10_19_Firewood_Stack",
+      "source": "19_Firewood_Stack",
+      "group": "Yard_Fuel",
+      "position": [
+        -3.200000047683716,
+        2.0,
+        4.39947509765625
+      ],
+      "scale": 1,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.6367249522307513,
+      "route_clearance": 11.363275047769248,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_19_Firewood_Stack.001",
+      "source": "19_Firewood_Stack",
+      "group": "Yard_Fuel",
+      "position": [
+        -3.0999999046325684,
+        3.0,
+        4.3806915283203125
+      ],
+      "scale": 0.85,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.5412162093961386,
+      "route_clearance": 12.458783790603862,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_11_Fallen_Branch",
+      "source": "11_Fallen_Branch",
+      "group": "Yard_Fuel",
+      "position": [
+        -2.700000047683716,
+        1.0,
+        4.399993896484375
+      ],
+      "scale": 0.7,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.7814397788971401,
+      "route_clearance": 10.21856022110286,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_12_Hollow_Log",
+      "source": "12_Hollow_Log",
+      "group": "Yard_Fuel",
+      "position": [
+        -2.799999952316284,
+        4.650000095367432,
+        4.2884521484375
+      ],
+      "scale": 0.65,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.9330252843696446,
+      "route_clearance": 13.716974715630355,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_18_Wicker_Basket.001",
+      "source": "18_Wicker_Basket",
+      "group": "Yard_Fuel",
+      "position": [
+        -3.200000047683716,
+        0.10000000149011612,
+        4.4000091552734375
+      ],
+      "scale": 0.75,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.41153615878886307,
+      "route_clearance": 9.688463841211137,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_Timber_Post_200.003",
+      "source": "Timber_Post_200",
+      "group": "Yard_Fuel",
+      "position": [
+        -2.0,
+        1.5,
+        4.3963623046875
+      ],
+      "grounded": false
+    },
+    {
+      "object": "V10_Timber_Post_200.004",
+      "source": "Timber_Post_200",
+      "group": "Yard_Fuel",
+      "position": [
+        -2.0,
+        3.0,
+        4.363555908203125
+      ],
+      "grounded": false
+    },
+    {
+      "object": "V10_Timber_Post_200.005",
+      "source": "Timber_Post_200",
+      "group": "Yard_Fuel",
+      "position": [
+        -2.0,
+        4.5,
+        4.281219482421875
+      ],
+      "grounded": false
+    },
+    {
+      "object": "V10_Timber_Plank_360.002",
+      "source": "Timber_Plank_360",
+      "group": "Yard_Fuel",
+      "position": [
+        -2.0,
+        3.0,
+        4.763556003570557
+      ],
+      "grounded": false
+    },
+    {
+      "object": "V10_Timber_Plank_360.003",
+      "source": "Timber_Plank_360",
+      "group": "Yard_Fuel",
+      "position": [
+        -2.0,
+        3.0,
+        5.263556003570557
+      ],
+      "grounded": false
+    },
+    {
+      "object": "V10_14_Rolled_Bedroll",
+      "source": "14_Rolled_Bedroll",
+      "group": "Yard_Rest",
+      "position": [
+        -22.799999237060547,
+        -18.200000762939453,
+        4.3810577392578125
+      ],
+      "scale": 1,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.500383858500583,
+      "route_clearance": 7.699616141499416,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_16_Leather_Flask.001",
+      "source": "16_Leather_Flask",
+      "group": "Yard_Rest",
+      "position": [
+        -23.200000762939453,
+        -17.5,
+        4.3863372802734375
+      ],
+      "scale": 1,
+      "yaw": 0.0,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2787932230994667,
+      "route_clearance": 7.221206776900534,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_18_Wicker_Basket.002",
+      "source": "18_Wicker_Basket",
+      "group": "Yard_Rest",
+      "position": [
+        -22.600000381469727,
+        -16.799999237060547,
+        4.3993988037109375
+      ],
+      "scale": 0.8,
+      "yaw": 0.30000001192092896,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.43897190270812064,
+      "route_clearance": 6.3610280972918805,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_12_Hollow_Log.001",
+      "source": "12_Hollow_Log",
+      "group": "Yard_Rest",
+      "position": [
+        -23.0,
+        -15.100000381469727,
+        4.3983917236328125
+      ],
+      "scale": 0.7,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 1.0047964600903863,
+      "route_clearance": 4.095203539909614,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet",
+      "source": "03_Mushrooms_Russet",
+      "group": "Yard_Rest",
+      "position": [
+        -23.299999237060547,
+        -14.5,
+        4.39263916015625
+      ],
+      "scale": 0.288,
+      "yaw": 0.0,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.15674848465667252,
+      "route_clearance": 4.3432515153433275,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_19_Firewood_Stack.002",
+      "source": "19_Firewood_Stack",
+      "group": "Workshop",
+      "position": [
+        1.0,
+        -19.0,
+        4.36456298828125
+      ],
+      "scale": 1,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.6367249522307513,
+      "route_clearance": 8.363275047769248,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_19_Firewood_Stack.003",
+      "source": "19_Firewood_Stack",
+      "group": "Workshop",
+      "position": [
+        1.2000000476837158,
+        -18.0,
+        4.384857177734375
+      ],
+      "scale": 0.9,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.5730524570076762,
+      "route_clearance": 7.426947542992324,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_12_Hollow_Log.002",
+      "source": "12_Hollow_Log",
+      "group": "Workshop",
+      "position": [
+        1.5,
+        -16.5,
+        4.3989410400390625
+      ],
+      "scale": 0.8,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 1.1483388115318702,
+      "route_clearance": 5.35166118846813,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_18_Wicker_Basket.003",
+      "source": "18_Wicker_Basket",
+      "group": "Workshop",
+      "position": [
+        0.800000011920929,
+        -21.0,
+        4.2721710205078125
+      ],
+      "scale": 0.85,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.46640764662737816,
+      "route_clearance": 10.533592353372622,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_20_Terracotta_Jar.002",
+      "source": "20_Terracotta_Jar",
+      "group": "Workshop",
+      "position": [
+        -6.699999809265137,
+        -20.5,
+        4.3673095703125
+      ],
+      "scale": 0.8,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.38023694581570333,
+      "route_clearance": 3.900393586338292,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_16_Leather_Flask.002",
+      "source": "16_Leather_Flask",
+      "group": "Workshop",
+      "position": [
+        -6.5,
+        -21.0,
+        4.3754119873046875
+      ],
+      "scale": 1,
+      "yaw": 1.5707963705062866,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2787932230994667,
+      "route_clearance": 4.248340949887316,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_08_MossRock_Broad",
+      "source": "08_MossRock_Broad",
+      "group": "Workshop",
+      "position": [
+        -7.2165656089782715,
+        -22.837141036987305,
+        4.314177989959717
+      ],
+      "scale": 0.17042791935616422,
+      "yaw": 1.17676842212677,
+      "grounded": true,
+      "sink": 0.015,
+      "radius": 0.17176654312351536,
+      "route_clearance": 3.8162078036484504,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_08_MossRock_Broad.001",
+      "source": "08_MossRock_Broad",
+      "group": "Workshop",
+      "position": [
+        -7.133169174194336,
+        -22.847869873046875,
+        4.317687511444092
+      ],
+      "scale": 0.16497860293633465,
+      "yaw": 5.255587100982666,
+      "grounded": true,
+      "sink": 0.015,
+      "radius": 0.16627442512221394,
+      "route_clearance": 3.9057377211842446,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_08_MossRock_Broad.002",
+      "source": "08_MossRock_Broad",
+      "group": "Workshop",
+      "position": [
+        -7.224083423614502,
+        -23.147113800048828,
+        4.308562755584717
+      ],
+      "scale": 0.23338338631547534,
+      "yaw": 5.341268539428711,
+      "grounded": true,
+      "sink": 0.015,
+      "radius": 0.23521649293912603,
+      "route_clearance": 3.7746616415670506,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_08_MossRock_Broad.003",
+      "source": "08_MossRock_Broad",
+      "group": "Workshop",
+      "position": [
+        -6.4228668212890625,
+        -23.107271194458008,
+        4.328841686248779
+      ],
+      "scale": 0.1947981046098451,
+      "yaw": 1.4135329723358154,
+      "grounded": true,
+      "sink": 0.015,
+      "radius": 0.19632814366477686,
+      "route_clearance": 4.607380097397738,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_08_MossRock_Broad.004",
+      "source": "08_MossRock_Broad",
+      "group": "Workshop",
+      "position": [
+        -6.973457336425781,
+        -22.940214157104492,
+        4.322829723358154
+      ],
+      "scale": 0.20876013867349213,
+      "yaw": 1.4167271852493286,
+      "grounded": true,
+      "sink": 0.015,
+      "radius": 0.21039984233448594,
+      "route_clearance": 4.0293596048326545,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_08_MossRock_Broad.005",
+      "source": "08_MossRock_Broad",
+      "group": "Workshop",
+      "position": [
+        -6.341617107391357,
+        -23.190139770507812,
+        4.327819347381592
+      ],
+      "scale": 0.22548680485039796,
+      "yaw": 1.871932864189148,
+      "grounded": true,
+      "sink": 0.015,
+      "radius": 0.22725788788266812,
+      "route_clearance": 4.665190839037453,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_08_MossRock_Broad.006",
+      "source": "08_MossRock_Broad",
+      "group": "Workshop",
+      "position": [
+        -6.586538791656494,
+        -22.91236114501953,
+        4.331649303436279
+      ],
+      "scale": 0.20702656719846335,
+      "yaw": 0.35843947529792786,
+      "grounded": true,
+      "sink": 0.015,
+      "radius": 0.2086526545459585,
+      "route_clearance": 4.413642046274221,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_08_MossRock_Broad.007",
+      "source": "08_MossRock_Broad",
+      "group": "Workshop",
+      "position": [
+        -6.967309951782227,
+        -23.376605987548828,
+        4.309691905975342
+      ],
+      "scale": 0.22907174961681565,
+      "yaw": 1.0258705615997314,
+      "grounded": true,
+      "sink": 0.015,
+      "radius": 0.2308709905488425,
+      "route_clearance": 4.056382173284408,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_11_Fallen_Branch.001",
+      "source": "11_Fallen_Branch",
+      "group": "Workshop",
+      "position": [
+        -6.800000190734863,
+        -23.0,
+        4.33984375
+      ],
+      "scale": 0.35,
+      "yaw": 0.0,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.39071988944857006,
+      "route_clearance": 4.027383827016017,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_11_Fallen_Branch.002",
+      "source": "11_Fallen_Branch",
+      "group": "Workshop",
+      "position": [
+        -6.670000076293945,
+        -23.0,
+        4.3424072265625
+      ],
+      "scale": 0.35,
+      "yaw": 1.100000023841858,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.39071988944857006,
+      "route_clearance": 4.15679823845323,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_11_Fallen_Branch.003",
+      "source": "11_Fallen_Branch",
+      "group": "Workshop",
+      "position": [
+        -6.539999961853027,
+        -23.0,
+        4.344940185546875
+      ],
+      "scale": 0.35,
+      "yaw": 2.200000047683716,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.39071988944857006,
+      "route_clearance": 4.2862126498904445,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread",
+      "source": "01_Fern_Spread",
+      "group": "Yard_Storage",
+      "position": [
+        -21.700000762939453,
+        2.799999952316284,
+        4.3186798095703125
+      ],
+      "scale": 0.4,
+      "yaw": 5.560015678405762,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 12.354433334148647,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.001",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Storage",
+      "position": [
+        -21.25,
+        3.0,
+        4.324554443359375
+      ],
+      "scale": 0.38,
+      "yaw": 5.028369426727295,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 12.734985218593481,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.001",
+      "source": "01_Fern_Spread",
+      "group": "Yard_Storage",
+      "position": [
+        -21.299999237060547,
+        3.4000000953674316,
+        4.2999267578125
+      ],
+      "scale": 0.4,
+      "yaw": 0.028064491227269173,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 12.954433334148646,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.002",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Storage",
+      "position": [
+        -20.850000381469727,
+        3.5999999046325684,
+        4.304229736328125
+      ],
+      "scale": 0.38,
+      "yaw": 4.721470832824707,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 13.33498521859348,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.002",
+      "source": "01_Fern_Spread",
+      "group": "Yard_Storage",
+      "position": [
+        -14.699999809265137,
+        3.299999952316284,
+        4.3986053466796875
+      ],
+      "scale": 0.4,
+      "yaw": 4.404173374176025,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 12.854433334148647,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.003",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Storage",
+      "position": [
+        -14.25,
+        3.5,
+        4.397674560546875
+      ],
+      "scale": 0.38,
+      "yaw": 0.46799325942993164,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 13.234985218593481,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.003",
+      "source": "01_Fern_Spread",
+      "group": "Yard_Storage",
+      "position": [
+        -14.199999809265137,
+        2.9000000953674316,
+        4.399993896484375
+      ],
+      "scale": 0.4,
+      "yaw": 3.725883960723877,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 12.454433334148646,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.004",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Storage",
+      "position": [
+        -13.75,
+        3.0999999046325684,
+        4.3997344970703125
+      ],
+      "scale": 0.38,
+      "yaw": 1.3949182033538818,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 12.83498521859348,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.004",
+      "source": "01_Fern_Spread",
+      "group": "Yard_Fuel",
+      "position": [
+        -10.699999809265137,
+        4.800000190734863,
+        4.376495361328125
+      ],
+      "scale": 0.4,
+      "yaw": 3.567377805709839,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 14.354433334148647,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.005",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Fuel",
+      "position": [
+        -10.25,
+        5.0,
+        4.3701629638671875
+      ],
+      "scale": 0.38,
+      "yaw": 5.969696998596191,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 14.734985218593481,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.005",
+      "source": "01_Fern_Spread",
+      "group": "Yard_Fuel",
+      "position": [
+        -10.300000190734863,
+        5.400000095367432,
+        4.3489532470703125
+      ],
+      "scale": 0.4,
+      "yaw": 5.089615821838379,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 14.954433334148646,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.006",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Fuel",
+      "position": [
+        -9.850000381469727,
+        5.599999904632568,
+        4.3365325927734375
+      ],
+      "scale": 0.38,
+      "yaw": 2.3085639476776123,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 15.334985218593483,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.006",
+      "source": "01_Fern_Spread",
+      "group": "Yard_Fuel",
+      "position": [
+        -3.700000047683716,
+        5.300000190734863,
+        4.26300048828125
+      ],
+      "scale": 0.4,
+      "yaw": 4.607635498046875,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 14.854433334148647,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.007",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Fuel",
+      "position": [
+        -3.25,
+        5.5,
+        4.2373046875
+      ],
+      "scale": 0.38,
+      "yaw": 5.5823588371276855,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 15.234985218593481,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.007",
+      "source": "01_Fern_Spread",
+      "group": "Yard_Fuel",
+      "position": [
+        -3.200000047683716,
+        4.900000095367432,
+        4.2809295654296875
+      ],
+      "scale": 0.4,
+      "yaw": 1.3111274242401123,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 14.454433334148646,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.008",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Fuel",
+      "position": [
+        -2.75,
+        5.099999904632568,
+        4.2571258544921875
+      ],
+      "scale": 0.38,
+      "yaw": 2.3002262115478516,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 14.834985218593483,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.008",
+      "source": "01_Fern_Spread",
+      "group": "Yard_Rest",
+      "position": [
+        -22.700000762939453,
+        -14.199999809265137,
+        4.3896484375
+      ],
+      "scale": 0.4,
+      "yaw": 0.43997544050216675,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 3.7544333341486453,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.009",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Rest",
+      "position": [
+        -22.25,
+        -14.0,
+        4.38787841796875
+      ],
+      "scale": 0.38,
+      "yaw": 6.187485218048096,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 3.734985218593482,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.009",
+      "source": "01_Fern_Spread",
+      "group": "Yard_Rest",
+      "position": [
+        -22.299999237060547,
+        -13.600000381469727,
+        4.38262939453125
+      ],
+      "scale": 0.4,
+      "yaw": 0.5775700211524963,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 3.1544333341486457,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.010",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Rest",
+      "position": [
+        -21.850000381469727,
+        -13.399999618530273,
+        4.380645751953125
+      ],
+      "scale": 0.38,
+      "yaw": 2.5455660820007324,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 3.1349852185934823,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.010",
+      "source": "01_Fern_Spread",
+      "group": "Yard_Rest",
+      "position": [
+        -15.699999809265137,
+        -13.699999809265137,
+        4.392730712890625
+      ],
+      "scale": 0.4,
+      "yaw": 2.013697862625122,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 3.2544333341486453,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.011",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Rest",
+      "position": [
+        -15.25,
+        -13.5,
+        4.3921051025390625
+      ],
+      "scale": 0.38,
+      "yaw": 1.4174506664276123,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 3.234985218593482,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.011",
+      "source": "01_Fern_Spread",
+      "group": "Yard_Rest",
+      "position": [
+        -15.199999809265137,
+        -14.100000381469727,
+        4.3953704833984375
+      ],
+      "scale": 0.4,
+      "yaw": 1.806376576423645,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 3.6544333341486457,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.012",
+      "source": "10_MossRock_Pebbles",
+      "group": "Yard_Rest",
+      "position": [
+        -14.75,
+        -13.899999618530273,
+        4.3914794921875
+      ],
+      "scale": 0.38,
+      "yaw": 2.7445156574249268,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 3.6349852185934823,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.012",
+      "source": "01_Fern_Spread",
+      "group": "Workshop",
+      "position": [
+        -6.699999809265137,
+        -17.200000762939453,
+        4.3689727783203125
+      ],
+      "scale": 0.4,
+      "yaw": 0.7799585461616516,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 3.522193860630255,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.013",
+      "source": "10_MossRock_Pebbles",
+      "group": "Workshop",
+      "position": [
+        -6.25,
+        -17.0,
+        4.3823699951171875
+      ],
+      "scale": 0.38,
+      "yaw": 3.926445960998535,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 4.131756889216771,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.013",
+      "source": "01_Fern_Spread",
+      "group": "Workshop",
+      "position": [
+        -6.300000190734863,
+        -16.600000381469727,
+        4.3808135986328125
+      ],
+      "scale": 0.4,
+      "yaw": 0.03745361417531967,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 3.8635065940910405,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.014",
+      "source": "10_MossRock_Pebbles",
+      "group": "Workshop",
+      "position": [
+        -5.849999904632568,
+        -16.399999618530273,
+        4.3909759521484375
+      ],
+      "scale": 0.38,
+      "yaw": 2.4944798946380615,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 4.4730696226775555,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.014",
+      "source": "01_Fern_Spread",
+      "group": "Workshop",
+      "position": [
+        0.30000001192092896,
+        -16.700000762939453,
+        4.399993896484375
+      ],
+      "scale": 0.4,
+      "yaw": 5.543405055999756,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 6.254433334148645,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.015",
+      "source": "10_MossRock_Pebbles",
+      "group": "Workshop",
+      "position": [
+        0.75,
+        -16.5,
+        4.39984130859375
+      ],
+      "scale": 0.38,
+      "yaw": 3.516278028488159,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 6.234985218593482,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.015",
+      "source": "01_Fern_Spread",
+      "group": "Workshop",
+      "position": [
+        0.800000011920929,
+        -17.100000381469727,
+        4.3993988037109375
+      ],
+      "scale": 0.4,
+      "yaw": 1.267563819885254,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4455666658513538,
+      "route_clearance": 6.6544333341486475,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.016",
+      "source": "10_MossRock_Pebbles",
+      "group": "Workshop",
+      "position": [
+        1.25,
+        -16.899999618530273,
+        4.3976898193359375
+      ],
+      "scale": 0.38,
+      "yaw": 2.6624128818511963,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2650147814065181,
+      "route_clearance": 6.634985218593484,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_05_Amber_Sapling",
+      "source": "05_Amber_Sapling",
+      "group": "Yard_Rest",
+      "position": [
+        -25.0,
+        4.0,
+        4.189596176147461
+      ],
+      "scale": 0.8,
+      "yaw": 4.251092433929443,
+      "grounded": true,
+      "sink": 0,
+      "radius": 2.1520305502772934,
+      "route_clearance": 11.847969449722706,
+      "source_bottom": -0.09958967566490173
+    },
+    {
+      "object": "V10_05_Amber_Sapling.001",
+      "source": "05_Amber_Sapling",
+      "group": "Yard_Rest",
+      "position": [
+        1.0,
+        8.0,
+        4.076604843139648
+      ],
+      "scale": 0.8,
+      "yaw": 5.009101867675781,
+      "grounded": true,
+      "sink": 0,
+      "radius": 2.1520305502772934,
+      "route_clearance": 15.847969449722706,
+      "source_bottom": -0.09958967566490173
+    },
+    {
+      "object": "V10_12_Hollow_Log.003",
+      "source": "12_Hollow_Log",
+      "group": "Creek_Deadwood",
+      "position": [
+        21.0,
+        15.0,
+        6.177886962890625
+      ],
+      "scale": 0.95,
+      "yaw": 1.149999976158142,
+      "grounded": true,
+      "sink": 0,
+      "radius": 1.3636523386940957,
+      "route_clearance": 23.636347661305905,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_11_Fallen_Branch.004",
+      "source": "11_Fallen_Branch",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.700000762939453,
+        13.699999809265137,
+        6.361175537109375
+      ],
+      "scale": 0.75,
+      "yaw": -0.699999988079071,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.8372569059612216,
+      "route_clearance": 22.694493456244526,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.016",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        21.765043258666992,
+        12.321937561035156,
+        6.239776611328125
+      ],
+      "scale": 0.6452025256070284,
+      "yaw": 3.806178092956543,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.7187018453339908,
+      "route_clearance": 21.57064199336412,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.001",
+      "source": "03_Mushrooms_Russet",
+      "group": "Creek_Deadwood",
+      "position": [
+        21.822904586791992,
+        16.61764144897461,
+        6.2774658203125
+      ],
+      "scale": 0.29755167179326564,
+      "yaw": 2.885389804840088,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.16194713076615957,
+      "route_clearance": 26.377771081399597,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.002",
+      "source": "03_Mushrooms_Russet",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.41883087158203,
+        11.801705360412598,
+        6.3131866455078125
+      ],
+      "scale": 0.18512556214786222,
+      "yaw": 3.9519481658935547,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.10075746992323631,
+      "route_clearance": 21.586510923655265,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        20.1064510345459,
+        15.677879333496094,
+        6.0990753173828125
+      ],
+      "scale": 0.41424900699197037,
+      "yaw": 1.9977158308029175,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.38439014628035945,
+      "route_clearance": 25.293489335255906,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.003",
+      "source": "03_Mushrooms_Russet",
+      "group": "Creek_Deadwood",
+      "position": [
+        23.209274291992188,
+        16.55683708190918,
+        6.4474639892578125
+      ],
+      "scale": 0.1790827221646046,
+      "yaw": 4.395320892333984,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.09746856016490858,
+      "route_clearance": 26.21346814508083,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.017",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.15315055847168,
+        13.792722702026367,
+        6.294586181640625
+      ],
+      "scale": 0.53109999890713,
+      "yaw": 5.7987775802612305,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.5916011393667688,
+      "route_clearance": 23.104331985403288,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.001",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.64301872253418,
+        13.829394340515137,
+        6.3548583984375
+      ],
+      "scale": 0.5926131500763177,
+      "yaw": 0.41308993101119995,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.5498978913663777,
+      "route_clearance": 23.117642686917122,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.018",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.113296508789062,
+        16.50605010986328,
+        6.309173583984375
+      ],
+      "scale": 0.40017505108294404,
+      "yaw": 3.9168548583984375,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4457616581698064,
+      "route_clearance": 25.94496568572408,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.017",
+      "source": "10_MossRock_Pebbles",
+      "group": "Creek_Deadwood",
+      "position": [
+        21.437829971313477,
+        17.952842712402344,
+        6.24639892578125
+      ],
+      "scale": 0.5638101930204342,
+      "yaw": 4.197695255279541,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.39320535541599244,
+      "route_clearance": 27.520895263817227,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.018",
+      "source": "10_MossRock_Pebbles",
+      "group": "Creek_Deadwood",
+      "position": [
+        20.701276779174805,
+        11.970314979553223,
+        6.126983642578125
+      ],
+      "scale": 0.48400517379133623,
+      "yaw": 0.6631178855895996,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.3375487508735125,
+      "route_clearance": 21.63276659242797,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.019",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.341880798339844,
+        13.555266380310059,
+        6.3159942626953125
+      ],
+      "scale": 0.4546879591265794,
+      "yaw": 4.73234748840332,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.5064844948769666,
+      "route_clearance": 22.929132102426433,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.019",
+      "source": "10_MossRock_Pebbles",
+      "group": "Creek_Deadwood",
+      "position": [
+        20.15323829650879,
+        16.84661102294922,
+        6.1121978759765625
+      ],
+      "scale": 0.3722818285816434,
+      "yaw": 2.4637224674224854,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.25963207216627116,
+      "route_clearance": 26.58697870612889,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.002",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        19.277597427368164,
+        13.087657928466797,
+        6.0086212158203125
+      ],
+      "scale": 0.6702529622842229,
+      "yaw": 3.377761125564575,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.621941464840423,
+      "route_clearance": 22.465716166018108,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.004",
+      "source": "03_Mushrooms_Russet",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.21664810180664,
+        16.01787757873535,
+        6.3184051513671875
+      ],
+      "scale": 0.30914227306901565,
+      "yaw": 5.28942346572876,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.16825549599613704,
+      "route_clearance": 25.72492204462409,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.003",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        18.522911071777344,
+        15.033177375793457,
+        5.9603118896484375
+      ],
+      "scale": 0.35997594978570535,
+      "yaw": 6.197847843170166,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.3340290638239737,
+      "route_clearance": 24.699148783627688,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.004",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        19.730756759643555,
+        11.957660675048828,
+        6.03851318359375
+      ],
+      "scale": 0.4662716798859384,
+      "yaw": 2.087270498275757,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4326630509972928,
+      "route_clearance": 21.524997772390975,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.005",
+      "source": "03_Mushrooms_Russet",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.746248245239258,
+        15.822673797607422,
+        6.381866455078125
+      ],
+      "scale": 0.2214561072101889,
+      "yaw": 3.2388832569122314,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.12053093480264833,
+      "route_clearance": 25.511206990363206,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.020",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        18.603809356689453,
+        14.240091323852539,
+        5.9618682861328125
+      ],
+      "scale": 0.5072788004737746,
+      "yaw": 3.5259807109832764,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.5650663094604348,
+      "route_clearance": 23.675024668347156,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.021",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        17.403057098388672,
+        15.799901008605957,
+        5.8730010986328125
+      ],
+      "scale": 0.42274932601047294,
+      "yaw": 5.775973796844482,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.47090751920348356,
+      "route_clearance": 25.328993302226333,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.005",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        23.65516471862793,
+        14.908646583557129,
+        6.4997711181640625
+      ],
+      "scale": 0.4297021800571034,
+      "yaw": 3.722968816757202,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.39872946237947404,
+      "route_clearance": 24.229586154252004,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.022",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        20.284605026245117,
+        18.136171340942383,
+        6.134002685546875
+      ],
+      "scale": 0.5629803402678838,
+      "yaw": 2.181914806365967,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.6271131828825541,
+      "route_clearance": 27.509057429376472,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.020",
+      "source": "10_MossRock_Pebbles",
+      "group": "Creek_Deadwood",
+      "position": [
+        17.486940383911133,
+        14.860047340393066,
+        5.874969482421875
+      ],
+      "scale": 0.4545020730705114,
+      "yaw": 4.118359088897705,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.3169730724831339,
+      "route_clearance": 24.543074435182582,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.006",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        18.167743682861328,
+        14.838376998901367,
+        5.9298858642578125
+      ],
+      "scale": 0.7090010022619537,
+      "yaw": 4.004673957824707,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.6578965655255669,
+      "route_clearance": 24.18048005115213,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.006",
+      "source": "03_Mushrooms_Russet",
+      "group": "Creek_Deadwood",
+      "position": [
+        18.483427047729492,
+        13.65632152557373,
+        5.948211669921875
+      ],
+      "scale": 0.23107527384264293,
+      "yaw": 1.9988744258880615,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.12576631602937471,
+      "route_clearance": 23.53055497362193,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.007",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        19.871353149414062,
+        16.552520751953125,
+        6.084442138671875
+      ],
+      "scale": 0.6554144130522539,
+      "yaw": 0.8370817303657532,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.6081724707967621,
+      "route_clearance": 25.944347664964234,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.021",
+      "source": "10_MossRock_Pebbles",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.531780242919922,
+        16.754636764526367,
+        6.3621826171875
+      ],
+      "scale": 0.4127969458290306,
+      "yaw": 1.936513900756836,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.2878876114846285,
+      "route_clearance": 26.29497160641003,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.008",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        18.25990104675293,
+        12.614496231079102,
+        5.92315673828125
+      ],
+      "scale": 0.6488529067402533,
+      "yaw": 2.6142234802246094,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.6020839145696658,
+      "route_clearance": 22.012412688411523,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.007",
+      "source": "03_Mushrooms_Russet",
+      "group": "Creek_Deadwood",
+      "position": [
+        21.874624252319336,
+        15.515871047973633,
+        6.274749755859375
+      ],
+      "scale": 0.34866756768478474,
+      "yaw": 4.16018533706665,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.18976775306777016,
+      "route_clearance": 25.25100895780631,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_11_Fallen_Branch.005",
+      "source": "11_Fallen_Branch",
+      "group": "Creek_Deadwood",
+      "position": [
+        21.700000762939453,
+        -30.299999237060547,
+        3.0397491455078125
+      ],
+      "scale": 0.75,
+      "yaw": -0.699999988079071,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.8372569059612216,
+      "route_clearance": 19.46274309403878,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.009",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.207319259643555,
+        -27.428178787231445,
+        3.3176422119140625
+      ],
+      "scale": 0.4532448646574095,
+      "yaw": 5.516155242919922,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4205752020785421,
+      "route_clearance": 17.00760419364445,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.008",
+      "source": "03_Mushrooms_Russet",
+      "group": "Creek_Deadwood",
+      "position": [
+        20.302873611450195,
+        -25.488719940185547,
+        2.0607757568359375
+      ],
+      "scale": 0.18075674794174434,
+      "yaw": 5.745161056518555,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.0983796747615852,
+      "route_clearance": 15.390339846838817,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.023",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        19.207000732421875,
+        -30.468767166137695,
+        1.687774658203125
+      ],
+      "scale": 0.35711282916480414,
+      "yaw": 3.0754077434539795,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.3977939315592647,
+      "route_clearance": 20.070972866131438,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.024",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        21.594257354736328,
+        -29.527603149414062,
+        3.002349853515625
+      ],
+      "scale": 0.4376715716352639,
+      "yaw": 4.7158989906311035,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.4875296572786162,
+      "route_clearance": 19.040073605122135,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.010",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        19.577116012573242,
+        -26.714126586914062,
+        1.7694549560546875
+      ],
+      "scale": 0.4220009786435137,
+      "yaw": 4.609197616577148,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.3915833597022463,
+      "route_clearance": 16.322544049424526,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.011",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        19.87198257446289,
+        -30.055768966674805,
+        1.9815521240234375
+      ],
+      "scale": 0.377770265586573,
+      "yaw": 1.2059211730957031,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.3505407742643249,
+      "route_clearance": 19.705227529445438,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.025",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        21.056886672973633,
+        -31.96902847290039,
+        2.7710723876953125
+      ],
+      "scale": 0.3612810191753704,
+      "yaw": 2.292571783065796,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.40243694787337203,
+      "route_clearance": 21.56659180265047,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.026",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.480344772338867,
+        -29.90430450439453,
+        3.2344970703125
+      ],
+      "scale": 0.6334207529880604,
+      "yaw": 0.48325690627098083,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.7055779324748601,
+      "route_clearance": 19.198726782754036,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.027",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        19.64436912536621,
+        -30.581613540649414,
+        1.8680267333984375
+      ],
+      "scale": 0.56982821120985,
+      "yaw": 1.5849659442901611,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.6347411404420348,
+      "route_clearance": 19.946872070297168,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.022",
+      "source": "10_MossRock_Pebbles",
+      "group": "Creek_Deadwood",
+      "position": [
+        21.339021682739258,
+        -32.26923751831055,
+        2.8820343017578125
+      ],
+      "scale": 0.6751466002737071,
+      "yaw": 0.5125604271888733,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.47085218076023766,
+      "route_clearance": 21.798384956488984,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.028",
+      "source": "01_Fern_Spread",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.7629337310791,
+        -29.6852970123291,
+        3.28472900390625
+      ],
+      "scale": 0.6208337231438905,
+      "yaw": 1.2368706464767456,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.6915570301732644,
+      "route_clearance": 18.993740794235972,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.012",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        19.450702667236328,
+        -30.504539489746094,
+        1.7774200439453125
+      ],
+      "scale": 0.5699889462688492,
+      "yaw": 1.0636377334594727,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.5289044288251433,
+      "route_clearance": 19.97563446962614,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.013",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        22.557788848876953,
+        -30.959280014038086,
+        3.2222442626953125
+      ],
+      "scale": 0.711644278546616,
+      "yaw": 4.224408149719238,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.66034931578102,
+      "route_clearance": 20.298930053792102,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.009",
+      "source": "03_Mushrooms_Russet",
+      "group": "Creek_Deadwood",
+      "position": [
+        19.21279525756836,
+        -27.49415397644043,
+        1.7012939453125
+      ],
+      "scale": 0.19771851391536657,
+      "yaw": 0.9332208037376404,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.10761138001667683,
+      "route_clearance": 17.386543006371394,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.010",
+      "source": "03_Mushrooms_Russet",
+      "group": "Creek_Deadwood",
+      "position": [
+        18.882448196411133,
+        -29.990568161010742,
+        1.632476806640625
+      ],
+      "scale": 0.3575661435418856,
+      "yaw": 5.956669330596924,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.1946109415441695,
+      "route_clearance": 19.79595744166292,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.014",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Creek_Deadwood",
+      "position": [
+        21.686019897460938,
+        -28.144607543945312,
+        3.0688934326171875
+      ],
+      "scale": 0.6180413456137709,
+      "yaw": 1.506348729133606,
+      "grounded": true,
+      "sink": 0,
+      "radius": 0.5734932353196746,
+      "route_clearance": 17.57111354999812,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_09_MossRock_Split",
+      "source": "09_MossRock_Split",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.4000015258789,
+        94.0,
+        19.966419219970703
+      ],
+      "scale": 0.65,
+      "yaw": 3.575706720352173,
+      "grounded": true,
+      "sink": 0.035,
+      "radius": 0.5490660542448783,
+      "route_clearance": 6.850933945755127,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.029",
+      "source": "01_Fern_Spread",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -128.54214477539062,
+        94.36642456054688,
+        19.991891860961914
+      ],
+      "scale": 0.7811874335120493,
+      "yaw": 1.1702717542648315,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.8701777003873499,
+      "route_clearance": 7.671969269494079,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.030",
+      "source": "01_Fern_Spread",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.20500946044922,
+        92.79682922363281,
+        19.991403579711914
+      ],
+      "scale": 0.7836381818795868,
+      "yaw": 4.603484153747559,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.8729076298347606,
+      "route_clearance": 6.332100107846993,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.011",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.53173065185547,
+        94.4341049194336,
+        19.991479873657227
+      ],
+      "scale": 0.19192689615193587,
+      "yaw": 2.7297730445861816,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.10445920186345312,
+      "route_clearance": 7.427269580710951,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.012",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -128.1829376220703,
+        95.1313705444336,
+        19.991724014282227
+      ],
+      "scale": 0.26816125489130266,
+      "yaw": 4.056629180908203,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.1459509387077896,
+      "route_clearance": 8.038046465006062,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.013",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -128.00389099121094,
+        93.51873779296875,
+        19.991846084594727
+      ],
+      "scale": 0.31080882451617503,
+      "yaw": 4.638658046722412,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.16916254257233362,
+      "route_clearance": 7.834723669444603,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.014",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.66685485839844,
+        95.24097442626953,
+        19.99151039123535
+      ],
+      "scale": 0.3242716654354421,
+      "yaw": 4.436827182769775,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.17648990338229528,
+      "route_clearance": 7.494149531398817,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.015",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.71808624267578,
+        93.44136047363281,
+        19.99167823791504
+      ],
+      "scale": 0.38487161368668893,
+      "yaw": 4.773653507232666,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.3571302607541361,
+      "route_clearance": 7.360955971228858,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.023",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -128.32713317871094,
+        94.28260803222656,
+        19.991846084594727
+      ],
+      "scale": 0.46638182677855106,
+      "yaw": 1.2794119119644165,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.32525809967286917,
+      "route_clearance": 8.001870211376183,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.024",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.86695098876953,
+        93.48025512695312,
+        19.991769790649414
+      ],
+      "scale": 0.5393035179965133,
+      "yaw": 5.646034240722656,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.37611422087792673,
+      "route_clearance": 7.490834305243819,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.016",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -128.15711975097656,
+        93.63695526123047,
+        19.99187660217285
+      ],
+      "scale": 0.3596688452262893,
+      "yaw": 2.802138328552246,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.33374409520721227,
+      "route_clearance": 7.823370108692838,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.017",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -129.00706481933594,
+        93.54684448242188,
+        19.99210548400879
+      ],
+      "scale": 0.7697952134760817,
+      "yaw": 0.1616131216287613,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.71430876047876,
+      "route_clearance": 8.292762983751116,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.031",
+      "source": "01_Fern_Spread",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -126.7279052734375,
+        93.84810638427734,
+        19.990869522094727
+      ],
+      "scale": 0.7982280470022997,
+      "yaw": 4.331567764282227,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.8891595237296309,
+      "route_clearance": 5.8387451377090835,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_09_MossRock_Split.001",
+      "source": "09_MossRock_Split",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.19999694824219,
+        98.0,
+        19.966541290283203
+      ],
+      "scale": 0.65,
+      "yaw": 1.2987667322158813,
+      "grounded": true,
+      "sink": 0.035,
+      "radius": 0.5490660542448783,
+      "route_clearance": 7.250933945755124,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.015",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -128.8905029296875,
+        97.37203216552734,
+        19.9918155670166
+      ],
+      "scale": 0.20933029540854484,
+      "yaw": 1.8757526874542236,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.11393127290980214,
+      "route_clearance": 9.087562265470403,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.018",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.0297622680664,
+        97.73587799072266,
+        19.99143409729004
+      ],
+      "scale": 0.40030710713924333,
+      "yaw": 4.924190044403076,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.3714531715782819,
+      "route_clearance": 7.171928244344287,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.019",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -128.38804626464844,
+        99.0909194946289,
+        19.99192237854004
+      ],
+      "scale": 0.5015341555301395,
+      "yaw": 4.646188735961914,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.4653838250783392,
+      "route_clearance": 8.867083265504538,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.016",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -126.39990234375,
+        98.82817077636719,
+        19.991479873657227
+      ],
+      "scale": 0.24166742079080808,
+      "yaw": 2.62215518951416,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.13153125694390835,
+      "route_clearance": 7.32592437353149,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.032",
+      "source": "01_Fern_Spread",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -125.8639907836914,
+        98.93427276611328,
+        19.991220474243164
+      ],
+      "scale": 0.5577301937560483,
+      "yaw": 0.9512374401092529,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.6212649571912799,
+      "route_clearance": 6.4402402749121,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.025",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -126.89282989501953,
+        98.23169708251953,
+        19.99149513244629
+      ],
+      "scale": 0.5696936299505816,
+      "yaw": 6.035228252410889,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.3973085073948399,
+      "route_clearance": 7.215508870230301,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.017",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.86524200439453,
+        97.26131439208984,
+        19.991662979125977
+      ],
+      "scale": 0.2579366791029353,
+      "yaw": 3.4657576084136963,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.14038605412069274,
+      "route_clearance": 8.0434721096555,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.020",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.97689056396484,
+        99.18526458740234,
+        19.991952896118164
+      ],
+      "scale": 0.5023538509023804,
+      "yaw": 3.1352150440216064,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.4661444372191599,
+      "route_clearance": 8.542029308556735,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.018",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.78450775146484,
+        98.92475891113281,
+        19.99187660217285
+      ],
+      "scale": 0.3831434147579222,
+      "yaw": 4.720142364501953,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.20853176968571974,
+      "route_clearance": 8.509401801419994,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.033",
+      "source": "01_Fern_Spread",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.86796569824219,
+        98.99473571777344,
+        19.991907119750977
+      ],
+      "scale": 0.7386063313308995,
+      "yaw": 2.1157000064849854,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.822745901069523,
+      "route_clearance": 8.001241997325495,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.021",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -127.60418701171875,
+        98.88036346435547,
+        19.991846084594727
+      ],
+      "scale": 0.469243266878821,
+      "yaw": 1.6085362434387207,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.43542044748973896,
+      "route_clearance": 8.101609712388814,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_09_MossRock_Split.002",
+      "source": "09_MossRock_Split",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -123.80000305175781,
+        101.19999694824219,
+        19.967212677001953
+      ],
+      "scale": 0.65,
+      "yaw": 5.070605278015137,
+      "grounded": true,
+      "sink": 0.035,
+      "radius": 0.5490660542448783,
+      "route_clearance": 6.722797530834259,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.022",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -122.05009460449219,
+        99.87335205078125,
+        19.989999771118164
+      ],
+      "scale": 0.794876201981269,
+      "yaw": 3.0861380100250244,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.7375819239085805,
+      "route_clearance": 4.5494256676943685,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.023",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -123.61032104492188,
+        100.12114715576172,
+        19.990610122680664
+      ],
+      "scale": 0.7670682563908804,
+      "yaw": 2.4727466106414795,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.7117783610929116,
+      "route_clearance": 5.554048089290938,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.019",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -125.59086608886719,
+        101.34638214111328,
+        19.99265480041504
+      ],
+      "scale": 0.23403684455955645,
+      "yaw": 1.3173118829727173,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.12737819700881836,
+      "route_clearance": 8.330423893696327,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.026",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -122.28323364257812,
+        99.98396301269531,
+        19.989999771118164
+      ],
+      "scale": 0.4537840995304415,
+      "yaw": 1.5728113651275635,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.3164723524810884,
+      "route_clearance": 5.165591850374154,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.020",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -124.5580825805664,
+        100.309326171875,
+        19.99151039123535
+      ],
+      "scale": 0.3361834610381058,
+      "yaw": 3.2818684577941895,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.18297308362624512,
+      "route_clearance": 6.8145290124305795,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.034",
+      "source": "01_Fern_Spread",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -124.09337615966797,
+        100.62013244628906,
+        19.99155616760254
+      ],
+      "scale": 0.7499538982725532,
+      "yaw": 1.0121033191680908,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.8353861449888172,
+      "route_clearance": 6.117424943193481,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.027",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -125.33055114746094,
+        99.91667938232422,
+        19.991540908813477
+      ],
+      "scale": 0.5363912492026799,
+      "yaw": 5.8811235427856445,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.3740831833047825,
+      "route_clearance": 6.877708167166148,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.035",
+      "source": "01_Fern_Spread",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -122.23690032958984,
+        99.86033630371094,
+        19.989999771118164
+      ],
+      "scale": 0.3902106743884005,
+      "yaw": 2.5384581089019775,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.43466217291711967,
+      "route_clearance": 4.915723107792786,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.021",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -122.1996841430664,
+        101.94366455078125,
+        19.993051528930664
+      ],
+      "scale": 0.26507526597051606,
+      "yaw": 4.288981914520264,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.14427134118348203,
+      "route_clearance": 7.139488050928979,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.024",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -122.09000396728516,
+        102.14021301269531,
+        19.993432998657227
+      ],
+      "scale": 0.5063301138764992,
+      "yaw": 2.5578360557556152,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.46983409315187846,
+      "route_clearance": 6.969976007701063,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.028",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -124.80442810058594,
+        102.24909210205078,
+        19.99332618713379
+      ],
+      "scale": 0.3847615855578672,
+      "yaw": 3.3515775203704834,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.26833554602695653,
+      "route_clearance": 8.428320949388173,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_09_MossRock_Split.003",
+      "source": "09_MossRock_Split",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -118.4000015258789,
+        101.30000305175781,
+        19.968082427978516
+      ],
+      "scale": 0.65,
+      "yaw": 5.549270153045654,
+      "grounded": true,
+      "sink": 0.035,
+      "radius": 0.5490660542448783,
+      "route_clearance": 5.950933945755117,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.029",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -117.56399536132812,
+        100.68101501464844,
+        19.992944717407227
+      ],
+      "scale": 0.7248311131227126,
+      "yaw": 0.8554412126541138,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.5055025236864706,
+      "route_clearance": 5.675765830428744,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.025",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -117.2317123413086,
+        102.5398178100586,
+        20.003870010375977
+      ],
+      "scale": 0.7616081643222333,
+      "yaw": 4.584561824798584,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.7067118297227781,
+      "route_clearance": 7.325243406843505,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.030",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -119.71870422363281,
+        102.40666961669922,
+        19.9958438873291
+      ],
+      "scale": 0.4176652338676304,
+      "yaw": 6.157240867614746,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.29128279119613765,
+      "route_clearance": 7.120729379694687,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.026",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -116.7838363647461,
+        100.71638488769531,
+        19.995309829711914
+      ],
+      "scale": 0.3813206525119456,
+      "yaw": 0.5330082178115845,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.35383525108034847,
+      "route_clearance": 6.205183198113422,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.031",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -119.25018310546875,
+        100.4054183959961,
+        19.99016761779785
+      ],
+      "scale": 0.6940097151555034,
+      "yaw": 1.9845384359359741,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.4840074551471989,
+      "route_clearance": 4.973167367368227,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.032",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -118.43521118164062,
+        100.57401275634766,
+        19.99118995666504
+      ],
+      "scale": 0.6113330104501187,
+      "yaw": 2.663450002670288,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.42634811613428114,
+      "route_clearance": 5.363142777313679,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.033",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -118.69733428955078,
+        100.74012756347656,
+        19.99082374572754
+      ],
+      "scale": 0.6690210929308708,
+      "yaw": 5.466193675994873,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.46658020710374876,
+      "route_clearance": 5.419501881142845,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.036",
+      "source": "01_Fern_Spread",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -117.39167022705078,
+        102.36773681640625,
+        20.00223731994629
+      ],
+      "scale": 0.4123823718077165,
+      "yaw": 3.069852113723755,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.45935959615559385,
+      "route_clearance": 7.356451452181849,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.037",
+      "source": "01_Fern_Spread",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -118.82360076904297,
+        101.77330780029297,
+        19.99454689025879
+      ],
+      "scale": 0.7056012039680601,
+      "yaw": 0.473915696144104,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.785980939681874,
+      "route_clearance": 6.088727972301321,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.022",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -120.03343963623047,
+        100.9207534790039,
+        19.989999771118164
+      ],
+      "scale": 0.20868948406031437,
+      "yaw": 4.396301746368408,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.1135825013549899,
+      "route_clearance": 5.807266220042136,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.034",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -118.56349182128906,
+        101.9976806640625,
+        19.99625587463379
+      ],
+      "scale": 0.5402702417805194,
+      "yaw": 6.173743724822998,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.37678842112081845,
+      "route_clearance": 6.766813077862478,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.023",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -118.60970306396484,
+        102.36760711669922,
+        19.997934341430664
+      ],
+      "scale": 0.2039798772545601,
+      "yaw": 0.04962654784321785,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.11101922451425819,
+      "route_clearance": 7.38661997064115,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_09_MossRock_Split.004",
+      "source": "09_MossRock_Split",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -113.0999984741211,
+        96.30000305175781,
+        19.988407135009766
+      ],
+      "scale": 0.65,
+      "yaw": 2.11452579498291,
+      "grounded": true,
+      "sink": 0.035,
+      "radius": 0.5490660542448783,
+      "route_clearance": 6.472329818371909,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.024",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -111.9327621459961,
+        95.09440612792969,
+        20.05112648010254
+      ],
+      "scale": 0.3087586973373528,
+      "yaw": 3.4954118728637695,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.16804672893124387,
+      "route_clearance": 7.89974211975077,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.035",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -113.79658508300781,
+        96.82042694091797,
+        19.999597549438477
+      ],
+      "scale": 0.5490729615450736,
+      "yaw": 0.4307691156864166,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.38292750231604517,
+      "route_clearance": 6.0820778473852135,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.038",
+      "source": "01_Fern_Spread",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -111.67308044433594,
+        96.76506042480469,
+        20.060571670532227
+      ],
+      "scale": 0.6855388836145577,
+      "yaw": 2.3321163654327393,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.7636331867089944,
+      "route_clearance": 7.748300580832116,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_02_Fern_Fiddlehead.027",
+      "source": "02_Fern_Fiddlehead",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -113.1141128540039,
+        96.46282196044922,
+        20.013559341430664
+      ],
+      "scale": 0.6389446393297374,
+      "yaw": 4.099313735961914,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.5928898301059052,
+      "route_clearance": 6.446661458891191,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.039",
+      "source": "01_Fern_Spread",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -111.61483764648438,
+        96.18374633789062,
+        20.062646865844727
+      ],
+      "scale": 0.4058464517930614,
+      "yaw": 3.1402411460876465,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.45207912593259136,
+      "route_clearance": 8.016223161310545,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_01_Fern_Spread.040",
+      "source": "01_Fern_Spread",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -111.74751281738281,
+        95.2583999633789,
+        20.05863380432129
+      ],
+      "scale": 0.3837614251552348,
+      "yaw": 4.9620137214660645,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.42747824672195456,
+      "route_clearance": 7.829050676645612,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.025",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -111.88961791992188,
+        96.12236022949219,
+        20.05118751525879
+      ],
+      "scale": 0.2166119603574696,
+      "yaw": 1.6001957654953003,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.11789443244633535,
+      "route_clearance": 8.069776840787256,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_10_MossRock_Pebbles.036",
+      "source": "10_MossRock_Pebbles",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -112.05864715576172,
+        96.52257537841797,
+        20.045419692993164
+      ],
+      "scale": 0.5261587101998371,
+      "yaw": 2.0173099040985107,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.3669469357072245,
+      "route_clearance": 7.719046272046919,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.026",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -112.63851928710938,
+        96.65704345703125,
+        20.027658462524414
+      ],
+      "scale": 0.20178827942544597,
+      "yaw": 4.342637062072754,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.10982641326880509,
+      "route_clearance": 7.435846064728826,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.027",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -113.71165466308594,
+        95.7046890258789,
+        19.997827529907227
+      ],
+      "scale": 0.24689441698218337,
+      "yaw": 0.6435362696647644,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.1343761310144093,
+      "route_clearance": 6.193328501225829,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.028",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -111.39788055419922,
+        97.1604232788086,
+        20.072031021118164
+      ],
+      "scale": 0.19500559004939647,
+      "yaw": 2.0208425521850586,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.10613482895771942,
+      "route_clearance": 8.763135366085587,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_03_Mushrooms_Russet.029",
+      "source": "03_Mushrooms_Russet",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -113.06877899169922,
+        95.88177490234375,
+        20.01310157775879
+      ],
+      "scale": 0.3513704474974249,
+      "yaw": 3.5672805309295654,
+      "grounded": true,
+      "sink": 0.01,
+      "radius": 0.19123883749429954,
+      "route_clearance": 6.795845675711665,
+      "source_bottom": 0.0
+    },
+    {
+      "object": "V10_12_Hollow_Log.004",
+      "source": "12_Hollow_Log",
+      "group": "Ruins_Wall_Footings",
+      "position": [
+        -128.5,
+        96.0,
+        20.001739501953125
+      ],
+      "scale": 0.8,
+      "yaw": 1.7000000476837158,
+      "grounded": true,
+      "sink": 0,
+      "radius": 1.1483388115318702,
+      "route_clearance": 7.410282572779975,
+      "source_bottom": 0.0
+    }
+  ],
+  "scope": "Blender only. Anchor and footprint clearance checks do not replace engine collision/navigation tests.",
+  "verification": {
+    "reopen_passed": true,
+    "max_ground_contact_error_m": 2.2888183593729183e-07,
+    "minimum_new_prop_road_margin_m": 3.134985311294236,
+    "terrain_water_unchanged": true,
+    "linked_sources_unchanged": 25
+  }
+}

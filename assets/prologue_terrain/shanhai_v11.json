@@ -1,0 +1,44 @@
+{
+  "source_v10_sha256": "1ef964b3aabe8e2b1298dae7eeafc3af95b59d9a83b24cba896720c207a35485",
+  "site": [
+    -121.0,
+    113.0,
+    20.812347412109375
+  ],
+  "libraries": [
+    "Ancient_Mineralized_Rib",
+    "Ancient_Root_Module",
+    "Jade_Fern_Original",
+    "White_Eared_Simian_Prototype"
+  ],
+  "creatures": 3,
+  "animation_frames": [
+    1,
+    180
+  ],
+  "animation_scope": "object hierarchy head observation and breathing; no AI or production skin rig",
+  "original_design": "mineralized bones and jade flora; simian inspired by white-eared xingxing",
+  "verified": {
+    "source_v10_unchanged": true,
+    "linked_paths_resolve": true,
+    "library_headers_readable": true,
+    "head_angle_change": 0.32999999821186066,
+    "breathing_changes": true,
+    "motion_render_frames": [
+      1,
+      35,
+      70,
+      105,
+      140,
+      180
+    ],
+    "terrain_water_meshes_unchanged": true,
+    "libraries_appended_in_clean_scene": {
+      "Ancient_Hollow_Tree.blend": 101,
+      "Ancient_Mineralized_Rib.blend": 5,
+      "Ancient_Root_Module.blend": 1,
+      "Jade_Fern_Original.blend": 7,
+      "White_Eared_Simian_Prototype.blend": 12
+    }
+  }
+}
