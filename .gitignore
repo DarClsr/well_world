@@ -2,6 +2,17 @@
 .downloads/
 .mimosa/
 temp/
-captures/*.wav
-captures/prototype*.png
-!captures/prototype-final00000002.png
+
+# Generated captures and Blender automatic backups
+/captures/
+*.blend[0-9]*
+
+# Reproducible art previews remain local. Source textures stay versioned.
+/art/**/*.png
+/art/**/*.gif
+/art/**/*.mp4
+!/art/**/textures/**
+!/art/prologue_terrain/sanctuary_v11.png
+!/art/prologue_terrain/village_landmark_v11.png
+!/art/exploration_props/v1/chest_magic.gif
+!/art/exploration_props/v1/chest_closed.png

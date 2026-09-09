@@ -2,6 +2,10 @@
 
 Godot 4 俯视角 3D 探索 RPG 原型。
 
+## 下载资源
+
+美术二进制由 Git LFS 管理，支持仅下载游戏资源。新机器请先阅读[轻量克隆与按需下载](docs/repository-assets.md)。
+
 ## 运行
 
 用 Godot 4.7.1 打开 `project.godot`，按 F6/F5 运行。
